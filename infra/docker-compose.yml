@@ -1,0 +1,50 @@
+services:
+  backend:
+    environment:
+      DATA_ROOT: /app/data/extern
+      PROJECT_ROOT: /app
+    build:
+      context: ../backend
+    volumes:
+      - ../backend:/app
+      - ../data:/app/data
+      - ../config:/app/config
+    env_file:
+      - ../login_data.env
+    ports:
+      - "8000:8000"
+    working_dir: /app/src
+    command: python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+  frontend:
+    build:
+      context: ../frontend/webapp
+      dockerfile: ../Dockerfile
+    volumes:
+      - ../frontend/webapp:/app
+      - frontend_node_modules:/app/node_modules
+    ports:
+      - "3000:3000"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=3000
+      - DANGEROUSLY_DISABLE_HOST_CHECK=true
+      - CHOKIDAR_USEPOLLING=true
+    command: sh -c "npm install && npm start"
+
+#  teamscale:
+#    image: cqse/teamscale:2026.2.latest
+#    container_name: teamscale
+#    restart: unless-stopped
+#    ports:
+#      - "8080:8080"
+#    working_dir: /var/teamscale
+#    environment:
+#      TZ: "Europe/Berlin"
+#      TEAMSCALE_CONFIG: "/var/teamscale/config"
+#    volumes:
+#      - "C:/Daten/KommMa-Teamscale/teamscale:/var/teamscale"
+#      - ..:/repo:ro
+
+volumes:
+  frontend_node_modules:

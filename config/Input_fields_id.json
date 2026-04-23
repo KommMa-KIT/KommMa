@@ -1,0 +1,16 @@
+{
+  "Anzahl der Busse": "anzahlDerBusse",
+  "Kommunaler Haushalt": "kommunalerHaushalt",
+  "Fallhöhe": "fallhöhe",
+  "Durchschnittliche Abwassermenge (ohne Regenwasser)": "durchschnittlicheAbwassermenge(ohneRegenwasser)",
+  "Einwohnerzahl": "einwohnerzahl",
+  "Anzahl der Fahrzeuge": "anzahlDerFahrzeuge",
+  "Anteil des Energieverbrauchs auf Gemeindegebiet": "anteilDesEnergieverbrauchsAufGemeindegebiet",
+  "Laufleistung": "laufleistung",
+  "Einwohnerwert": "einwohnerwert",
+  "Jahresmenge Schmutzwasser und Fremdwasser": "jahresmengeSchmutzwasserUndFremdwasser",
+  "Temperaturdifferenz": "temperaturdifferenz",
+  "Rathaus Gebäudenutzfläche": "rathausGebäudenutzfläche",
+  "Rathausentstehungsjahr": "rathausentstehungsjahr",
+  "Heizstundenzahl": "heizstundenzahl"
+}

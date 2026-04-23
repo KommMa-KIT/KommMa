@@ -1,0 +1,62 @@
+{
+  "downloader": {
+    "sources": {
+      "destatis_genesis": {
+        "enabled": true,
+        "base_url": "https://www-genesis.destatis.de/genesisWS/rest/2020",
+        "auth": { "username_env": "DESTATIS_USER", "password_env": "DESTATIS_PASS" },
+        "items": [
+          { "id": "61243-0010", "target": "destatis/61243-0015.csv" },
+          { "id": "61243-0006", "target": "destatis/61243-0006.csv" }
+        ]
+      },
+      "rdb_genesis": {
+        "enabled": true,
+        "base_url": "https://www.regionalstatistik.de/genesisWS/rest/2020",
+        "auth": { "username_env": "RDB_USER", "password_env": "RDB_PASS" },
+        "workflow": { "poll_interval_seconds": 2, "max_wait_seconds": 300 },
+        "items": [
+          { "id": "32213-01-01c-4", "target": "rdb/32213-01-01c-4.csv" },
+          { "id":  "32213-02-01-4", "target": "rdb/32213-02-01-4.csv" },
+          { "id": "71517-01-03-5", "target": "rdb/71517-01-03-5.csv" },
+          { "id": "71517-02-03-5", "target": "rdb/71517-01-03-5.csv" }
+        ]
+      },
+      "dwd_opendata": {
+        "enabled": true,
+        "base_url": "https://opendata.dwd.de/",
+        "station_list": {
+          "path": "/climate_environment/CDC/observations_germany/climate/daily/kl/recent/KL_Tageswerte_Beschreibung_Stationen.txt"
+        },
+        "folders": [
+          {
+            "path": "/climate_environment/CDC/observations_germany/climate/daily/kl/historical/"
+          },
+          {
+            "path": "/climate_environment/CDC/observations_germany/climate/daily/kl/recent/"
+          },
+          {
+            "path": "/climate_environment/CDC/derived_germany/techn/monthly/heating_degreedays/hdd_3807/recent/"
+          },
+          {
+            "path": "/climate_environment/CDC/regional_averages_DE/seasonal/air_temperature_mean"
+          }
+        ]
+      },
+      "gemeindeverzeichnis": {
+        "enabled": true,
+        "download_url": "https://www.destatis.de/.../AuszugGV3QAktuell.xlsx?__blob=publicationFile",
+        "raw_target": "gv/gv.xlsx",
+        "processed_target": "gv/gv.csv",
+        "processing": { "record_type": 60 }
+      },
+      "srtm_elevation": {
+        "enabled": true,
+        "download_url": "https://www.opendem.info/downloads/srtm_germany_dtm.zip",
+        "raw_target": "srtm_germany_dtm.tif",
+        "processed_target": "srtm_germany_dtm.tif",
+        "processing": { "unzip": true }
+      }
+    }
+  }
+}

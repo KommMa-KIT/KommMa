@@ -1,0 +1,25 @@
+{
+  "sources": {
+    "emissionsfaktor_strom_uba": {
+      "type": "yearly_page_exists",
+      "url_template": "https://www.umweltbundesamt.de/themen/co2-emissionen-pro-kilowattstunde-strom-{year}",
+      "lookahead_years": 5,
+      "last_seen": {
+        "year": 2024,
+        "url": "https://www.umweltbundesamt.de/themen/co2-emissionen-pro-kilowattstunde-strom-2024"
+      }
+    },
+    "destatis_mineraloel": {
+      "type": "listing_latest_download",
+      "listing_url": "https://www.destatis.de/SiteGlobals/Forms/Suche/Expertensuche_Formular.html?resultsPerPage=30&sortOrder=dateOfIssue_dt+desc&templateQueryString=statistischer%20bericht%20ausgewaehlte%20mineraloelerzeugnisse",
+      "href_must_contain": "statistischer-bericht-ausgewaehlte-mineraloelerzeugnisse",
+      "must_contain": [
+        "xlsx",
+        "__blob=publicationFile"
+      ],
+      "last_seen": {
+        "download_url": "https://www.destatis.de/DE/Themen/Wirtschaft/Preise/Erzeugerpreisindex-gewerbliche-Produkte/Publikationen/Downloads-Erzeugerpreise/statistischer-bericht-ausgewaehlte-mineraloelerzeugnisse-2170200262015.xlsx?__blob=publicationFile&v=3"
+      }
+    }
+  }
+}

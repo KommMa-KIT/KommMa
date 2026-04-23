@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+.idea/
+
+# Node
+node_modules/
+dist/
+build/
+
+# OS / IDE
+.DS_Store
+.vscode/
+externalAPI/Temprorary/*
+
+# Logs
+*.log
+
+# out files
+/data/extern/**
+# Password files
+login_data.env
+
+
+
+#Ignore error files 
+backend/data/*
+backend/src/DATA_ROOT/*
+backend/src/DATA_ROOT_old/*

@@ -1,0 +1,14 @@
+{
+    "central_file": "/app/data/ExcelDataSources/DataGeneralMastertable.xlsx",
+    "dependent_files_dir": "/app/data/ExcelDataSources/MeasureCalculationSheets",
+    "central_sheet_index": 0,
+    "central_header_row": 1,
+    "central_match_column": "Datenkategorie",
+    "central_value_column": "Wert",
+    "dependent_sheet_index": 1,
+    "dependent_header_row": 5,
+    "dependent_match_column": "Datenkategorie",
+    "dependent_value_column": "Wert",
+    "debounce_seconds": 5,
+    "log_file": "/app/src/logs/excel_sync.log"
+}
