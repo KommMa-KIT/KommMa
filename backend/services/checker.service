@@ -1,0 +1,12 @@
+[Unit]
+Description=Daily Docker Compose job: DaemonJob.py
+After=docker.service network-online.target
+Wants=docker.service network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/srv/projects/KommMa/infra
+
+ExecCondition=/usr/bin/systemctl is-active --quiet docker.service
+ExecStart=/usr/bin/flock -n /tmp/daemonjob.lock /usr/bin/docker compose -f /srv/projects/KommMa/infra/docker-compose.yml run --rm backend python3 -m externalAPI.HalfyearJob
+TimeoutStartSec=90m
