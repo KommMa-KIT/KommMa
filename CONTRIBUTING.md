@@ -16,9 +16,7 @@
 
 1. **Never commit directly to `main`.**
 2. All changes go through **branches + pull requests**.
-3. **Small, tra# Contributing Guide (KommMa)
-
-ceable PRs** instead of massive changes. => one new class or change at a time
+3. **Small, traceable PRs** instead of massive changes. => one new class or change at a time
 4. **Run tests/lint locally** before pushing.
 5. **No secrets** (e.g. `.env`, tokens, passwords) in the repository.
 
