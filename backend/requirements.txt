@@ -1,0 +1,15 @@
+requests==2.31.0
+numpy
+pandas
+openpyxl
+pyproj
+rasterio
+fastapi
+uvicorn[standard]
+pydantic
+starlette
+python-dotenv
+formulas>= 1.3.0
+dotenv
+bs4
+watchdog
