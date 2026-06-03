@@ -69,7 +69,7 @@ REFERENCE_COMMUNE_DIR: str = os.environ.get(
 # Path to the graph / relations Excel file
 GRAPH_EXCEL_FILE: str = os.environ.get(
     "GRAPH_EXCEL_FILE",
-    str(Path(_DEFAULT_DATA_DIR) / "20251124_Beziehungscheck_MV.xlsx"),
+    str(Path(_DEFAULT_DATA_DIR) / "Beziehungscheck.xlsx"),
 )
 
 # Path to the measures information Excel file
