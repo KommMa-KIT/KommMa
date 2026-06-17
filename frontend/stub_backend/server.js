@@ -1107,18 +1107,13 @@ app.post('/api/results/calculate', (req, res) => {
     });
 });
 
-// conflict, neutral, synergy, dependency, prerequisite
+// conflict, neutral, synergy, dependency, prerequisite, contribution
 app.get('/api/results/graph', (req, res) => {
     res.json([
         {
             "from": "M01",
             "to": "M02",
-            "type": "prerequisite"
-        },
-        {
-            "from": "M02",
-            "to": "M01",
-            "type": "dependency"
+            "type": "contribution"
         },
         {
             "from": "M01",
@@ -1126,14 +1121,14 @@ app.get('/api/results/graph', (req, res) => {
             "type": "synergy"
         },
         {
-            "from": "M02",
-            "to": "M06",
-            "type": "prerequisite"
+            "from": "M05",
+            "to": "M01",
+            "type": "synergy"
         },
         {
-            "from": "M06",
-            "to": "M02",
-            "type": "dependency"
+            "from": "M02",
+            "to": "M06",
+            "type": "contribution"
         },
         {
             "from": "M02",
@@ -1141,8 +1136,18 @@ app.get('/api/results/graph', (req, res) => {
             "type": "conflict"
         },
         {
+            "from": "M04",
+            "to": "M02",
+            "type": "conflict"
+        },
+        {
             "from": "M03",
             "to": "M08",
+            "type": "synergy"
+        },
+        {
+            "from": "M08",
+            "to": "M03",
             "type": "synergy"
         },
         {
@@ -1151,24 +1156,24 @@ app.get('/api/results/graph', (req, res) => {
             "type": "synergy"
         },
         {
+            "from": "M13",
+            "to": "M03",
+            "type": "synergy"
+        },
+        {
             "from": "M04",
             "to": "M01",
+            "type": "synergy"
+        },
+        {
+            "from": "M01",
+            "to": "M04",
             "type": "synergy"
         },
         {
             "from": "M04",
             "to": "M07",
-            "type": "prerequisite"
-        },
-        {
-            "from": "M07",
-            "to": "M04",
-            "type": "dependency"
-        },
-        {
-            "from": "M05",
-            "to": "M01",
-            "type": "synergy"
+            "type": "contribution"
         },
         {
             "from": "M06",
@@ -1176,8 +1181,18 @@ app.get('/api/results/graph', (req, res) => {
             "type": "conflict"
         },
         {
+            "from": "M08",
+            "to": "M06",
+            "type": "conflict"
+        },
+        {
             "from": "M06",
             "to": "M15",
+            "type": "synergy"
+        },
+        {
+            "from": "M15",
+            "to": "M06",
             "type": "synergy"
         },
         {
@@ -1186,8 +1201,18 @@ app.get('/api/results/graph', (req, res) => {
             "type": "conflict"
         },
         {
+            "from": "M10",
+            "to": "M07",
+            "type": "conflict"
+        },
+        {
             "from": "M08",
             "to": "M15",
+            "type": "synergy"
+        },
+        {
+            "from": "M15",
+            "to": "M08",
             "type": "synergy"
         },
         {
@@ -1196,38 +1221,53 @@ app.get('/api/results/graph', (req, res) => {
             "type": "synergy"
         },
         {
-            "from": "M10",
-            "to": "M01",
-            "type": "synergy"
-        },
-        {
-            "from": "M11",
-            "to": "M12",
-            "type": "prerequisite"
-        },
-        {
-            "from": "M12",
-            "to": "M11",
-            "type": "dependency"
-        },
-        {
-            "from": "M12",
-            "to": "M09",
-            "type": "synergy"
-        },
-        {
-            "from": "M13",
-            "to": "M15",
-            "type": "synergy"
-        },
-        {
             "from": "M14",
             "to": "M09",
             "type": "synergy"
         },
         {
+            "from": "M10",
+            "to": "M01",
+            "type": "synergy"
+        },
+        {
+            "from": "M01",
+            "to": "M10",
+            "type": "synergy"
+        },
+        {
+            "from": "M11",
+            "to": "M12",
+            "type": "contribution"
+        },
+        {
+            "from": "M12",
+            "to": "M09",
+            "type": "synergy"
+        },
+        {
+            "from": "M09",
+            "to": "M12",
+            "type": "synergy"
+        },
+        {
+            "from": "M13",
+            "to": "M15",
+            "type": "prerequisite"
+        },
+        {
+            "from": "M15",
+            "to": "M13",
+            "type": "dependency"
+        },
+        {
             "from": "M15",
             "to": "M03",
+            "type": "synergy"
+        },
+        {
+            "from": "M03",
+            "to": "M15",
             "type": "synergy"
         },
     ]);

@@ -1,4 +1,4 @@
-const isLocal = false;
+const isLocal = true;
 
 export const API_BASE_URL = isLocal
   ? 'http://localhost:4000'

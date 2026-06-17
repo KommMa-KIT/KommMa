@@ -60,8 +60,10 @@ class GraphRepository(GraphDataSource):
         self.relation_mapping = {
             'S': 'synergy',
             'K': 'conflict',
-            'A': 'dependency',
-            'B': 'prerequisite',
+            'A': 'neutral',
+            'B': 'contribution',
+            'D': 'dependency',
+            'P': 'prerequisite',
             'N': 'neutral'
         }
     

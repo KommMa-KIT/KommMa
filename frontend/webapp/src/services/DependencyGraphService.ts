@@ -1,17 +1,10 @@
 /**
  * DependencyGraphService.ts
+ * @author FladYannic
  *
- * Singleton service that builds and queries a directed dependency graph from
- * `GraphEdge` data. Supports four edge types:
+ * Singleton service that builds and queries a directed dependency graph from the GraphEdge data from GraphService. 
+ * Supports all edge types except neutral.
  *
- * | Type          | Meaning                                           | Effect in UI                  |
- * |---------------|---------------------------------------------------|-------------------------------|
- * | prerequisite  | A must be done before B                           | Marking A infeasible hides B  |
- * | dependency    | A requires B                                      | B shown as prerequisite of A  |
- * | synergy       | A implemented → B benefits                        | B gets a green border         |
- * | conflict      | A implemented → B is negatively affected          | B gets a red border           |
- *
- * All graph lookups are O(n) at most for the BFS traversal; direct lookups are O(1).
  */
 
 import { GraphEdge } from '../types/graphTypes';
@@ -22,6 +15,9 @@ class DependencyGraphService {
 
   /** Maps measure A → all measures that A itself requires (non-transitive). */
   private dependencyMap: Map<string, string[]> = new Map();
+
+  /** Maps measure A → measures that benefit when A is implemented. */
+  private contributionMap: Map<string, string[]> = new Map();
 
   /** Maps measure A → measures that benefit when A is implemented. */
   private synergyMap: Map<string, string[]> = new Map();
@@ -42,6 +38,7 @@ class DependencyGraphService {
   buildGraph(edges: GraphEdge[]): void {
     this.prerequisiteMap.clear();
     this.dependencyMap.clear();
+    this.contributionMap.clear();
     this.synergyMap.clear();
     this.conflictMap.clear();
 
@@ -58,17 +55,23 @@ class DependencyGraphService {
         if (!requirements.includes(edge.to)) requirements.push(edge.to);
         this.dependencyMap.set(edge.from, requirements);
 
+      } else if (edge.type === 'contribution') {
+        // "A contributes to B" → contributionMap: A → [..., B]
+        const contributionList = this.contributionMap.get(edge.from) || [];
+        if (!contributionList.includes(edge.to)) contributionList.push(edge.to);
+        this.contributionMap.set(edge.from, contributionList);
+
       } else if (edge.type === 'synergy') {
         // Directed: A implemented → B benefits
-        const synergyOfFrom = this.synergyMap.get(edge.from) || [];
-        if (!synergyOfFrom.includes(edge.to)) synergyOfFrom.push(edge.to);
-        this.synergyMap.set(edge.from, synergyOfFrom);
+        const synergyList = this.synergyMap.get(edge.from) || [];
+        if (!synergyList.includes(edge.to)) synergyList.push(edge.to);
+        this.synergyMap.set(edge.from, synergyList);
 
       } else if (edge.type === 'conflict') {
         // Directed: A implemented → B negatively affected
-        const conflictOfFrom = this.conflictMap.get(edge.from) || [];
-        if (!conflictOfFrom.includes(edge.to)) conflictOfFrom.push(edge.to);
-        this.conflictMap.set(edge.from, conflictOfFrom);
+        const conflictList = this.conflictMap.get(edge.from) || [];
+        if (!conflictList.includes(edge.to)) conflictList.push(edge.to);
+        this.conflictMap.set(edge.from, conflictList);
       }
     });
 
@@ -78,8 +81,8 @@ class DependencyGraphService {
   // --- Infeasibility propagation ---
 
   /**
-   * Returns all measures that (transitively) depend on `measureId` via BFS.
-   * Used to determine which measures should be hidden when `measureId` is marked infeasible.
+   * Returns all measures that (transitively) depend on 'measureId' via BFS.
+   * Used to determine which measures should be hidden when 'measureId' is marked infeasible.
    *
    * @param measureId The infeasible measure whose dependents should be found.
    * @returns Set of measure IDs that are blocked by the given measure.
@@ -113,7 +116,7 @@ class DependencyGraphService {
    * Used in MeasurePopup to display "these measures are required first".
    *
    * @param id Measure ID to look up.
-   * @returns Set of IDs for measures that must be completed before `id`.
+   * @returns Set of IDs for measures that must be completed before 'id'.
    */
   getPrerequisiteMeasures(id: string): Set<string> {
     return new Set<string>(this.dependencyMap.get(id) || []);
@@ -122,8 +125,10 @@ class DependencyGraphService {
   // --- Synergy / conflict resolution ---
 
   /**
-   * Returns all measures that benefit from at least one of the implemented measures
+   * Returns all measures that benefit from at least one of the implemented measures (via synergy OR contribution)
    * (i.e. candidates for a green border), excluding already-implemented measures.
+   * 
+   * Note: deprecated name: not synergy only - also contribution relationships are taken into account!
    *
    * @param implementedIds IDs of all currently implemented measures.
    */
@@ -131,7 +136,11 @@ class DependencyGraphService {
     const result = new Set<string>();
     implementedIds.forEach((id) => {
       const synergies = this.synergyMap.get(id) || [];
+      const contributionTo = this.contributionMap.get(id) || [];
       synergies.forEach((s) => {
+        if (!implementedIds.includes(s)) result.add(s);
+      });
+      contributionTo.forEach((s) => {
         if (!implementedIds.includes(s)) result.add(s);
       });
     });
@@ -174,6 +183,7 @@ class DependencyGraphService {
   reset(): void {
     this.prerequisiteMap.clear();
     this.dependencyMap.clear();
+    this.contributionMap.clear();
     this.synergyMap.clear();
     this.conflictMap.clear();
     this.initialized = false;
