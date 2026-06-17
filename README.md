@@ -1,17 +1,12 @@
 # KommMa Tool – Dev Setup
 
-## Voraussetzungen
+## Requirements
 - Docker Desktop
 - (optional) VS Code + Dev Containers Extension
+- Linux or WSL
 
-## Start (Docker Compose)
+## Start
 ```bash
 cd infra
 docker compose up --build
-```
-## Start (Windows Docker Compose)
-```bash
-wsl
-cd infra
-sudo docker compose up --build
 ```
