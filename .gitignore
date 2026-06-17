@@ -24,7 +24,8 @@ externalAPI/Temprorary/*
 # Password files
 login_data.env
 
-
+# data / excel sheets
+data/*
 
 #Ignore error files 
 backend/data/*
