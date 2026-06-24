@@ -354,7 +354,7 @@ def build_dependencies(build_complete: bool = True, run_updates_flag: bool = Tru
         SubsidiesRepository_dep=DummySubsidiesDataSource(),           # TODO: replace with real implementation
         GraphRepository_dep=GraphRepository(
             GRAPH_EXCEL_FILE,
-            measure_source=scenario_aware_measures,
+            #measure_source=scenario_aware_measures,
         ),
         CommuneAverageRepository_dep=DummyCommuneAverageDataSource(), # TODO: replace with real implementation
         CalculationEngine_dep=calc_engine,
