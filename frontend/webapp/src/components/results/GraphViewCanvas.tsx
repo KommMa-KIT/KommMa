@@ -219,6 +219,7 @@ const getEdgeStyle = (type: string): { fill: string; activeFill: string } => {
   const styles = {
     synergy:      { fill: '#22c55e', activeFill: '#16a34a' },
     conflict:     { fill: '#ef4444', activeFill: '#dc2626' },
+    contribution: { fill: '#ca8a04', activeFill: '#a16207' },
     dependency:   { fill: '#3b82f6', activeFill: '#2563eb' },
     prerequisite: { fill: '#a855f7', activeFill: '#9333ea' },
     /** Fallback for unrecognised edge types — should not occur in practice. */

@@ -1,5 +1,6 @@
 /**
  * GraphService.ts
+ * @author FladYannic
  *
  * Singleton HTTP client that retrieves the measure dependency graph from the backend.
  */

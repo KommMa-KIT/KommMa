@@ -107,7 +107,7 @@ const GraphView = () => {
         {/* Edge type legend — colour-coded to match GraphViewCanvas rendering */}
         <div className="bg-white rounded-lg shadow-sm p-4">
           <h4 className="font-semibold text-gray-900 mb-3">Legende</h4>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             <div className="flex items-center gap-2">
               <div className="w-8 h-1 bg-green-500 rounded"></div>
               <span className="text-sm text-gray-700">Synergie</span>
@@ -117,6 +117,11 @@ const GraphView = () => {
               <span className="text-sm text-gray-700">Konflikt</span>
             </div>
             <div className="flex items-center gap-2">
+              <div className="w-8 h-1 bg-yellow-500 rounded"></div>
+              <span className="text-sm text-gray-700">Beitrag</span>
+            </div>
+            {/*
+            <div className="flex items-center gap-2">
               <div className="w-8 h-1 bg-blue-500 rounded"></div>
               <span className="text-sm text-gray-700">Abhängigkeit</span>
             </div>
@@ -124,6 +129,7 @@ const GraphView = () => {
               <div className="w-8 h-1 bg-purple-500 rounded"></div>
               <span className="text-sm text-gray-700">Voraussetzung</span>
             </div>
+            */}
           </div>
         </div>
       </div>

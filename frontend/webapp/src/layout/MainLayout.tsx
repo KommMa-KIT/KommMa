@@ -47,9 +47,15 @@ export default function MainLayout() {
 
             <span className="text-gray-400">|</span>
 
+            {/*
             <Link to="/legal_disclosure" className="text-white hover:underline">
               Impressum
             </Link>
+            */}
+
+            <a href="https://www.kommma-im-klimaschutz.de/impressum.php" className="text-white hover:underline">
+              Impressum
+            </a>
 
             <span className="text-gray-400">|</span>
 

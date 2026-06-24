@@ -1,5 +1,6 @@
 /**
  * ExportService.ts
+ * @author FladYannic
  *
  * Singleton service that handles exporting ranked measure data to PDF and CSV formats.
  *
@@ -19,8 +20,6 @@ class ExportService {
 
   /**
    * Maps a raw graph-edge type to a human-readable German label.
-   *
-   * @param type  'prerequisite' | 'dependency' | 'synergy' | 'conflict' | 'neutral'
    */
   private getRelationTypeLabel(type: string): string {
     switch (type) {
@@ -29,6 +28,7 @@ class ExportService {
       case 'synergy':      return 'Synergie';
       case 'conflict':     return 'Konflikt';
       case 'neutral':      return 'Neutral';
+      case 'contribution': return 'Beitrag';
       default:             return type;
     }
   }
@@ -119,7 +119,6 @@ class ExportService {
     doc.text(`Anzahl Maßnahmen: ${measures.length}`, marginLeft, 28);
 
     // --- Table 1: main measures ---
-    // Fixed column widths: 13+18+15+25+23+25+22+22 = 163 mm fixed; Maßnahme gets 104 mm
     const tableData = measures.map((item) => [
       item.rank.toString(),
       item.measure.title,
@@ -180,7 +179,6 @@ class ExportService {
       .map((item) => [item.rank.toString(), item.measure.title, item.measure.popularityComment]);
 
     if (commentsData.length > 0) {
-      // Column widths: Rang=15, Maßnahme=70, Kommentar=182 → 267 mm
       autoTable(doc, {
         startY: currentY + 5,
         head: [['Rang', 'Maßnahme', 'Kommentar']],
@@ -228,7 +226,6 @@ class ExportService {
       );
 
       if (relevantEdges.length > 0) {
-        // Column widths: RangVon=15, MaßnahmeVon=90, RangZu=15, MaßnahmeZu=90, Beziehung=57 → 267 mm
         const edgesData = relevantEdges.map((edge) => [
           idToRank.get(edge.from)!,
           idToTitle.get(edge.from)!,

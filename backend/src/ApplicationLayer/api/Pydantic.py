@@ -97,7 +97,7 @@ class GraphEdgeType(str, Enum):
     """
     conflict = "conflict"
     synergy = "synergy"
-    requires = "requires"
+    contribution = "contribution"
     dependency = "dependency"
     prerequisite = "prerequisite"
 
