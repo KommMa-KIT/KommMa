@@ -1,0 +1,10 @@
+[Unit]
+Description=Run DaemonJob daily at 03:00
+
+[Timer]
+OnCalendar=*-*-* 02:00:00
+Persistent=false
+Unit=daemon.service
+
+[Install]
+WantedBy=timers.target
