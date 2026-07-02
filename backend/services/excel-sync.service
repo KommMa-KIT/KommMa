@@ -1,0 +1,32 @@
+[Unit]
+Description=Excel sync watcher: propagate mastertable changes to calculation sheets
+After=docker.service network-online.target
+Wants=docker.service
+
+[Service]
+Type=simple
+WorkingDirectory=/srv/projects/KommMa/infra
+
+ExecCondition=/usr/bin/systemctl is-active --quiet docker.service
+ExecStart=/usr/bin/docker compose -f /srv/projects/KommMa/infra/docker-compose.yml \
+    run --rm \
+    --name kommma-excel-sync \
+    backend \
+    python3 -m DatabaseRepositoryLayer.ExcelSyncRepository.watcher
+
+Restart=on-failure
+RestartSec=10
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+# Resource limits — keep the watcher lightweight on a shared server.
+CPUQuota=10%
+MemoryMax=256M
+Nice=15
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=excel-sync
+
+[Install]
+WantedBy=multi-user.target

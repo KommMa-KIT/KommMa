@@ -13,7 +13,7 @@ import { ArrowRight, AlertTriangle, Upload, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import Button from '../components/Button';
-import { API_BASE_URL } from '../config';
+import { API_BASE_URL, SHOW_OUTDATED_DATA_WARNING } from '../config';
 import ImportButton from '../components/ImportButton';
 import { fetchReferenceCommune } from '../store/CommunitySlice';
 import { setCurrentCategory } from '../store/UISlice';
@@ -186,7 +186,7 @@ const StartPage = () => {
 
           {/* Outdated data warning — only shown after loading completes and when
               at least one dataset is flagged as stale by the backend */}
-          {!isLoading && outdatedData.length > 0 && (
+          {!isLoading && outdatedData.length > 0 && SHOW_OUTDATED_DATA_WARNING && (
             <div className="mb-8 w-full max-w-2xl">
               <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg shadow-sm">
                 <div className="flex items-start gap-3">
