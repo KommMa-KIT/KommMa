@@ -35,6 +35,8 @@ app = FastAPI(title="PSE Planungstool API", lifespan=lifespan)
 origins = [
     "http://localhost:3000",
     "http://193.196.36.46:3000",   # externe IP
+    "https://kommma.com",
+    "https://www.kommma.com"
 ]
 
 
