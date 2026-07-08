@@ -366,34 +366,8 @@ const StartView = () => {
       )}
 
       <div className="space-y-6">
-
-        {/* AGS (Amtlicher Gemeindeschlüssel) input */}
-        <div className="bg-white p-6 rounded-lg border border-gray-200 hover:border-secondary transition-colors">
-          <div className="flex items-start gap-4">
-            <div className="flex-shrink-0 mt-1">
-              <Hash className="h-6 w-6 text-secondary" />
-            </div>
-            <div className="flex-1">
-              <label className="block text-sm font-semibold text-gray-900 mb-2">
-                Amtlicher Gemeindeschlüssel (AGS)
-              </label>
-              <input
-                type="text"
-                value={localKey}
-                onChange={(e) => handleKeyChange(e.target.value)}
-                placeholder="z.B. 08212000"
-                maxLength={8}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent"
-              />
-              <p className="mt-2 text-sm text-gray-600">
-                Der 8-stellige Schlüssel zur eindeutigen Identifikation Ihrer Kommune
-              </p>
-            </div>
-          </div>
-        </div>
-
         {/* Commune name input with debounced autocomplete dropdown */}
-        <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+        <div className="bg-white p-6 rounded-lg border border-gray-200 hover:border-secondary transition-colors">
           <div className="flex items-start gap-4">
             <div className="flex-shrink-0 mt-1">
               <Building2 className="h-6 w-6 text-secondary" />
@@ -441,6 +415,31 @@ const StartView = () => {
               </div>
               <p className="mt-2 text-sm text-gray-600">
                 Der offizielle Name Ihrer Kommune
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* AGS (Amtlicher Gemeindeschlüssel) input */}
+        <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0 mt-1">
+              <Hash className="h-6 w-6 text-secondary" />
+            </div>
+            <div className="flex-1">
+              <label className="block text-sm font-semibold text-gray-900 mb-2">
+                Amtlicher Gemeindeschlüssel (AGS)
+              </label>
+              <input
+                type="text"
+                value={localKey}
+                onChange={(e) => handleKeyChange(e.target.value)}
+                placeholder="z.B. 08212000"
+                maxLength={8}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent"
+              />
+              <p className="mt-2 text-sm text-gray-600">
+                Der 8-stellige Schlüssel zur eindeutigen Identifikation Ihrer Kommune
               </p>
             </div>
           </div>
