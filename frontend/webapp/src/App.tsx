@@ -31,6 +31,7 @@ import NotFoundPage          from './pages/NotFoundPage';
 import LegalDisclosurePage   from './pages/LegalDisclosurePage';
 import ResultProtectedRoute  from './routing/ResultProtectedRoute';
 import PrivacyPolicyPage     from './pages/PrivacyPolicy';
+import FAQPage               from './pages/FAQPage';
 
 // --- Component ---
 
@@ -55,7 +56,8 @@ const App = () => (
           <Route path="/input"           element={<InputPage />} />
           <Route path="/legal_disclosure" element={<LegalDisclosurePage />} />
           <Route path="/privacy_policy"  element={<PrivacyPolicyPage />} />
-
+          <Route path="/faq"             element={<FAQPage />} />
+          
           {/* /result — guarded by ResultProtectedRoute; redirects to "/" when
               no calculation result is present in the Redux store */}
           <Route

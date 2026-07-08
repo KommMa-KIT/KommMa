@@ -9,6 +9,7 @@
 
 import { Link, Outlet } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import ScrollToTop from '../components/ScrollToTop';
 
 // --- Component ---
 
@@ -16,6 +17,7 @@ import Navbar from '../components/Navbar';
  * MainLayout
  *
  * Sections:
+ *  - ScrollToTop — resets scroll position to top on every route change.
  *  - Navbar — sticky top bar, rendered on every route.
  *  - Outlet — React Router placeholder replaced by the active route's component.
  *  - Footer — two-column layout: KIT attribution (left), legal links (right).
@@ -23,6 +25,7 @@ import Navbar from '../components/Navbar';
 export default function MainLayout() {
   return (
     <>
+      <ScrollToTop />
       <Navbar />
 
       {/* Active route content — injected here by React Router */}
@@ -41,6 +44,12 @@ export default function MainLayout() {
 
           {/* Right column — legal links and KIT external link */}
           <div className="text-right max-w-4xl mx-auto px-4 flex justify-end items-center gap-3">
+            <Link to="/faq" className="text-white hover:underline">
+              FAQ
+            </Link>
+
+            <span className="text-gray-400">|</span>
+
             <Link to="/privacy_policy" className="text-white hover:underline">
               Datenschutz
             </Link>
