@@ -2,13 +2,25 @@
  * NavigationButtons.tsx
  *
  * Sticky bottom bar containing the Back, Next, and Calculate buttons for the
- * multi-step input page. Manages forward/backward navigation across the fixed
- * category sequence (Start → General → Energy → Mobility → Water → End),
- * validates the current category before allowing forward navigation, and
- * triggers the full calculation once the user reaches the final page.
+ * multi-step input page. Back and Next move sequentially through the fixed
+ * category order (Start → General → Energy → Mobility → Water → End); the
+ * InputProgressBar circles allow jumping directly to any category instead.
+ * Start is the only step that blocks forward navigation on its own — a
+ * commune must be selected before Next is enabled there. The four data
+ * categories (General, Energy, Mobility, Water) have no such per-step gate:
+ * their required fields are only validated once, together, when the user
+ * clicks "Berechnung starten".
  *
- * Field definitions are loaded once on mount and reused for all per-category
- * and pre-calculation validation passes.
+ * When that validation finds missing required fields, the calculation does
+ * not start. Instead, calculationAttempted is set in the store, which
+ * InputProgressBar reads to outline incomplete categories in red. This
+ * component complements that by re-validating whichever category is
+ * currently visible whenever calculationAttempted is true — on first failure
+ * and on every subsequent category change — so the missing fields on the
+ * active page are marked red for the user to fix.
+ *
+ * Field definitions are loaded once on mount and reused for both the
+ * pre-calculation validation pass and the per-view re-validation above.
  */
 
 import { useEffect, useState } from 'react';
@@ -21,6 +33,8 @@ import {
   selectCurrentCategory,
   setValidationError,
   clearAllValidationErrors,
+  setCalculationAttempted,
+  selectCalculationAttempted,
 } from '../../store/UISlice';
 import {
   selectCommuneKey,
@@ -33,6 +47,11 @@ import type { AppDispatch } from '../../store/store';
 import communityService from '../../services/CommunityService';
 import { validateCategory } from '../../utils/validationHelper';
 
+// --- Constants ---
+
+/** The four data categories that carry required fields and are validated on calculate. */
+const DATA_CATEGORIES: CategoryType[] = ['General', 'Energy', 'Mobility', 'Water'];
+
 // --- Component ---
 
 /**
@@ -42,8 +61,8 @@ import { validateCategory } from '../../utils/validationHelper';
  *  - Redux state and derived navigation flags
  *  - Start-page validity check
  *  - Field-definition loading via useEffect
- *  - Validation-error clear effect on category change
- *  - validateCurrentCategory — validates the active category and dispatches errors
+ *  - Per-view validation effect — validates the active category's fields
+ *    whenever it is shown, but only once a calculation attempt has failed
  *  - handleBack, handleNext, handleCalculate — navigation and calculation handlers
  *  - getCategoryLabel — pure category → localised string helper
  *  - Sticky bar render: Back button, page indicator, Next/Calculate button
@@ -53,6 +72,9 @@ const NavigationButtons = () => {
 
   /** The currently active category step. */
   const currentCategory = useSelector(selectCurrentCategory);
+
+  /** True once a calculation attempt has failed due to missing required fields. */
+  const calculationAttempted = useSelector(selectCalculationAttempted);
 
   /** The selected commune key; null when no commune has been chosen. */
   const communeKey = useSelector(selectCommuneKey);
@@ -67,11 +89,12 @@ const NavigationButtons = () => {
 
   /**
    * Field definitions for all categories, keyed by category name.
-   * Populated once on mount; used for both per-step and pre-calculation validation.
+   * Populated once on mount; used for both the pre-calculation validation
+   * pass and the per-view re-validation while calculationAttempted is true.
    */
   const [categoryFields, setCategoryFields] = useState<any>({});
 
-  /** True while the field-definition fetch is in progress; blocks validation during load. */
+  /** True while the field-definition fetch is in progress; blocks validation until ready. */
   const [fieldsLoading, setFieldsLoading] = useState(true);
 
   // --- Navigation state ---
@@ -87,6 +110,9 @@ const NavigationButtons = () => {
   /**
    * The Start page is considered valid when either a direct commune key is set
    * or a reference commune (other than the placeholder 'none') has been selected.
+   * This is the only per-step check that blocks forward navigation — every
+   * other category can be entered, left, and skipped freely regardless of its
+   * fill state.
    */
   const isStartValid = communeKey !== null || (referenceCommune !== null && referenceCommune !== 'none');
 
@@ -94,8 +120,8 @@ const NavigationButtons = () => {
 
   /**
    * Fetches all input field definitions on mount. Stored in component state
-   * rather than Redux because this data is only needed for navigation-time
-   * validation and does not need to be shared across the tree.
+   * rather than Redux because this data is only needed for validation and
+   * does not need to be shared across the tree.
    */
   useEffect(() => {
     const loadFields = async () => {
@@ -115,76 +141,53 @@ const NavigationButtons = () => {
   // --- Validation effects ---
 
   /**
-   * Clears all active validation errors whenever the user navigates to a new
-   * category, preventing stale error states from a previous step from bleeding
-   * into the newly displayed fields.
+   * Clears any existing field errors whenever the active category changes,
+   * then, if a calculation attempt has already failed once, immediately
+   * re-validates the newly active category and marks its missing required
+   * fields red. Also re-runs when calculationAttempted itself turns true, so
+   * the category the user is already viewing gets marked as soon as
+   * "Berechnung starten" fails, without needing to navigate away and back.
    */
   useEffect(() => {
     dispatch(clearAllValidationErrors());
-  }, [currentCategory, dispatch]);
 
-  // --- Validation logic ---
-
-  /**
-   * Validates all required fields in the current category.
-   * Start and End categories have no mandatory fields and always pass.
-   * For all other categories, invalid field IDs are collected and dispatched
-   * as individual validation errors so the UI can highlight each one.
-   *
-   * @returns True when the category is valid and navigation may proceed.
-   */
-  const validateCurrentCategory = (): boolean => {
-    if (currentCategory === 'Start' || currentCategory === 'End') {
-      return true;
-    }
+    if (fieldsLoading || !calculationAttempted) return;
+    if (!DATA_CATEGORIES.includes(currentCategory)) return;
 
     const fields = categoryFields[currentCategory] || [];
     const invalidFields = validateCategory(fields, inputs);
 
-    if (invalidFields.length > 0) {
-      invalidFields.forEach(fieldId => {
-        dispatch(setValidationError({
-          fieldId,
-          error: 'Dieses Pflichtfeld muss ausgefüllt werden',
-        }));
-      });
-      return false;
-    }
-
-    dispatch(clearAllValidationErrors());
-    return true;
-  };
+    invalidFields.forEach(fieldId => {
+      dispatch(setValidationError({
+        fieldId,
+        error: 'Dieses Pflichtfeld muss ausgefüllt werden',
+      }));
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentCategory, calculationAttempted, fieldsLoading, dispatch]);
 
   // --- Handlers ---
 
   /**
    * Navigates to the previous category and scrolls to the top.
-   * Clears validation errors so the previous step renders without stale highlights.
    */
   const handleBack = () => {
     if (!isFirstPage) {
-      dispatch(clearAllValidationErrors());
       dispatch(prevCategory());
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
   /**
-   * Validates the current category and, if valid, advances to the next one.
-   * On the Start page, also enforces that a commune selection has been made
-   * before allowing the user to proceed.
-   * Scrolls to the top on both success and validation failure (to reveal the
-   * error banner rendered by MainView near the top of the page).
+   * Advances to the next category. The only gate is on the Start page, which
+   * requires a commune selection before the user can move on. Every other
+   * category advances unconditionally; required-field validation for the
+   * data categories happens once, in handleCalculate.
    */
   const handleNext = () => {
     if (!isLastPage) {
       if (currentCategory === 'Start' && !isStartValid) {
         alert('Bitte wählen Sie zunächst eine Kommune aus.');
-        return;
-      }
-
-      if (!fieldsLoading && !validateCurrentCategory()) {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
       }
 
@@ -194,26 +197,32 @@ const NavigationButtons = () => {
   };
 
   /**
-   * Runs a full validation pass across all four data categories before
-   * dispatching the calculation. Alerts the user and aborts if any category
-   * still has unfilled required fields. On success, navigates to the result
-   * page immediately and awaits the async calculation in the background.
+   * Runs a single, full validation pass across all four data categories
+   * before dispatching the calculation.
+   *
+   * If any category still has missing required fields, the calculation is
+   * not started; calculationAttempted is set to true instead, which drives
+   * the red outline on InputProgressBar and, via the effect above, marks the
+   * missing fields on the currently visible category.
+   *
+   * If validation passes, calculationAttempted is cleared, the user is
+   * navigated to the result page immediately, and the calculation runs
+   * asynchronously in the background.
    */
   const handleCalculate = async () => {
     if (!fieldsLoading) {
-      const categoriesToValidate: ('General' | 'Energy' | 'Mobility' | 'Water')[] =
-        ['General', 'Energy', 'Mobility', 'Water'];
-
-      for (const cat of categoriesToValidate) {
+      const hasIncompleteCategory = DATA_CATEGORIES.some(cat => {
         const fields = categoryFields[cat] || [];
-        const invalidFields = validateCategory(fields, inputs);
+        return validateCategory(fields, inputs).length > 0;
+      });
 
-        if (invalidFields.length > 0) {
-          alert(`Bitte füllen Sie alle Pflichtfelder in der Kategorie "${getCategoryLabel(cat)}" aus.`);
-          return;
-        }
+      if (hasIncompleteCategory) {
+        dispatch(setCalculationAttempted(true));
+        return;
       }
     }
+
+    dispatch(setCalculationAttempted(false));
 
     try {
       navigate('/result');
@@ -282,7 +291,7 @@ const NavigationButtons = () => {
           ) : (
             <Button
               onClick={handleNext}
-              disabled={(currentCategory === 'Start' && !isStartValid) || fieldsLoading}
+              disabled={currentCategory === 'Start' && !isStartValid}
               variant="default"
               size="lg"
             >
