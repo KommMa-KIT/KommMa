@@ -8,7 +8,7 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronDown, HelpCircle, ArrowLeft } from 'lucide-react';
+import { ChevronDown, ArrowLeft } from 'lucide-react';
 import Button from '../components/Button';
 
 // --- Types ---

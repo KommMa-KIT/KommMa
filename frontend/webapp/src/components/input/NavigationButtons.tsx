@@ -232,19 +232,6 @@ const NavigationButtons = () => {
     }
   };
 
-  // --- Helpers ---
-
-  /** Returns the localised display label for a given category key. */
-  const getCategoryLabel = (category: string): string => {
-    switch (category) {
-      case 'General':  return 'Allgemeine Angaben';
-      case 'Energy':   return 'Energie';
-      case 'Mobility': return 'Mobilität';
-      case 'Water':    return 'Wasser';
-      default:         return category;
-    }
-  };
-
   return (
     <div className="sticky bottom-0 bg-white border-t border-gray-200 shadow-lg z-30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
