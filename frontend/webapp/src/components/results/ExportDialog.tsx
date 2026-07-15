@@ -1,17 +1,19 @@
 /**
  * ExportDialog.tsx
  *
- * Modal that lets the user choose between PDF and CSV export formats.
+ * Modal that lets the user choose between PDF, DOCX, and CSV export formats.
  * Delegates the actual export logic to the parent via callback props.
  */
 
-import { X, FileText, Table } from 'lucide-react';
+import { X, FileText, FileType, Table } from 'lucide-react';
 
 interface ExportDialogProps {
   open:          boolean;
   onOpenChange:  (open: boolean) => void;
   /** Called when the user selects PDF export. */
   onExportPDF:   () => void;
+  /** Called when the user selects DOCX export. */
+  onExportDOCX:  () => void;
   /** Called when the user selects CSV export. */
   onExportCSV:   () => void;
 }
@@ -19,17 +21,22 @@ interface ExportDialogProps {
 /**
  * ExportDialog
  *
- * Renders two large button options:
- *  - **PDF** – formatted document with tables and relationships.
+ * Renders three large button options:
+ *  - **PDF** – fixed-layout document with tables and relationships.
+ *  - **DOCX** – editable Word document with the same tables and relationships.
  *  - **CSV** – semicolon-delimited table for use in spreadsheet applications.
  *
- * Selecting either option triggers the corresponding callback and closes the dialog.
+ * Selecting any option triggers the corresponding callback and closes the dialog.
  */
-const ExportDialog = ({ open, onOpenChange, onExportPDF, onExportCSV }: ExportDialogProps) => {
+const ExportDialog = ({ open, onOpenChange, onExportPDF, onExportDOCX, onExportCSV }: ExportDialogProps) => {
   if (!open) return null;
 
   const handlePDFClick = () => {
     onExportPDF();
+    onOpenChange(false);
+  };
+  const handleDOCXClick = () => {
+    onExportDOCX();
     onOpenChange(false);
   };
   const handleCSVClick = () => {
@@ -76,6 +83,20 @@ const ExportDialog = ({ open, onOpenChange, onExportPDF, onExportCSV }: ExportDi
             <div className="flex-1 text-left">
               <h3 className="font-semibold text-gray-900 group-hover:text-red-700">PDF-Dokument</h3>
               <p className="text-sm text-gray-600">Übersichtlich formatierte Maßnahmen mit allen Details</p>
+            </div>
+          </button>
+
+          {/* DOCX */}
+          <button
+            onClick={handleDOCXClick}
+            className="w-full flex items-center gap-4 p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all group"
+          >
+            <div className="flex-shrink-0 w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+              <FileType className="h-6 w-6 text-blue-600" />
+            </div>
+            <div className="flex-1 text-left">
+              <h3 className="font-semibold text-gray-900 group-hover:text-blue-700">Word-Dokument</h3>
+              <p className="text-sm text-gray-600">Bearbeitbares Dokument mit allen Details</p>
             </div>
           </button>
 

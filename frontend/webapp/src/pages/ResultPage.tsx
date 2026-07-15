@@ -107,6 +107,26 @@ const ResultPage = () => {
   };
 
   /**
+   * Exports visible measures to a Word (.docx) document, including the dependency-graph
+   * edge table when graph data is available. Falls back to a graph-free export on fetch
+   * failure.
+   */
+  const handleExportDOCX = async () => {
+    const measuresToExport = visibleMeasures.map((item: any, index: number) => ({
+      ...item,
+      rank: index + 1,
+    }));
+
+    try {
+      const edges = await graphService.fetchGraph();
+      exportService.exportDOCX(measuresToExport, edges);
+    } catch (err) {
+      console.warn('Graph edges unavailable, exporting without relationships:', err);
+      exportService.exportDOCX(measuresToExport);
+    }
+  };
+
+  /**
    * Exports visible measures to a semicolon-delimited CSV file.
    */
   const handleExportCSV = () => {
@@ -182,6 +202,7 @@ const ResultPage = () => {
           open={exportDialogOpen}
           onOpenChange={setExportDialogOpen}
           onExportPDF={handleExportPDF}
+          onExportDOCX={handleExportDOCX}
           onExportCSV={handleExportCSV}
         />
 
