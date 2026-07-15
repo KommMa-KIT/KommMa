@@ -70,6 +70,9 @@ class MeasuresInformationExtractor(MultiSheetInfoExtractor, MeasureDataSource):
         'imageURL': 'imageURL',
         'titel': 'titel'
     }
+
+    # Separator used for list-like values in Excel cells
+    LIST_SEPARATOR = '\n'
     
     def __init__(self, file_path: str):
         """
@@ -110,7 +113,7 @@ class MeasuresInformationExtractor(MultiSheetInfoExtractor, MeasureDataSource):
             
             # Convert comma-separated strings to lists for specific fields
             if desired_field in ['relevantParameters', 'furtherInfo'] and isinstance(value, str):
-                value = [item.strip() for item in value.split(',') if item.strip()]
+                value = [item.strip() for item in value.split(self.LIST_SEPARATOR) if item.strip()]
             
             result[desired_field] = value
         
