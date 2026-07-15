@@ -332,7 +332,6 @@ class ExportService {
           didParseCell: (data) => {
             if (data.section === 'body' && data.column.index === 4) {
               data.cell.styles.textColor = rowColors[data.row.index];
-              data.cell.styles.fontStyle = 'bold';
             }
           },
         });
@@ -450,8 +449,7 @@ class ExportService {
           this.buildDocxCell(idToTitle.get(edge.to)!),
           this.buildDocxCell(this.getRelationTypeLabel(edge.type), {
             align: AlignmentType.CENTER,
-            color: this.getRelationTypeColorHex(edge.type),
-            bold: true,
+            color: this.getRelationTypeColorHex(edge.type)
           }),
         ],
       })),
