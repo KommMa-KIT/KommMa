@@ -11,6 +11,7 @@
     "@testing-library/user-event": "^13.5.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "docx": "^9.7.1",
     "jspdf": "^2.5.2",
     "jspdf-autotable": "^3.8.4",
     "lucide": "^0.562.0",

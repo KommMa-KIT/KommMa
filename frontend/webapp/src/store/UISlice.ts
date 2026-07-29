@@ -2,14 +2,20 @@
  * UISlice.ts
  *
  * Redux slice managing transient UI state that does not belong to any data
- * domain slice. Owns three concerns:
+ * domain slice. Owns four concerns:
  *  - currentCategory: the active step in the multi-step input page, advanced
  *    and retreated by nextCategory / prevCategory or jumped directly via
  *    setCurrentCategory.
  *  - expandedSubInputs: a map tracking which sub-input rows are expanded,
  *    keyed by parent field ID.
- *  - validationErrors: a map of per-field error messages set during navigation
- *    validation and cleared on field change or category transition.
+ *  - validationErrors: a map of per-field error messages, set when a category
+ *    is (re-)validated and cleared on field change or category transition.
+ *  - calculationAttempted: whether the user has tried to trigger the final
+ *    calculation while required fields were still missing. Required-field
+ *    validation is not enforced per step, only once at that point, so this
+ *    flag is what tells the input page's progress indicator and per-category
+ *    views to start surfacing which categories and fields are still
+ *    incomplete.
  */
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
@@ -28,6 +34,13 @@ interface UIState {
   expandedSubInputs: { [parentId: string]: boolean };
   /** Active validation error messages, keyed by field ID. */
   validationErrors: { [fieldId: string]: string };
+
+  /**
+   * True once the user has attempted the final calculation with one or more
+   * required fields still unfilled. Drives the red-outline / red-field
+   * indicators across the input page until the missing data is filled in.
+   */
+  calculationAttempted: boolean;
 }
 
 const initialState: UIState = {
@@ -35,6 +48,7 @@ const initialState: UIState = {
   visitedCategories: ['Start'],
   expandedSubInputs: {},
   validationErrors:  {},
+  calculationAttempted: false,
 };
 
 // --- Ordered category sequence ---
@@ -130,6 +144,18 @@ const uiSlice = createSlice({
       state.validationErrors = {};
     },
 
+    /**
+     * Sets whether a calculation attempt has failed due to missing required
+     * fields. Dispatched by NavigationButtons: true when "Berechnung starten"
+     * is clicked with incomplete categories, false once the calculation
+     * actually proceeds. Read by the progress bar and category views to
+     * decide whether to surface incomplete-category and missing-field
+     * indicators.
+     */
+    setCalculationAttempted: (state, action: PayloadAction<boolean>) => {
+      state.calculationAttempted = action.payload;
+    },
+
     /** Resets the entire UI slice to its initial state. */
     reset: () => initialState,
   },
@@ -147,6 +173,7 @@ export const {
   clearValidationError,
   clearAllValidationErrors,
   resetVisitedCategories,
+  setCalculationAttempted,
   reset,
 } = uiSlice.actions;
 
@@ -172,6 +199,10 @@ export const selectValidationError = (fieldId: string) => (state: { ui: UIState 
 /** Returns true when at least one validation error is active. */
 export const selectHasValidationErrors = (state: { ui: UIState }) =>
   Object.keys(state.ui.validationErrors).length > 0;
+
+/** Returns true once a calculation attempt has failed due to missing required fields. */
+export const selectCalculationAttempted = (state: { ui: UIState }) =>
+  state.ui.calculationAttempted;
 
 // --- Reducer ---
 
