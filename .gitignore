@@ -19,10 +19,9 @@ externalAPI/Temprorary/*
 # Logs
 *.log
 
-# out files
-/data/extern/**
-# Password files
+# Password / cert files
 login_data.env
+infra/nginx/certs/*
 
 # data / excel sheets
 data/*
