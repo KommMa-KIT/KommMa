@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from contextlib import asynccontextmanager
 import logging
+
 from fastapi import FastAPI
 
 from starlette.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 
 from app_logging.logger import setup_logging
 from app_logging.middleware import APILoggingMiddleware
@@ -24,17 +24,24 @@ setup_logging(force=True)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     app.state.deps = build_dependencies(BUILD_COMPLETE, RUN_UPDATES)
+
     logger = logging.getLogger(__name__)
     logger.info("Dependencies built successfully. ✅")
+
     yield
     # optional cleanup
 
 
-app = FastAPI(title="PSE Planungstool API", lifespan=lifespan)
+app = FastAPI(
+    title="PSE Planungstool API",
+    lifespan=lifespan
+)
+
 
 origins = [
     "http://localhost:3000",
-    "http://193.196.36.46:3000",   # externe IP
+    "https://kommma.com",
+    "https://www.kommma.com"
 ]
 
 
@@ -48,6 +55,5 @@ app.add_middleware(
 
 
 app.add_middleware(APILoggingMiddleware)
-app.include_router(router)
 
-app.mount("/images", StaticFiles(directory="/app/data/pictures"), name="images")
+app.include_router(router)

@@ -204,20 +204,76 @@ class DataCityCategoriesExtractor(InputParametersDataSource):
             return {}
 
     def _merge_categories(self, all_categories: List[Dict[str, List[Dict[str, Any]]]]) -> Dict[str, List[Dict[str, Any]]]:
+        """
+        Merge input categories collected from multiple measure workbooks into
+        a single theme-grouped catalogue.
+
+        Categories are deduplicated by ``id`` within each theme.  When the same
+        category appears in more than one workbook with a differing
+        ``critical`` (mandatory) flag, the merged entry is marked mandatory if
+        at least one workbook marks it as such.
+
+        @param all_categories: List of per-file category dicts, each in the
+                            ``{theme: [input_obj, ...]}`` shape returned by
+                            ``_extract_categories_from_file``.
+
+        @return: ``{theme: [input_obj, ...], ...}`` with categories sorted by
+                ``id`` within each theme.
+        """
         merged = {}
         for file_categories in all_categories:
             for theme, categories in file_categories.items():
                 if theme not in merged:
                     merged[theme] = []
                 for category in categories:
-                    exists = any(existing['id'] == category['id'] for existing in merged[theme])
-                    if not exists:
+                    existing = next(
+                        (item for item in merged[theme] if item['id'] == category['id']),
+                        None
+                    )
+                    if existing is None:
                         merged[theme].append(category)
+                    else:
+                        if category.get('critical') and not existing.get('critical'):
+                            existing['critical'] = True
+
+                        self._merge_subinput_critical(
+                            existing.get('subinputs', []),
+                            category.get('subinputs', [])
+                        )
 
         for theme in merged:
             merged[theme] = sorted(merged[theme], key=lambda x: x['id'])
 
         return merged
+
+
+    def _merge_subinput_critical(
+        self,
+        existing_subinputs: List[Dict[str, Any]],
+        new_subinputs: List[Dict[str, Any]]
+    ) -> None:
+        """
+        Reconcile the ``critical`` (mandatory) flag of subinputs belonging to
+        an already-merged parent category.
+
+        Subinputs are matched by ``id``; a subinput becomes mandatory in the
+        merged result as soon as any source workbook marks it as such.
+        Subinputs are only ever introduced into the catalogue as part of a new
+        parent category, so this method performs reconciliation only and does
+        not append new entries.
+
+        @param existing_subinputs: Subinput list already present in the merged
+                                catalogue for this category.
+        @param new_subinputs:      Subinput list from the category instance
+                                currently being merged in.
+        """
+        for new_sub in new_subinputs:
+            existing_sub = next(
+                (item for item in existing_subinputs if item['id'] == new_sub['id']),
+                None
+            )
+            if existing_sub is not None and new_sub.get('critical') and not existing_sub.get('critical'):
+                existing_sub['critical'] = True
 
     def _extract_categories_from_all_files(self) -> Dict[str, List[Dict[str, Any]]]:
         if not self.directory_path.exists():
