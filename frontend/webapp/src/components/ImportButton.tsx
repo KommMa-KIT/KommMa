@@ -18,7 +18,7 @@ import { RefreshCw } from 'lucide-react';
 import saveService from '../services/SaveService';
 import communityService from '../services/CommunityService';
 import { importData } from '../store/CommunitySlice';
-import { setCurrentCategory } from '../store/UISlice';
+import { setCurrentCategory, setInputMode } from '../store/UISlice';
 import { useNavigate } from 'react-router';
 import { InputExport } from '../types/inputTypes';
 
@@ -143,6 +143,8 @@ const ImportButton = ({ children }: ImportButtonProps) => {
       dispatch(importData(data));
 
       // Step 7: Navigate to the input page and surface a success notification.
+      // Imported sessions should always be imported into a the default input mode. (As opposed to the "beginner" mode)
+      dispatch(setInputMode('full'));
       dispatch(setCurrentCategory('General'));
       navigate('/input');
       showSuccessNotification(data.communeName || 'Unbekannte Kommune', updatedCount);

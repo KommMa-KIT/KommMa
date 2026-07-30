@@ -22,6 +22,11 @@ jest.mock('../../src/components/input/ProgressBar', () => ({
   default: () => <div data-testid="progress-bar" />,
 }));
 
+jest.mock('../../src/components/input/InputModeToggle', () => ({
+  __esModule: true,
+  default: () => <div data-testid="input-mode-toggle" />,
+}));
+
 jest.mock('../../src/components/input/StartView', () => ({
   __esModule: true,
   default: () => <div data-testid="start-view" />,

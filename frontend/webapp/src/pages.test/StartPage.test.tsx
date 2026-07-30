@@ -55,8 +55,10 @@ jest.mock('../../src/store/CommunitySlice', () => ({
   fetchReferenceCommune: (id: string) => mockFetchReferenceCommune(id),
 }));
 
+const mockSetInputMode = jest.fn();
 jest.mock('../../src/store/UISlice', () => ({
   setCurrentCategory: (c: string) => mockSetCurrentCategory(c),
+  setInputMode: (mode: string) => mockSetInputMode(mode),
 }));
 
 // Controllable fetch mock — reassigned per test in beforeEach
@@ -106,6 +108,7 @@ describe('StartPage', () => {
     // Default: plain action objects so dispatch() never throws
     mockFetchReferenceCommune.mockReturnValue({ type: 'community/fetchReference' });
     mockSetCurrentCategory.mockReturnValue({ type: 'ui/setCurrentCategory' });
+    mockSetInputMode.mockReturnValue({ type: 'ui/setInputMode' });
   });
 
   // --- Static hero content --------------------------------------------------
@@ -145,6 +148,16 @@ describe('StartPage', () => {
     mockGetReferenceCommunesList.mockResolvedValue([]);
     await act(async () => renderPage());
     fireEvent.click(screen.getByText(/Neue Analyse starten/));
+    expect(mockNavigate).toHaveBeenCalledWith('/input');
+    expect(mockSetInputMode).toHaveBeenCalledWith('full');
+  });
+
+  it('starts beginner mode and navigates to /input when "Schnellstart" clicked', async () => {
+    fetchImpl = () => Promise.resolve({ ok: true, json: async () => [] });
+    mockGetReferenceCommunesList.mockResolvedValue([]);
+    await act(async () => renderPage());
+    fireEvent.click(screen.getByRole('button', { name: /Schnellstart/ }));
+    expect(mockSetInputMode).toHaveBeenCalledWith('beginner');
     expect(mockNavigate).toHaveBeenCalledWith('/input');
   });
 

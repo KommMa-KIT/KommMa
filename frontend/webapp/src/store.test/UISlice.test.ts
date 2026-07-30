@@ -9,6 +9,8 @@
 import reducer, {
   UIState,
   setCurrentCategory,
+  setInputMode,
+  selectInputMode,
   nextCategory,
   prevCategory,
   toggleSubInput,
@@ -28,6 +30,7 @@ import reducer, {
 describe('uiSlice – additional coverage', () => {
   const fullInitialState: UIState = {
     currentCategory: 'Start',
+    inputMode: 'full',
     visitedCategories: ['Start'],
     expandedSubInputs: {},
     validationErrors: {},
@@ -287,6 +290,57 @@ describe('uiSlice – additional coverage', () => {
   describe('selectValidationError', () => {
     it('returns undefined for missing field', () => {
       expect(selectValidationError('missing')({ ui: fullInitialState })).toBeUndefined();
+    });
+  });
+
+  // ─── inputMode (beginner mode) ────────────────────────────────────────────
+
+  describe('inputMode', () => {
+    it('defaults to full mode', () => {
+      expect(selectInputMode({ ui: fullInitialState })).toBe('full');
+    });
+
+    it('setInputMode switches to beginner and back', () => {
+      let state = reducer(fullInitialState, setInputMode('beginner'));
+      expect(state.inputMode).toBe('beginner');
+      state = reducer(state, setInputMode('full'));
+      expect(state.inputMode).toBe('full');
+    });
+
+    it('reset restores full mode', () => {
+      const state = reducer(fullInitialState, setInputMode('beginner'));
+      const next = reducer(state, reset());
+      expect(next.inputMode).toBe('full');
+    });
+  });
+
+  // ─── Sequence-aware navigation (beginner mode skips categories) ──────────
+
+  describe('nextCategory / prevCategory with a custom sequence', () => {
+    const beginnerSequence: UIState['currentCategory'][] = ['Start', 'General', 'Water', 'End'];
+
+    it('nextCategory skips categories not in the provided sequence', () => {
+      const state = stateWith('General', ['Start', 'General']);
+      const next = reducer(state, nextCategory(beginnerSequence));
+      expect(next.currentCategory).toBe('Water');
+    });
+
+    it('prevCategory skips categories not in the provided sequence', () => {
+      const state = stateWith('Water', ['Start', 'General', 'Water']);
+      const next = reducer(state, prevCategory(beginnerSequence));
+      expect(next.currentCategory).toBe('General');
+    });
+
+    it('nextCategory is a no-op when the current category is not in the sequence', () => {
+      const state = stateWith('Mobility', ['Start']);
+      const next = reducer(state, nextCategory(beginnerSequence));
+      expect(next.currentCategory).toBe('Mobility');
+    });
+
+    it('nextCategory does not advance past the sequence end', () => {
+      const state = stateWith('End', ['Start', 'End']);
+      const next = reducer(state, nextCategory(beginnerSequence));
+      expect(next.currentCategory).toBe('End');
     });
   });
 });

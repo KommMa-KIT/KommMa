@@ -50,6 +50,7 @@ jest.mock('../../store/UISlice', () => ({
   },
   selectCurrentCategory: (state: any) => state.ui.currentCategory,
   selectVisitedCategories: (state: any) => state.ui.visitedCategories ?? [],
+  selectInputMode: (state: any) => state.ui.inputMode ?? 'full',
 }));
 
 jest.mock('../../store/CommunitySlice', () => ({

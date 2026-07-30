@@ -6,6 +6,8 @@
  *  - currentCategory: the active step in the multi-step input page, advanced
  *    and retreated by nextCategory / prevCategory or jumped directly via
  *    setCurrentCategory.
+ *  - inputMode: whether the input page runs in beginner mode (only mandatory
+ *    fields, categories without them are skipped) or full mode.
  *  - expandedSubInputs: a map tracking which sub-input rows are expanded,
  *    keyed by parent field ID.
  *  - validationErrors: a map of per-field error messages, set when a category
@@ -19,17 +21,20 @@
  */
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { CategoryType } from '../types/inputTypes';
+import { CategoryType, InputMode } from '../types/inputTypes';
 
 // --- State ---
 
-interface UIState {
+export interface UIState {
   /** The currently active input page step. */
   currentCategory: CategoryType;
 
+  /** The active input mode; 'beginner' restricts the flow to mandatory fields. */
+  inputMode: InputMode;
+
   // Categories which have been accessed at least once
   visitedCategories: CategoryType[];
-  
+
   // Stores which subinput fields are expanded
   expandedSubInputs: { [parentId: string]: boolean };
   /** Active validation error messages, keyed by field ID. */
@@ -45,6 +50,7 @@ interface UIState {
 
 const initialState: UIState = {
   currentCategory: 'Start',
+  inputMode: 'full',
   visitedCategories: ['Start'],
   expandedSubInputs: {},
   validationErrors:  {},
@@ -75,17 +81,23 @@ const uiSlice = createSlice({
       }
     },
 
+    /** Switches between beginner (mandatory fields only) and full input mode. */
+    setInputMode: (state, action: PayloadAction<InputMode>) => {
+      state.inputMode = action.payload;
+    },
+
     /**
      * Advances to the next category in the sequence.
      * Dispatched by the Next button in NavigationButtons. No-ops when already
-     * on the final step.
+     * on the final step. An optional payload provides the active (possibly
+     * beginner-mode-filtered) step sequence; defaults to the full sequence.
      */
-    nextCategory: (state) => {
-      const categories: CategoryType[] = ['Start', 'General', 'Energy', 'Mobility', 'Water', 'End'];
+    nextCategory: (state, action: PayloadAction<CategoryType[] | undefined>) => {
+      const categories = action.payload ?? CATEGORIES;
       const currentIndex = categories.indexOf(state.currentCategory);
-      if (currentIndex < categories.length - 1) {
-        state.currentCategory = categories[currentIndex + 1];
-        const next = categories[currentIndex +1];
+      if (currentIndex >= 0 && currentIndex < categories.length - 1) {
+        const next = categories[currentIndex + 1];
+        state.currentCategory = next;
         if (!state.visitedCategories.includes(next)) {
           state.visitedCategories.push(next);
         }
@@ -96,11 +108,15 @@ const uiSlice = createSlice({
       state.visitedCategories = ['Start'];
     },
 
-    // Called, when the "previous"-Button is clicked during input.
-    prevCategory: (state) => {
-      const currentIndex = CATEGORIES.indexOf(state.currentCategory);
+    /**
+     * Called, when the "previous"-Button is clicked during input.
+     * Accepts the same optional sequence payload as nextCategory.
+     */
+    prevCategory: (state, action: PayloadAction<CategoryType[] | undefined>) => {
+      const categories = action.payload ?? CATEGORIES;
+      const currentIndex = categories.indexOf(state.currentCategory);
       if (currentIndex > 0) {
-        state.currentCategory = CATEGORIES[currentIndex - 1];
+        state.currentCategory = categories[currentIndex - 1];
       }
     },
 
@@ -165,6 +181,7 @@ const uiSlice = createSlice({
 
 export const {
   setCurrentCategory,
+  setInputMode,
   nextCategory,
   prevCategory,
   toggleSubInput,
@@ -181,6 +198,10 @@ export const {
 
 export const selectCurrentCategory = (state: { ui: UIState }) =>
   state.ui.currentCategory;
+
+/** Returns the active input mode ('beginner' or 'full'). */
+export const selectInputMode = (state: { ui: UIState }) =>
+  state.ui.inputMode;
 
 export const selectVisitedCategories = (state: { ui: UIState }) =>
   state.ui.visitedCategories;

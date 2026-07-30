@@ -17,6 +17,7 @@ import InputCategoryView from '../components/input/MainView';
 import EndView from '../components/input/EndView';
 import NavigationButtons from '../components/input/NavigationButtons';
 import ExportButton from '../components/input/ExportButton';
+import InputModeToggle from '../components/input/InputModeToggle';
 
 // --- Component ---
 
@@ -93,6 +94,8 @@ const InputPage = () => {
 
       {/* Scrollable content area — bottom padding reserves space for the sticky NavigationButtons */}
       <div className="flex-1 pb-24">
+        {/* Mode toggle — switch between beginner (mandatory fields only) and full input */}
+        <InputModeToggle />
         {renderCurrentView()}
       </div>
 

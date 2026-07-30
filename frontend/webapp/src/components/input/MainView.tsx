@@ -14,7 +14,8 @@ import { AlertCircle } from 'lucide-react';
 import { CategorizedFields, InputFieldDefinition } from '../../types/inputTypes';
 import InputField from './fields/InputField';
 import communityService from '../../services/CommunityService';
-import { selectValidationErrors } from '../../store/UISlice';
+import { selectValidationErrors, selectInputMode } from '../../store/UISlice';
+import { filterMandatoryFields } from '../../utils/inputModeHelper';
 
 // --- Types ---
 
@@ -49,6 +50,9 @@ const MainView = ({ category }: MainViewProps) => {
   /** Map of field IDs to their active validation error messages. */
   const validationErrors = useSelector(selectValidationErrors);
 
+  /** The active input mode; beginner mode shows only mandatory fields. */
+  const inputMode = useSelector(selectInputMode);
+
   // --- Data loading ---
 
   /**
@@ -73,11 +77,17 @@ const MainView = ({ category }: MainViewProps) => {
     loadFields();
   }, []);
 
+  /**
+   * Derives the displayed fields from the loaded definitions. In beginner mode
+   * the category's field tree is filtered down to mandatory fields (keeping
+   * non-critical parents of critical subinputs).
+   */
   useEffect(() => {
     if (allFields) {
-      setCurrentFields(allFields[category] || []);
+      const fields = allFields[category] || [];
+      setCurrentFields(inputMode === 'beginner' ? filterMandatoryFields(fields) : fields);
     }
-  }, [category, allFields]);
+  }, [category, allFields, inputMode]);
 
   // --- Validation scroll ---
 
@@ -173,6 +183,13 @@ const MainView = ({ category }: MainViewProps) => {
         <p className="text-gray-600">
           {getCategoryDescription()}
         </p>
+
+        {/* Beginner mode hint — clarifies why only a subset of fields is visible */}
+        {inputMode === 'beginner' && (
+          <p className="mt-2 text-sm text-gray-500">
+            Einsteiger-Modus: Es werden nur die Pflichtfelder angezeigt.
+          </p>
+        )}
 
         {/* Validation error banner — only shown when required fields are unmet */}
         {hasValidationErrors && (

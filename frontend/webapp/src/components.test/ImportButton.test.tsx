@@ -36,6 +36,7 @@ jest.mock('../store/CommunitySlice', () => ({
 
 jest.mock('../store/UISlice', () => ({
   setCurrentCategory: jest.fn(),
+  setInputMode: jest.fn(),
 }));
 
 type MockNotificationConstructor = jest.Mock & {

@@ -21,11 +21,12 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { CategoryType } from '../../types/inputTypes';
-import { setCurrentCategory, selectCurrentCategory, clearAllValidationErrors, selectVisitedCategories, selectCalculationAttempted } from '../../store/UISlice';
+import { setCurrentCategory, selectCurrentCategory, clearAllValidationErrors, selectVisitedCategories, selectInputMode } from '../../store/UISlice';
 import { selectCommuneKey, selectAllInputs, selectReferenceCommune } from '../../store/CommunitySlice';
 import { Check, Lock } from 'lucide-react';
 import communityService from '../../services/CommunityService';
 import { validateCategory } from '../../utils/validationHelper';
+import { getVisibleCategories } from '../../utils/inputModeHelper';
 
 // --- Types ---
 
@@ -37,8 +38,8 @@ interface CategoryConfig {
 
 // --- Constants ---
 
-/** Ordered list of all input page steps, used for display order only — not for access gating. */
-const categories: CategoryConfig[] = [
+/** Ordered list of all input page steps. Order determines accessibility gating. */
+const allCategories: CategoryConfig[] = [
   { id: 'Start',    label: 'Start'       },
   { id: 'General',  label: 'Allgemeines' },
   { id: 'Energy',   label: 'Energie'     },
@@ -82,6 +83,9 @@ const InputProgressBar = () => {
   /** All current input values keyed by field ID. */
   const inputs = useSelector(selectAllInputs);
 
+  /** The active input mode; beginner mode hides categories without mandatory fields. */
+  const inputMode = useSelector(selectInputMode);
+
   /**
    * Field definitions for all categories, keyed by category name.
    * Loaded once on mount and used to derive each step's fill state for
@@ -115,6 +119,17 @@ const InputProgressBar = () => {
   }, []);
 
   // --- Step state helpers ---
+
+  /**
+   * The step sequence visible in the active mode. In beginner mode, data
+   * categories without mandatory fields are dropped; while field definitions
+   * are still loading, the full sequence is shown to avoid layout jumps.
+   */
+  const visibleCategoryIds = getVisibleCategories(
+    inputMode,
+    fieldsLoading ? undefined : categoryFields
+  );
+  const categories = allCategories.filter(cat => visibleCategoryIds.includes(cat.id));
 
   /**
    * Start is considered complete once a commune key has been selected.

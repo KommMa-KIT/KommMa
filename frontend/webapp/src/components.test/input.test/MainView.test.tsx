@@ -40,6 +40,7 @@ jest.mock('../../services/CommunityService', () => ({
 const mockSelectValidationErrors = jest.fn();
 jest.mock('../../store/UISlice', () => ({
   selectValidationErrors: (state: any) => mockSelectValidationErrors(state),
+  selectInputMode: (state: any) => state.ui?.inputMode ?? 'full',
 }));
 
 // ---------------------------------------------------------------------------

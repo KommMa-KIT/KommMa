@@ -9,15 +9,15 @@
  */
 
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, AlertTriangle, Upload, Users } from 'lucide-react';
+import { ArrowRight, AlertTriangle, Upload, Users, Sparkles } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import Button from '../components/Button';
 import { API_BASE_URL, SHOW_OUTDATED_DATA_WARNING } from '../config';
 import ImportButton from '../components/ImportButton';
 import { fetchReferenceCommune } from '../store/CommunitySlice';
-import { setCurrentCategory } from '../store/UISlice';
-import { ReferenceCommunePreview } from '../types/inputTypes';
+import { setCurrentCategory, setInputMode } from '../store/UISlice';
+import { InputMode, ReferenceCommunePreview } from '../types/inputTypes';
 import { communityService } from '../services/CommunityService';
 import ReferenceCommuneCard from '../components/ReferenceCommuneCard';
 import { AppDispatch } from '@/store/store';
@@ -148,14 +148,26 @@ const StartPage = () => {
   // --- Handlers ---
 
   /**
+   * Starts a new analysis in the given input mode and navigates to the input
+   * page. 'beginner' restricts the flow to mandatory fields (Schnellstart);
+   * 'full' runs the complete input catalogue.
+   */
+  const handleStartAnalysis = (mode: InputMode) => {
+    dispatch(setInputMode(mode));
+    navigate('/input');
+  };
+
+  /**
    * Fetches the full data for the selected reference commune, sets the input
-   * page to the General category, and navigates to the input page.
+   * page to the General category, and navigates to the input page. Reference
+   * communes prefill the complete catalogue, so full mode is used.
    * Errors are logged but not surfaced — the user remains on the start page
    * if the dispatch fails.
    */
   const handleSelectReferenceCommune = async (id: string) => {
     try {
       await dispatch(fetchReferenceCommune(id));
+      dispatch(setInputMode('full'));
       dispatch(setCurrentCategory('General'));
       navigate('/input');
     } catch (err) {
@@ -231,7 +243,14 @@ const StartPage = () => {
 
           {/* Primary action buttons */}
           <div className="flex flex-col sm:flex-row gap-4">
-            <Button size="lg" onClick={() => navigate('/input')} className="gap-2">
+            {/* Schnellstart — beginner mode with only the mandatory input fields */}
+            <Button size="lg" onClick={() => handleStartAnalysis('beginner')} className="gap-2">
+              <Sparkles className="h-5 w-5" />
+              Schnellstart (Einsteiger)
+              <ArrowRight className="h-5 w-5" />
+            </Button>
+
+            <Button size="lg" onClick={() => handleStartAnalysis('full')} className="gap-2">
               Neue Analyse starten
               <ArrowRight className="h-5 w-5" />
             </Button>
@@ -251,6 +270,13 @@ const StartPage = () => {
               )}
             </ImportButton>
           </div>
+
+          {/* Schnellstart explainer — helps new users pick the right entry point */}
+          <p className="mt-4 text-sm text-muted-foreground max-w-2xl">
+            Neu hier? Der Schnellstart führt Sie nur durch die wichtigsten
+            Pflichtangaben — ideal, um das Tool kennenzulernen. Weitere Angaben
+            können Sie später jederzeit ergänzen.
+          </p>
         </div>
       </div>
 

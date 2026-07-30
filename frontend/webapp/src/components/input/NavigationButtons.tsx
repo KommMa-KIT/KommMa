@@ -31,6 +31,7 @@ import {
   nextCategory,
   prevCategory,
   selectCurrentCategory,
+  selectInputMode,
   setValidationError,
   clearAllValidationErrors,
   setCalculationAttempted,
@@ -46,11 +47,7 @@ import { useNavigate } from 'react-router-dom';
 import type { AppDispatch } from '../../store/store';
 import communityService from '../../services/CommunityService';
 import { validateCategory } from '../../utils/validationHelper';
-
-// --- Constants ---
-
-/** The four data categories that carry required fields and are validated on calculate. */
-const DATA_CATEGORIES: CategoryType[] = ['General', 'Energy', 'Mobility', 'Water'];
+import { getVisibleCategories } from '../../utils/inputModeHelper';
 
 // --- Component ---
 
@@ -85,6 +82,9 @@ const NavigationButtons = () => {
   /** All current input values keyed by field ID. */
   const inputs = useSelector(selectAllInputs);
 
+  /** The active input mode; beginner mode skips categories without mandatory fields. */
+  const inputMode = useSelector(selectInputMode);
+
   const navigate = useNavigate();
 
   /**
@@ -99,8 +99,15 @@ const NavigationButtons = () => {
 
   // --- Navigation state ---
 
-  /** Ordered sequence of all category steps in the input flow. */
-  const categories: CategoryType[] = ['Start', 'General', 'Energy', 'Mobility', 'Water', 'End'];
+  /**
+   * Ordered sequence of the category steps visible in the active mode.
+   * In beginner mode, data categories without mandatory fields are skipped;
+   * the full sequence is used while field definitions are still loading.
+   */
+  const categories: CategoryType[] = getVisibleCategories(
+    inputMode,
+    fieldsLoading ? undefined : categoryFields
+  );
 
   const currentIndex = categories.indexOf(currentCategory);
 
@@ -173,7 +180,8 @@ const NavigationButtons = () => {
    */
   const handleBack = () => {
     if (!isFirstPage) {
-      dispatch(prevCategory());
+      dispatch(clearAllValidationErrors());
+      dispatch(prevCategory(categories));
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
@@ -191,7 +199,12 @@ const NavigationButtons = () => {
         return;
       }
 
-      dispatch(nextCategory());
+      if (!fieldsLoading && !validateCurrentCategory()) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+
+      dispatch(nextCategory(categories));
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
@@ -259,7 +272,7 @@ const NavigationButtons = () => {
               {currentCategory === 'Energy'   && 'Energie'}
               {currentCategory === 'Mobility' && 'Mobilität'}
               {currentCategory === 'Water'    && 'Wasser'}
-              {currentCategory === 'End'      && 'Fördermittel & Abschluss'}
+              {currentCategory === 'End'      && (inputMode === 'beginner' ? 'Abschluss' : 'Fördermittel & Abschluss')}
             </p>
           </div>
 

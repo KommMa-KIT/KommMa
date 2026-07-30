@@ -77,9 +77,10 @@ const CATEGORIES: SubsidyCategory[] = [
 // Store — middleware disabled so RTK invariant checks never fire.
 // ---------------------------------------------------------------------------
 
-function buildStore(subsidies: any[] = []) {
+function buildStore(subsidies: any[] = [], inputMode: string = 'full') {
   return configureStore({
     reducer: {
+      ui: (state = { inputMode }) => state,
       community: (state = { subsidies }, action: any) => {
         switch (action.type) {
           case 'community/addSubsidy':
@@ -110,8 +111,8 @@ function buildStore(subsidies: any[] = []) {
 // Render helper
 // ---------------------------------------------------------------------------
 
-async function renderEndView(subsidies: any[] = []) {
-  const store = buildStore(subsidies);
+async function renderEndView(subsidies: any[] = [], inputMode: string = 'full') {
+  const store = buildStore(subsidies, inputMode);
   let result!: ReturnType<typeof render>;
   await act(async () => {
     result = render(
@@ -340,5 +341,19 @@ describe('EndView', () => {
     svc.getSubsidyCategories.mockRejectedValue(new Error('fetch error'));
     await expect(renderEndView([])).resolves.not.toThrow();
     expect(screen.getByText('Fördermittel')).toBeInTheDocument();
+  });
+
+  // --- Beginner mode ----------------------------------------------------------
+
+  it('renders the simplified completion panel in beginner mode', async () => {
+    await renderEndView([], 'beginner');
+    expect(screen.getByText('Abschluss')).toBeInTheDocument();
+    expect(screen.getByText('Alle Pflichtangaben vollständig')).toBeInTheDocument();
+    expect(screen.queryByText('Fördermittel')).not.toBeInTheDocument();
+  });
+
+  it('does not fetch subsidy categories in beginner mode', async () => {
+    await renderEndView([], 'beginner');
+    expect(svc.getSubsidyCategories).not.toHaveBeenCalled();
   });
 });

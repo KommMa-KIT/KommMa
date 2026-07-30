@@ -34,6 +34,12 @@ export type CategoryKey = 'General' | 'Energy' | 'Mobility' | 'Water';
 /** The two unit options for a subsidy value. */
 export type SubsidyUnit = 'euro' | 'percent';
 
+/**
+ * The input page mode. 'beginner' shows only mandatory (critical) fields and
+ * skips categories without any; 'full' shows the complete input catalogue.
+ */
+export type InputMode = 'beginner' | 'full';
+
 // --- Field definitions ---
 
 /**

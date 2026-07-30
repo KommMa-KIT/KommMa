@@ -135,7 +135,7 @@ function buildStore(
 
   return configureStore({
     reducer: {
-      ui: () => ({ currentCategory }),
+      ui: () => ({ currentCategory, inputMode: 'full' }),
       community: () => ({
         communeKey,
         selectedReferenceCommune: referenceCommune,

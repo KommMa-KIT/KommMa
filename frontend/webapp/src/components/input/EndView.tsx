@@ -11,7 +11,7 @@
 
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Plus, Trash2, Euro, Percent } from 'lucide-react';
+import { Plus, Trash2, Euro, Percent, CheckCircle2 } from 'lucide-react';
 import { SubsidyCategory, SubsidyUnit } from '../../types/inputTypes';
 import {
   addSubsidy,
@@ -19,6 +19,7 @@ import {
   removeSubsidy,
   selectSubsidies,
 } from '../../store/CommunitySlice';
+import { selectInputMode } from '../../store/UISlice';
 import communityService from '../../services/CommunityService';
 
 // --- Component ---
@@ -41,6 +42,12 @@ const EndView = () => {
   /** Currently configured subsidy entries from the Redux store. */
   const subsidies = useSelector(selectSubsidies);
 
+  /**
+   * The active input mode. In beginner mode the subsidy configuration is
+   * skipped entirely and a simplified completion panel is rendered instead.
+   */
+  const inputMode = useSelector(selectInputMode);
+
   /** Full list of subsidy categories fetched from the backend. */
   const [categories, setCategories] = useState<SubsidyCategory[]>([]);
 
@@ -51,10 +58,13 @@ const EndView = () => {
 
   /**
    * Fetches available subsidy categories from the backend on mount.
+   * Skipped in beginner mode, where the subsidy UI is not rendered.
    * Errors are logged to the console; the loading flag is always cleared
    * in the finally block so the UI does not remain stuck in the loading state.
    */
   useEffect(() => {
+    if (inputMode === 'beginner') return;
+
     const loadCategories = async () => {
       try {
         setLoading(true);
@@ -67,7 +77,7 @@ const EndView = () => {
       }
     };
     loadCategories();
-  }, []);
+  }, [inputMode]);
 
   // --- Handlers ---
 
@@ -147,6 +157,51 @@ const EndView = () => {
       .map(s => s.id);
     return categories.filter(c => !usedIds.includes(c.id));
   };
+
+  // --- Beginner mode ---
+
+  /**
+   * Simplified final step for beginner mode: no subsidy configuration, just a
+   * confirmation that all essential inputs are complete and a pointer to the
+   * "Berechnung starten" button in the sticky navigation bar below.
+   */
+  if (inputMode === 'beginner') {
+    return (
+      <div className="max-w-6xl mx-auto py-8 px-4">
+        <div className="mb-8">
+          <h2 className="text-3xl font-bold text-gray-900 mb-3">
+            Abschluss
+          </h2>
+          <p className="text-gray-600">
+            Sie haben alle wichtigen Angaben erfasst und können die Berechnung nun starten.
+          </p>
+        </div>
+
+        <div className="bg-white border-2 border-green-300 rounded-lg p-8 text-center">
+          <CheckCircle2 className="h-12 w-12 text-green-700 mx-auto mb-4" />
+          <p className="text-lg font-semibold text-gray-900 mb-2">
+            Alle Pflichtangaben vollständig
+          </p>
+          <p className="text-gray-600">
+            Klicken Sie unten auf „Berechnung starten“, um die passenden
+            Klimaschutzmaßnahmen für Ihre Kommune zu ermitteln.
+          </p>
+        </div>
+
+        <div className="mt-8 p-4 bg-blue-50 border-l-4 border-blue-400 rounded">
+          <h4 className="text-sm font-semibold text-blue-900 mb-2">
+            Tipp: Genauere Ergebnisse mit der vollständigen Eingabe
+          </h4>
+          <p className="text-sm text-blue-800">
+            Im Einsteiger-Modus wurden nur die Pflichtfelder abgefragt. Über
+            „Alle Eingabefelder anzeigen“ oberhalb der Eingabemaske können Sie
+            jederzeit weitere Angaben (z.&nbsp;B. Fördermittel) ergänzen — Ihre
+            bisherigen Eingaben bleiben dabei erhalten.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-6xl mx-auto py-8 px-4">
