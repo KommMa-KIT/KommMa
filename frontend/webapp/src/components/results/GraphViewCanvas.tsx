@@ -10,10 +10,14 @@
  * curved when a reverse edge exists between the same pair of nodes, to prevent
  * bidirectional edges from overlapping. Edge labels are omitted — edge type is
  * communicated entirely through colour, matching the legend in GraphView.
+ *
+ * Selection highlighting is fully controlled by the parent via selectedMeasureId:
+ * the selected node and its direct neighbourhood stay at full opacity while every
+ * unrelated node and edge is dimmed to the theme's inactiveOpacity.
  */
 
 import { useMemo, useRef } from 'react';
-import { GraphCanvas, GraphNode, GraphEdge, useSelection } from 'reagraph';
+import { GraphCanvas, GraphCanvasRef, GraphNode, GraphEdge } from 'reagraph';
 import { GraphEdge as AppGraphEdge } from '../../types/graphTypes';
 
 // --- Types ---
@@ -23,7 +27,11 @@ interface GraphViewCanvasProps {
   measures: any[];
   /** Directed edges between measures, typed by relationship (synergy, conflict, etc.). */
   edges: AppGraphEdge[];
-  /** ID of the currently highlighted measure; null when no selection is active. */
+  /**
+   * ID of the currently highlighted measure; null when no selection is active.
+   * This is the single source of truth for highlighting — the canvas derives both
+   * its selected node and its active neighbourhood from this value.
+   */
   selectedMeasureId: string | null;
   /** Callback fired when the user clicks a node or clears selection via the canvas. */
   onSelectMeasure: (id: string | null) => void;
@@ -40,7 +48,8 @@ interface GraphViewCanvasProps {
  *  - nodes derivation — measures mapped to ReaGraph GraphNode objects
  *  - graphEdges derivation — AppGraphEdges mapped to ReaGraph GraphEdge objects,
  *    with curvature applied to bidirectional pairs
- *  - useSelection hook — manages ReaGraph's internal selection state
+ *  - selection derivation — selectedMeasureId mapped to ReaGraph's selections /
+ *    actives arrays, resolving the selected node's direct neighbourhood
  *  - handleNodeClick / handleCanvasClick — bridge ReaGraph events to onSelectMeasure
  *  - GraphCanvas render with full application theme
  */
@@ -51,7 +60,7 @@ const GraphViewCanvas = ({
   onSelectMeasure,
   height = 600,
 }: GraphViewCanvasProps) => {
-  const graphRef = useRef(null);
+  const graphRef = useRef<GraphCanvasRef | null>(null);
 
   // --- Node derivation ---
 
@@ -76,50 +85,73 @@ const GraphViewCanvas = ({
    * node pair, preventing bidirectional edges from rendering on top of each other.
    * Labels are intentionally omitted — edge type is conveyed through colour alone.
    */
-  const graphEdges: GraphEdge[] = useMemo(() => {
-    /**
-     * Returns true when an edge exists in the opposite direction between
-     * the given pair of nodes, indicating a bidirectional relationship.
-     */
-    const reverseExists = (from: string, to: string) =>
-      edges.some(edge => edge.from === to && edge.to === from);
 
-    return edges.map((edge, index) => ({
-      id:         `${edge.from}-${edge.to}-${index}`,
-      source:     edge.from,
-      target:     edge.to,
-      curvature:  reverseExists(edge.to, edge.from) ? 0.4 : 0,
-      ...getEdgeStyle(edge.type),
-    }));
-  }, [edges]);
+const graphEdges: GraphEdge[] = useMemo(() => {
+  const reverseExists = (from: string, to: string) =>
+    edges.some(edge => edge.from === to && edge.to === from);
+
+  /** True when nothing is selected, or when the edge touches the selected node. */
+  const isAdjacent = (from: string, to: string) =>
+    !selectedMeasureId || from === selectedMeasureId || to === selectedMeasureId;
+  return edges.map((edge, index) => {
+    const { fill } = getEdgeStyle(edge.type);
+
+    return {
+      id:        `${edge.from}-${edge.to}-${index}`,
+      source:    edge.from,
+      target:    edge.to,
+      curvature: reverseExists(edge.to, edge.from) ? 0.4 : 0,
+      /** Non-adjacent edges keep their relationship hue but recede toward the background. */
+      fill:      isAdjacent(edge.from, edge.to) ? fill : fadeToBackground(fill, 0.3),
+    };
+  });
+}, [edges, selectedMeasureId]);
 
   // --- Selection ---
 
   /**
-   * ReaGraph selection hook — manages highlighted nodes and edges internally.
-   * pathSelectionType 'direct' highlights only the immediately connected edges
-   * of a selected node rather than full paths through the graph.
+   * Derives ReaGraph's selection state from the parent-controlled selectedMeasureId.
+   *
+   * `selections` holds the clicked node itself. `actives` holds its direct
+   * neighbourhood: every node reachable across a single edge in either direction,
+   * plus the IDs of those connecting edges. ReaGraph renders anything absent from
+   * both arrays at the theme's inactiveOpacity, which produces the greying-out of
+   * all non-adjacent nodes and edges.
+   *
+   * Deriving rather than using the useSelection hook keeps the parent as the single
+   * source of truth, so selection changes originating outside the canvas stay in
+   * sync — the hook only recomputes its neighbourhood inside its own click handler.
    */
-  const {
-    selections,
-    onNodeClick,
-    onCanvasClick,
-  } = useSelection({
-    ref: graphRef,
-    nodes,
-    edges: graphEdges,
-    pathSelectionType: 'direct',
-  });
+const { selections, actives } = useMemo(() => {
+    if (!selectedMeasureId) return { selections: [], actives: [] };
+
+    const neighbourIds = new Set<string>();
+
+    for (const edge of graphEdges) {
+      if (edge.source === selectedMeasureId) neighbourIds.add(edge.target);
+      else if (edge.target === selectedMeasureId) neighbourIds.add(edge.source);
+    }
+
+    /** A self-referencing edge would otherwise list the selected node as its own neighbour. */
+    neighbourIds.delete(selectedMeasureId);
+
+    /**
+     * Edges are deliberately excluded from `actives`. ReaGraph replaces the colour of
+     * any active edge with theme.edge.activeFill, which would collapse the five
+     * relationship colours into one. Keeping edges inactive preserves their per-edge
+     * fill; the highlight is expressed through that fill instead (see graphEdges).
+     */
+    return { selections: [selectedMeasureId], actives: [...neighbourIds] };
+  }, [selectedMeasureId, graphEdges]);
 
   // --- Handlers ---
 
   /**
    * Bridges ReaGraph's onNodeClick event to the parent's onSelectMeasure callback.
-   * Calls the ReaGraph handler first to keep internal selection state consistent,
-   * then propagates the selected node ID upward.
+   * Highlighting is not applied here — it follows automatically once the parent
+   * echoes the new ID back down through selectedMeasureId.
    */
   const handleNodeClick = (node: GraphNode) => {
-    if (onNodeClick) onNodeClick(node);
     onSelectMeasure(node.id);
   };
 
@@ -127,8 +159,7 @@ const GraphViewCanvas = ({
    * Bridges ReaGraph's onCanvasClick event to the parent's onSelectMeasure callback.
    * Clicking the empty canvas clears the selection by passing null.
    */
-  const handleCanvasClick = (event: MouseEvent) => {
-    if (onCanvasClick) onCanvasClick(event);
+  const handleCanvasClick = () => {
     onSelectMeasure(null);
   };
 
@@ -142,6 +173,7 @@ const GraphViewCanvas = ({
         nodes={nodes}
         edges={graphEdges}
         selections={selections}
+        actives={actives}
         onNodeClick={handleNodeClick}
         onCanvasClick={handleCanvasClick}
         layoutType="forceDirected2d"
@@ -162,11 +194,11 @@ const GraphViewCanvas = ({
             },
           },
           edge: {
-            fill: '#7E7E7E',           /** Default edge colour — neutral grey. */
-            activeFill: '#303030',     /** Selected edge colour — near black. */
-            opacity: 0.6,
+            fill: '#7E7E7E',
+            activeFill: '#303030',     /** Unused — edges are never marked active. */
+            opacity: 0.9,
             selectedOpacity: 1,
-            inactiveOpacity: 0.1,      /** Strongly dimmed when not part of selection. */
+            inactiveOpacity: 0.3,      /** Matches opacity; dimming is done via fill colour. */
             label: {
               color: '#7E7E7E',
               activeColor: '#7E7E7E',
@@ -212,6 +244,9 @@ const GraphViewCanvas = ({
  * Colours match the legend displayed in GraphView. Falls back to neutral grey
  * for any unrecognised type — the neutral case should not occur in practice.
  *
+ * Note: ReaGraph reads `fill` from the edge object but takes the highlighted colour
+ * from theme.edge.activeFill, so the per-edge activeFill here may not be applied.
+ *
  * @param type The relationship type string from the backend graph data.
  * @returns An object with fill and activeFill colour strings.
  */
@@ -227,6 +262,37 @@ const getEdgeStyle = (type: string): { fill: string; activeFill: string } => {
   };
 
   return styles[type as keyof typeof styles] || styles.neutral;
+};
+
+/**
+ * Blends a hex colour toward the canvas background, preserving hue while reducing
+ * intensity. ReaGraph exposes opacity only per-theme, not per-edge, so fading is
+ * done in colour space instead; because the background is opaque and fixed, the
+ * result is visually equivalent to alpha compositing.
+ *
+ * @param hex        Source colour as six-digit hex with a leading '#'.
+ * @param amount     Fraction of the source colour retained. 1 leaves it unchanged,
+ *                   0 collapses it to the background. Mirrors the old inactiveOpacity.
+ * @param background Colour to blend toward; defaults to the canvas background.
+ * @returns A six-digit hex string.
+ */
+const fadeToBackground = (
+  hex: string,
+  amount: number,
+  background = '#fafafa',
+): string => {
+  const channels = (value: string) =>
+    [1, 3, 5].map(offset => parseInt(value.slice(offset, offset + 2), 16));
+
+  const [r, g, b]    = channels(hex);
+  const [br, bg, bb] = channels(background);
+
+  const mix = (channel: number, base: number) =>
+    Math.round(base + (channel - base) * amount)
+      .toString(16)
+      .padStart(2, '0');
+
+  return `#${mix(r, br)}${mix(g, bg)}${mix(b, bb)}`;
 };
 
 export default GraphViewCanvas;
