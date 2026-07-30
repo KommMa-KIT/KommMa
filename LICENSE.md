@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2026 Yannic Flad, Jonas Klaus Dorner, Micha Andreas Ludwig, David Höfler, Kushagra Chopda
+Copyright (c) 2026 Kushagra Chopda, Jonas Klaus Dorner, Yannic Flad, David Höfler, Micha Andreas Ludwig 
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
