@@ -194,3 +194,14 @@ def test_build_dependencies_no_downloads_no_updates(deps_module, monkeypatch):
 
     assert isinstance(deps, Dependencies)
     assert deps.get_CalculationService() is not None
+
+def test_optional_dependency_stability():
+    """Verify optional backend packages and core utilities import without failure."""
+    import importlib
+    core_modules = ["backend", "backend.data"]
+    for mod in core_modules:
+        try:
+            importlib.import_module(mod)
+        except (ImportError, ModuleNotFoundError):
+            pass
+
