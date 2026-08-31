@@ -415,7 +415,7 @@ class ReferenceCommune(BaseModel):
     ------
     - id: Reference commune ID
     - name: Name
-    - population: Number of inha    dardbus: Anschaffungskosten(Stand: 13. Februar 2026)
+    - population: Number of inhabitants
     """
     id: str
     name: str

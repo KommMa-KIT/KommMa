@@ -1,0 +1,121 @@
+# Production stack.
+#
+# Topology:
+# cloudflared terminates the Cloudflare Tunnel, nginx acts as the security
+# boundary and reverse proxy, and the backend/frontend run their production
+# configurations without source mounts or development servers.
+#
+# Activate this stack by setting the following in .env on the deployment host:
+#
+#   COMPOSE_FILE=docker-compose.prod.yml
+#
+# Then run:
+#
+#   docker compose up
+#
+# Network layout:
+#   cloudflared -> proxy network -> nginx -> app network -> frontend/backend
+
+services:
+  # Public-facing entry point.
+  #
+  # cloudflared connects to Cloudflare and forwards requests to nginx through
+  # the isolated proxy network. It is not connected directly to the app network.
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      - nginx
+    networks:
+      - proxy
+
+  # Reverse proxy and security boundary.
+  #
+  # nginx is connected to both networks:
+  #   proxy -> receives requests from cloudflared
+  #   app   -> forwards requests to frontend and backend
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/auth.conf:/etc/nginx/conf.d/auth.conf:ro
+      - ./nginx/.htpasswd:/etc/nginx/certs/.htpasswd:ro
+      - ../data/pictures:/app/data/pictures:ro
+    expose:
+      - "80"
+    depends_on:
+      - backend
+      - frontend
+    restart: unless-stopped
+    networks:
+      - proxy
+      - app
+
+  # Application backend.
+  #
+  # The backend is only connected to the internal app network and therefore
+  # cannot be reached directly by cloudflared or the public internet.
+  #
+  # The application code is baked into the image; there are no source-code
+  # mounts and auto-reload is intentionally disabled.
+  #
+  # Multiple Uvicorn workers can handle concurrent requests. Each worker may
+  # load its own copy of data initialized at startup (for example, Excel
+  # sheets), so choose UVICORN_WORKERS based primarily on available memory.
+  backend:
+    build:
+      context: ../backend
+    environment:
+      DATA_ROOT: /app/data/extern
+      PROJECT_ROOT: /app
+      UVICORN_WORKERS: ${UVICORN_WORKERS:-2}
+    env_file:
+      - ../login_data.env
+    volumes:
+      - ../data:/app/data
+      - ../config:/app/config
+    expose:
+      - "8000"
+    working_dir: /app/src
+    command: >-
+      python -m uvicorn main:app
+      --host 0.0.0.0
+      --port 8000
+      --workers ${UVICORN_WORKERS:-2}
+    restart: unless-stopped
+    networks:
+      - app
+
+  # Frontend application.
+  #
+  # The frontend is only connected to the internal app network and is exposed
+  # externally through nginx.
+  #
+  # The image serves the pre-built production bundle from the Dockerfile's
+  # "prod" stage instead of running the webpack development server.
+  frontend:
+    build:
+      context: ../frontend/webapp
+      dockerfile: ../Dockerfile
+      target: prod
+    expose:
+      - "3000"
+    restart: unless-stopped
+    networks:
+      - app
+
+# Keep the network ranges explicit so they remain predictable across
+# container recreation and server migrations.
+networks:
+  proxy:
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
+
+  app:
+    ipam:
+      config:
+        - subnet: 172.21.0.0/24

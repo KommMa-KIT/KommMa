@@ -1,59 +1,73 @@
+# Development stack.
+#
+# This is the default Compose configuration for local development.
+# Services are exposed directly on the host, source code is mounted into
+# containers, and the backend/frontend use their development servers.
+#
+# The production deployment uses docker-compose.prod.yml instead.
+
 services:
-  cloudflared:
-    image: cloudflare/cloudflared:latest
-    restart: unless-stopped
-    command: tunnel --no-autoupdate run
-    environment:
-      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
-    depends_on:
-      - nginx
-
-  nginx:
-    image: nginx:latest
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
-      - ./nginx/auth.conf:/etc/nginx/conf.d/auth.conf:ro
-      - ./nginx/.htpasswd:/etc/nginx/certs/.htpasswd:ro
-      - ../data/pictures:/app/data/pictures:ro
-    expose:
-      - "80"
-    depends_on:
-      - backend
-      - frontend
-    restart: unless-stopped
-
+  # Backend development service.
+  #
+  # The source tree is mounted into the container and Uvicorn runs with
+  # auto-reload enabled.
+  #
+  # The service is part of the "local" profile and is therefore only started
+  # when that profile is enabled.
   backend:
+    profiles:
+      - local
+    build:
+      context: ../backend
     environment:
       DATA_ROOT: /app/data/extern
       PROJECT_ROOT: /app
-    build:
-      context: ../backend
+    env_file:
+      - ../login_data.env
     volumes:
       - ../backend:/app
       - ../data:/app/data
       - ../config:/app/config
-    env_file:
-      - ../login_data.env
-    expose:
-      - "8000"
+    ports:
+      - "8000:8000"
     working_dir: /app/src
-    command: python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    command: >-
+      python -m uvicorn main:app
+      --host 0.0.0.0
+      --port 8000
+      --reload
 
+  # Frontend development service.
+  #
+  # The source tree and node_modules are mounted so that changes are picked
+  # up immediately by the development server.
   frontend:
     build:
       context: ../frontend/webapp
       dockerfile: ../Dockerfile
+      target: dev
     volumes:
       - ../frontend/webapp:/app
       - frontend_node_modules:/app/node_modules
-    expose:
-      - "3000"
+    ports:
+      - "3000:3000"
     environment:
-      - HOST=0.0.0.0
-      - PORT=3000
-      - DANGEROUSLY_DISABLE_HOST_CHECK=true
-      - CHOKIDAR_USEPOLLING=true
-    command: sh -c "npm install && npm start"
+      HOST: 0.0.0.0
+      PORT: 3000
+      CHOKIDAR_USEPOLLING: "true"
+      REACT_APP_API_MODE: ${REACT_APP_API_MODE:-local}
+    command: npm start
+
+  # Optional stub backend for frontend development/testing.
+  #
+  # Enable it with the "stub" profile when the real backend is not required.
+  stub-backend:
+    profiles:
+      - stub
+    build:
+      context: ../frontend/stub_backend
+    ports:
+      - "4000:4000"
 
 volumes:
   frontend_node_modules:
