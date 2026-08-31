@@ -6,14 +6,21 @@
  * GraphViewCanvas rather than GraphCanvas to avoid a name collision with
  * ReaGraph's own exported GraphCanvas component.
  *
- * Node size is scaled proportionally to each measure's totalScore. Edges are
- * curved when a reverse edge exists between the same pair of nodes, to prevent
- * bidirectional edges from overlapping. Edge labels are omitted — edge type is
- * communicated entirely through colour, matching the legend in GraphView.
+ * Node size is scaled proportionally to each measure's totalScore. Edges
+ * between two nodes that are connected in both directions and differ in
+ * relationship type are drawn curved, so both colours stay visible instead of
+ * one direction hiding behind the other; ReaGraph offsets the pair
+ * automatically once curved interpolation is requested (see the graphEdges
+ * derivation for details). Same-type bidirectional pairs are left straight,
+ * since curving them apart would show two identically-coloured lines instead
+ * of one. Edge labels are omitted — edge type is communicated entirely
+ * through colour, matching the legend in GraphView.
  *
  * Selection highlighting is fully controlled by the parent via selectedMeasureId:
  * the selected node and its direct neighbourhood stay at full opacity while every
- * unrelated node and edge is dimmed to the theme's inactiveOpacity.
+ * unrelated node is dimmed to the theme's inactiveOpacity. Edges are never dimmed
+ * via opacity (see the graphEdges / actives sections below for why); instead,
+ * edges outside the selected neighbourhood are faded toward the background colour.
  */
 
 import { useMemo, useRef } from 'react';
@@ -47,7 +54,7 @@ interface GraphViewCanvasProps {
  * Sections:
  *  - nodes derivation — measures mapped to ReaGraph GraphNode objects
  *  - graphEdges derivation — AppGraphEdges mapped to ReaGraph GraphEdge objects,
- *    with curvature applied to bidirectional pairs
+ *    with curved interpolation applied to bidirectional pairs
  *  - selection derivation — selectedMeasureId mapped to ReaGraph's selections /
  *    actives arrays, resolving the selected node's direct neighbourhood
  *  - handleNodeClick / handleCanvasClick — bridge ReaGraph events to onSelectMeasure
@@ -81,31 +88,48 @@ const GraphViewCanvas = ({
 
   /**
    * Converts AppGraphEdges to ReaGraph GraphEdge objects.
-   * Curvature of 0.4 is applied when a reverse edge exists between the same
-   * node pair, preventing bidirectional edges from rendering on top of each other.
-   * Labels are intentionally omitted — edge type is conveyed through colour alone.
+   *
+   * Interpolation: Adds a curvature to bidirectional edges. When both A→B and 
+   * B→A exist, drawing both as straight lines makes them overlap completely; 
+   * requesting curved interpolation on both is enough, since ReaGraph detects 
+   * the parallel pair internally and offsets them to opposite sides on its own. 
+   * Edges without a reverse counterpart are left as 'linear', since a lone edge
+   * has nothing to be offset from.
+   *
+   * Curving is applied sparingly, only where it actually adds information: if
+   * the reverse edge has the same relationship type, the two edges already
+   * render in the same colour, so an overlapping straight pair looks no
+   * different from a curved one — curving them would just add visual noise.
+   * A pair is only curved when the two directions differ in type, since that's
+   * the case where separating them lets both colours be seen. Edges without a
+   * same-type reverse counterpart are left as 'linear'.
+   *
+   * Colour: the base fill comes from the edge's relationship type. Edges that
+   * are not adjacent to the current selection are faded toward the canvas
+   * background instead of relying on opacity (see the selection section for
+   * why edges can't use ReaGraph's `actives`-based opacity dimming).
    */
+  const graphEdges: GraphEdge[] = useMemo(() => {
+    const findReverseEdge = (from: string, to: string) =>
+      edges.find((e) => e.from === to && e.to === from);
 
-const graphEdges: GraphEdge[] = useMemo(() => {
-  const reverseExists = (from: string, to: string) =>
-    edges.some(edge => edge.from === to && edge.to === from);
+    const isAdjacent = (from: string, to: string) =>
+      !selectedMeasureId || from === selectedMeasureId || to === selectedMeasureId;
 
-  /** True when nothing is selected, or when the edge touches the selected node. */
-  const isAdjacent = (from: string, to: string) =>
-    !selectedMeasureId || from === selectedMeasureId || to === selectedMeasureId;
-  return edges.map((edge, index) => {
-    const { fill } = getEdgeStyle(edge.type);
+    return edges.map((edge, index) => {
+      const { fill } = getEdgeStyle(edge.type);
+      const reverseEdge = findReverseEdge(edge.from, edge.to);
+      const isBidirectional = !!reverseEdge && reverseEdge.type !== edge.type;
 
-    return {
-      id:        `${edge.from}-${edge.to}-${index}`,
-      source:    edge.from,
-      target:    edge.to,
-      curvature: reverseExists(edge.to, edge.from) ? 0.4 : 0,
-      /** Non-adjacent edges keep their relationship hue but recede toward the background. */
-      fill:      isAdjacent(edge.from, edge.to) ? fill : fadeToBackground(fill, 0.3),
-    };
-  });
-}, [edges, selectedMeasureId]);
+      return {
+        id:            `${edge.from}-${edge.to}-${index}`,
+        source:        edge.from,
+        target:        edge.to,
+        interpolation: isBidirectional ? 'curved' : 'linear',
+        fill:          isAdjacent(edge.from, edge.to) ? fill : fadeToBackground(fill, 0.3),
+      };
+    });
+  }, [edges, selectedMeasureId]);
 
   // --- Selection ---
 
@@ -113,16 +137,23 @@ const graphEdges: GraphEdge[] = useMemo(() => {
    * Derives ReaGraph's selection state from the parent-controlled selectedMeasureId.
    *
    * `selections` holds the clicked node itself. `actives` holds its direct
-   * neighbourhood: every node reachable across a single edge in either direction,
-   * plus the IDs of those connecting edges. ReaGraph renders anything absent from
-   * both arrays at the theme's inactiveOpacity, which produces the greying-out of
-   * all non-adjacent nodes and edges.
+   * neighbourhood: every node reachable across a single edge in either direction.
+   * ReaGraph renders any node absent from both arrays at the theme's
+   * inactiveOpacity, which produces the greying-out of all non-adjacent nodes.
+   *
+   * Edges are deliberately excluded from `actives`. ReaGraph replaces the fill
+   * of any active edge with theme.edge.activeFill, which would collapse the
+   * five relationship colours into one. Instead, edge highlighting is handled
+   * entirely in graphEdges above (full colour vs. faded toward the background),
+   * and theme.edge.inactiveOpacity is kept equal to theme.edge.opacity below so
+   * that colour, not opacity, is the only thing distinguishing an adjacent edge
+   * from a non-adjacent one.
    *
    * Deriving rather than using the useSelection hook keeps the parent as the single
    * source of truth, so selection changes originating outside the canvas stay in
    * sync — the hook only recomputes its neighbourhood inside its own click handler.
    */
-const { selections, actives } = useMemo(() => {
+  const { selections, actives } = useMemo(() => {
     if (!selectedMeasureId) return { selections: [], actives: [] };
 
     const neighbourIds = new Set<string>();
@@ -135,12 +166,6 @@ const { selections, actives } = useMemo(() => {
     /** A self-referencing edge would otherwise list the selected node as its own neighbour. */
     neighbourIds.delete(selectedMeasureId);
 
-    /**
-     * Edges are deliberately excluded from `actives`. ReaGraph replaces the colour of
-     * any active edge with theme.edge.activeFill, which would collapse the five
-     * relationship colours into one. Keeping edges inactive preserves their per-edge
-     * fill; the highlight is expressed through that fill instead (see graphEdges).
-     */
     return { selections: [selectedMeasureId], actives: [...neighbourIds] };
   }, [selectedMeasureId, graphEdges]);
 
@@ -195,10 +220,10 @@ const { selections, actives } = useMemo(() => {
           },
           edge: {
             fill: '#7E7E7E',
-            activeFill: '#303030',     /** Unused — edges are never marked active. */
+            activeFill: '#303030',     /** Unused — edges are never marked active, see graphEdges/actives above. */
             opacity: 0.9,
             selectedOpacity: 1,
-            inactiveOpacity: 0.3,      /** Matches opacity; dimming is done via fill colour. */
+            inactiveOpacity: 0.9,      /** Matches opacity — dimming is expressed entirely through fill colour. */
             label: {
               color: '#7E7E7E',
               activeColor: '#7E7E7E',
