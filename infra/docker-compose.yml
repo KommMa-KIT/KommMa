@@ -22,6 +22,7 @@ services:
     environment:
       DATA_ROOT: /app/data/extern
       PROJECT_ROOT: /app
+      APP_ENV: development
     env_file:
       - ../login_data.env
     volumes:

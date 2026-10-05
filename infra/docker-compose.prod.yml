@@ -72,6 +72,7 @@ services:
       DATA_ROOT: /app/data/extern
       PROJECT_ROOT: /app
       UVICORN_WORKERS: ${UVICORN_WORKERS:-2}
+      APP_ENV: production
     env_file:
       - ../login_data.env
     volumes:
