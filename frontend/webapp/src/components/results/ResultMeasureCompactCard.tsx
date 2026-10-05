@@ -18,8 +18,8 @@ interface ResultMeasureCompactCardProps {
     timeScale:    number;
     costScale:    number;
     climateScale: number;
-    /** Used for cost-scale logic: a negative value indicates ongoing savings. */
-    ongoingCost:  number;
+    /** Used for cost display: a negative value indicates net savings and shows the "SPART" indicator. */
+    totalCost:  number;
     rank:         number;
   };
   /** Highlights the card when true (e.g. selected in an adjacent map view). */
@@ -49,18 +49,27 @@ const renderScaleIcons = (
 );
 
 /**
- * Renders the cost scale with a leading savings indicator.
- * Layout: [savings icon] | [investment scale icons ×4]
+ * Renders the cost scale based on the total cost balance.
+ *  - Balance negative: a single € icon plus a green "SPART" badge.
+ *  - Balance non-negative: four € icons filled according to `costScale` (0–4).
  *
- * @param costScale    Number of filled investment-cost icons (0–4).
- * @param ongoingCost  A negative value lights up the savings (leftmost) indicator.
+ * @param costScale  Number of filled investment-cost icons (0–4).
+ * @param totalCost  Total cost balance; a negative value switches to the savings display.
  */
-const renderCostScale = (costScale: number, ongoingCost: number) => {
-  const isOngoingNegative = ongoingCost < 0;
+const renderCostScale = (costScale: number, totalCost: number) => {
+  if (totalCost < 0) {
+    return (
+      <div className="flex items-center gap-1">
+        <Euro className="h-3.5 w-3.5 text-amber-600" />
+        <span className="px-1.5 py-px rounded-full bg-green-100 text-green-700 text-[9px] font-bold tracking-wide">
+          SPART
+        </span>
+      </div>
+    );
+  }
+
   return (
     <div className="flex items-center gap-0.5">
-      <Euro className={`h-3.5 w-3.5 ${isOngoingNegative ? 'text-amber-600' : 'text-gray-300'}`} />
-      <span className="text-gray-400 text-sm mx-0.5">|</span>
       {[...Array(4)].map((_, i) => (
         <Euro key={i} className={`h-3.5 w-3.5 ${i < costScale ? 'text-amber-600' : 'text-gray-300'}`} />
       ))}
@@ -129,7 +138,7 @@ const ResultMeasureCompactCard = forwardRef<HTMLDivElement, ResultMeasureCompact
             </div>
             <div className="flex flex-col items-center gap-1 p-1.5 bg-white rounded border border-gray-100">
               <span className="text-[10px] text-gray-500 font-medium">Kosten</span>
-              {renderCostScale(result.costScale, result.ongoingCost)}
+              {renderCostScale(result.costScale, result.totalCost)}
             </div>
             <div className="flex flex-col items-center gap-1 p-1.5 bg-white rounded border border-gray-100">
               <span className="text-[10px] text-gray-500 font-medium">Klima</span>

@@ -71,18 +71,27 @@ const renderScaleIcons = (
 );
 
 /**
- * Renders the cost scale with a leading indicator for negative ongoing costs (i.e. savings).
- * Layout: [savings icon] | [investment scale icons ×4]
+ * Renders the cost scale based on the total cost balance (Kostenbilanz).
+ *  - Balance negative (net savings): a single € icon plus a green "SPART" badge.
+ *  - Balance non-negative: four € icons filled according to `costScale` (0–4).
  *
- * @param costScale    Number of filled investment-cost icons (0–4).
- * @param ongoingCost  Ongoing cost value; a negative value lights up the savings indicator.
+ * @param costScale  Number of filled investment-cost icons (0–4).
+ * @param totalCost  Total cost balance; a negative value switches to the savings display.
  */
-const renderCostScale = (costScale: number, ongoingCost: number) => {
-  const isOngoingNegative = ongoingCost < 0;
+const renderCostScale = (costScale: number, totalCost: number) => {
+  if (totalCost < 0) {
+    return (
+      <div className="flex items-center gap-1.5">
+        <Euro className="h-5 w-5 text-amber-600" />
+        <span className="px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs font-bold tracking-wide">
+          SPART
+        </span>
+      </div>
+    );
+  }
+
   return (
     <div className="flex items-center gap-1">
-      <Euro className={`h-5 w-5 ${isOngoingNegative ? 'text-amber-600' : 'text-gray-300'}`} />
-      <span className="text-gray-400 text-lg mx-0.5">|</span>
       {[...Array(4)].map((_, i) => (
         <Euro key={i} className={`h-5 w-5 ${i < costScale ? 'text-amber-600' : 'text-gray-300'}`} />
       ))}
@@ -402,7 +411,7 @@ const ResultMeasureCard = ({
           </div>
           <div className="flex flex-col items-center gap-1">
             <p className="text-xs text-gray-500 mb-0.5">Kosten</p>
-            {renderCostScale(result.costScale, result.ongoingCost)}
+            {renderCostScale(result.costScale, result.totalCost)}
           </div>
           <div className="flex flex-col items-center gap-1">
             <p className="text-xs text-gray-500 mb-0.5">Klima</p>

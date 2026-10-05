@@ -73,7 +73,7 @@ const ResultMeasureCompactList = ({
             timeScale:    item.timeScale,
             costScale:    item.costScale,
             climateScale: item.climateScale,
-            ongoingCost:  item.ongoingCost,
+            totalCost:    item.totalCost,
             rank:         index + 1,
           }}
           isSelected={selectedMeasureId === item.measure.id}
