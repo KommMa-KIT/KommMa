@@ -15,6 +15,7 @@ import * as Dialog from '@radix-ui/react-dialog';
 import { Users, ArrowUpRight, Minus, ArrowDownRight, CircleX, X, ExternalLink } from 'lucide-react';
 import { Measure, PopularityLevel } from '../../types/measureTypes';
 import GraphInitializer from '../GraphInitializer';
+import LinkifiedText from './LinkifiedText';
 
 // --- Types ---
 
@@ -169,17 +170,13 @@ const MeasurePopup = ({ measure, open, onOpenChange }: MeasurePopupProps) => {
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">Weitere Informationen</h3>
                 <div className="space-y-2">
-                  {measure.furtherInfo.map((link, index) => (
-                    <a
-                      key={index}
-                      href={link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 text-secondary hover:text-tertiary hover:underline transition-colors"
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                      <span>{link}</span>
-                    </a>
+                  {measure.furtherInfo.map((entry, index) => (
+                    <div key={index} className="flex items-start gap-2 text-gray-700">
+                      <ExternalLink className="h-4 w-4 mt-1 shrink-0 text-secondary" />
+                      <span className="break-words min-w-0">
+                        <LinkifiedText text={entry} />
+                      </span>
+                    </div>
                   ))}
                 </div>
               </div>
