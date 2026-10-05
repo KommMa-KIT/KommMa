@@ -1,0 +1,40 @@
+[
+    {
+    "title": "Inhaltliches",
+    "items": [
+      {
+        "question": "Wie kam es zu der Auswahl an Maßnahmen in der Beziehungstabelle?",
+        "answer": "- **Energie:** Die Auswahl erfolgte auf der Grundlage von jahrelangen persönlichen Erfahrungen von VS sowie dem Interview mit der Klimaneutralitätsbeauftragten der Stadt Stutensee.\n- **Mobilität:** [IkKa - Katalog für indirekte Maßnahmen und Instrumente im kommunalen Klimaschutz](https://www.ifeu.de/fileadmin/uploads/Publikationen/Energie/IkKa/Neue_Versionen/IkKa_%E2%80%93_Katalog_f%C3%BCr_Ma%C3%9Fnahmen_und_Instrumente_im_kommunalen_Klimaschutz.pdf); Experteninterviews mit verschiedenen Akteuren des Klimaschutzes im Verkehrssektor in Baden-Württemberg (Masterarbeit); Recherche veröffentlichter Klimaschutzmaßnahmen im Bereich Mobilität/Verkehr auf den Webseiten der Kommunen + Experteninterviews mit Vertreter:innen des Bereichs Mobilität/Verkehr aus Kommunen in Baden-Württemberg (Masterarbeit)\n- **Wasser:** Alle Maßnahmen, die nach Literaturrecherche für den Bereich gefunden wurden, dementsprechend wird die Liste kontinuierlich erweitert."
+      },
+      {
+        "question": "Ist die Bewertung der Maßnahmen BISKO-konform?",
+        "answer": "Die Maßnahmen werden so weit wie möglich nach BISKO-Standard bewertet. Allerdings gibt es Ausnahmen insbesondere für den Bilanzraum. Da es für den Klimaschutz in erster Linie relevant ist, dass THG-Emissionen reduziert werden und nicht zwangsweise wo diese reduziert werden, kann es vorkommen, dass der Bilanzraum über Gemeindegrenzen hinaus geht. Allerdings wird hier darauf geachtet, diese Ausnahmen so weit wie möglich auf die direkten Effekte der Maßnahmen zu begrenzen. Z.B. Reduzierung von Entsorgungswegen, Wegfall von Dienstleistungen, die zuvor außerhalb der Gemeindegrenzen stattfanden etc."
+      },
+      {
+        "question": "Was ist der Unterschied zwischen Synergie und Beitrag/Abhängigkeit?",
+        "answer": "- **Synergie:** Zwei Maßnahmen stehen in Synergie, wenn die Umsetzung von Maßnahme 1 zum Vorteil von Maßnahme 2 ist und umgekehrt.\n- **Beitrag und Abhängigkeit** heißt, dass Maßnahme 1 zur Maßnahme 2 positiv beiträgt, aber nicht zwangsweise notwendig für Maßnahme 2 ist und Maßnahme 2 keinen Einfluss auf Maßnahme 1 hat."
+      },
+      {
+        "question": "Wie ergibt sich die Bilanz?",
+        "answer": "Die Bilanz ist die Summe aus jährlichen Kosten/Ertrag und des Investitionsbetrags über die Lebensdauer der Komponenten, soweit wie möglich, entsprechend den Abschreibungstabellen des Bundesministeriums der Finanzen. Falls die entsprechenden Komponenten nicht in den Tabellen enthalten sind, werden vergleichbare Komponenten gewählt oder auf Angaben aus der Praxis (z.B. Herstellerangaben, Berichte) zurückgegriffen. Im Falle mehrerer Komponenten mit erheblichem Einfluss auf die Investitionskosten, wird die Komponente mit der jüngsten Lebensdauer gewählt. In der Regel sollte die Bilanz damit eher konservativ ausgelegt sein."
+      },
+      {
+        "question": "Woraus ergeben sich die Daten für die prototypischen Kommunen und was bedeutet das für die Vergleichbarkeit mit der eigenen Kommune?",
+        "answer": "Antwort folgt."
+      }
+    ]
+  },
+  {
+    "title": "Technisches",
+    "items": [
+      {
+        "question": "Warum können Eingaben nur lokal und nicht online zwischengespeichert werden?",
+        "answer": "Online speichern würde es einfacher für die Nutzer:innen machen, würde aber bedeuten, dass kommuneneigene Daten extern, auf dem Server gespeichert werden müssten. Das kann im Zweifel zu Datenschutzproblemen führen. Das Offline-Speichern gibt zusätzlich die Möglichkeit, die Datei auch zwischen Kolleg:innen auszutauschen, damit kann jede:r den eigenen Fachbereich ausfüllen."
+      },
+      {
+        "question": "Müssen immer alle offenen Felder ausgefüllt werden?",
+        "answer": "Antwort folgt."
+      }
+    ]
+  }
+]

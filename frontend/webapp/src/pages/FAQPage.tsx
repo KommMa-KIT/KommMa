@@ -4,19 +4,25 @@
  * Static FAQ (Frequently Asked Questions) page for the application. Presents
  * questions grouped into topical sections, each rendered as an accordion so
  * users can scan questions quickly and expand only what they need.
+ *
+ * The content itself lives in `../content/faq.json`, so questions and answers
+ * can be edited without touching the component. Answers are written in
+ * Markdown and rendered with react-markdown.
  */
 
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { ChevronDown, ArrowLeft } from 'lucide-react';
+import ReactMarkdown, { type Components } from 'react-markdown';
 import Button from '../components/Button';
+import faqData from '../content/faq.json';
 
 // --- Types ---
 
 interface FAQItem {
   /** The question text shown as the accordion trigger. */
   question: string;
-  /** The answer text shown when the item is expanded. */
+  /** The answer text (Markdown) shown when the item is expanded. */
   answer: string;
 }
 
@@ -30,92 +36,54 @@ interface FAQSection {
 // --- Data ---
 
 /**
- * Static FAQ content grouped by topic. Kept as plain data rather than fetched
- * from the backend since the content changes rarely and doesn't depend on
- * user or session state.
+ * FAQ content grouped by topic, loaded from the JSON file. Kept as static
+ * data rather than fetched from the backend since the content changes rarely
+ * and doesn't depend on user or session state. The explicit type annotation
+ * makes the compiler verify that the JSON matches the expected structure.
  */
-const FAQ_SECTIONS: FAQSection[] = [
-  {
-    title: 'Allgemein',
-    items: [
-      {
-        question: 'Was ist KommMa?',
-        answer:
-          'KommMa ist ein Priorisierungstool für kommunale Klimaschutzmaßnahmen. Es unterstützt Entscheidungsträger:innen dabei, die wirkungsvollsten Maßnahmen für ihre Kommune zu identifizieren, miteinander zu vergleichen und umzusetzen.',
-      },
-      {
-        question: 'Für wen ist KommMa gedacht?',
-        answer:
-          'KommMa richtet sich an Klimaschutzmanager:innen, Verwaltungsmitarbeitende und politische Entscheidungsträger:innen in Kommunen, die Klimaschutzmaßnahmen planen, bewerten oder priorisieren möchten.',
-      },
-      {
-        question: 'Kostet die Nutzung von KommMa etwas?',
-        answer:
-          'lorem ipsum.',
-      },
-    ],
+const FAQ_SECTIONS: FAQSection[] = faqData;
+
+// --- Markdown rendering ---
+
+const LINK_CLASS = 'text-green-800 underline hover:text-green-900';
+
+/**
+ * Element overrides for rendered answers. Internal links (starting with "/")
+ * use the router's Link to avoid a full page reload; http(s) links open in a
+ * new tab; other schemes such as mailto: use the default behavior. List and
+ * paragraph styles are set here because Tailwind's reset removes the browser
+ * defaults.
+ */
+const MARKDOWN_COMPONENTS: Components = {
+  a: ({ href = '', children }) => {
+    if (href.startsWith('/')) {
+      return (
+        <Link to={href} className={LINK_CLASS}>
+          {children}
+        </Link>
+      );
+    }
+
+    const isWebLink = /^https?:\/\//.test(href);
+    return (
+      <a
+        href={href}
+        target={isWebLink ? '_blank' : undefined}
+        rel={isWebLink ? 'noopener noreferrer' : undefined}
+        className={LINK_CLASS}
+      >
+        {children}
+      </a>
+    );
   },
-  {
-    title: 'Erste Schritte',
-    items: [
-      {
-        question: 'Wie starte ich eine neue Analyse?',
-        answer:
-          'Klicken Sie auf der Startseite auf „Neue Analyse starten". Sie werden anschließend durch die einzelnen Kategorien geführt, in denen Sie die relevanten Daten Ihrer Kommune eingeben.',
-      },
-      {
-        question: 'Kann ich das Tool erst testen, bevor ich eigene Daten eingebe?',
-        answer:
-          'Ja. Auf der Startseite finden Sie prototypische Beispielkommunen. Wählen Sie eine davon aus, um die Funktionsweise des Tools mit vordefinierten Daten kennenzulernen.',
-      },
-      {
-        question: 'Kann ich eine begonnene Analyse später fortsetzen?',
-        answer:
-          'Ja, über „Sitzung importieren" können Sie eine zuvor exportierte Sitzung wieder laden und Ihre Analyse an der gespeicherten Stelle fortsetzen.',
-      },
-    ],
-  },
-  {
-    title: 'Daten & Aktualität',
-    items: [
-      {
-        question: 'Woher stammen die Daten, die KommMa verwendet?',
-        answer:
-          'KommMa greift auf öffentlich verfügbare kommunale und statistische Datensätze zurück, die regelmäßig auf Aktualität geprüft werden.',
-      },
-      {
-        question: 'Was bedeutet der Hinweis „Veraltete Daten" auf der Startseite?',
-        answer:
-          'Dieser Hinweis erscheint, wenn eine oder mehrere der zugrunde liegenden Datenquellen seit längerem nicht aktualisiert wurden. Berechnungen sind weiterhin möglich, sollten aber mit dieser Einschränkung im Hinterkopf interpretiert werden.',
-      },
-      {
-        question: 'Werden meine eingegebenen Daten gespeichert?',
-        answer:
-          'Ihre Eingaben werden ausschließlich in Ihrer Sitzung verarbeitet. Möchten Sie eine Analyse dauerhaft sichern, nutzen Sie die Export-Funktion, um sie später wieder zu importieren.',
-      },
-    ],
-  },
-  {
-    title: 'Ergebnisse & Auswertung',
-    items: [
-      {
-        question: 'Wie werden Maßnahmen priorisiert?',
-        answer:
-          'KommMa bewertet Maßnahmen anhand mehrerer Kriterien, etwa Zeit, Kosten und Treibhausgasemissionseinsparungen und erstellt daraus eine vergleichende Rangfolge, die Ihnen als Entscheidungsgrundlage dient.',
-      },
-      {
-        question: 'Kann ich die Ergebnisse exportieren?',
-        answer:
-          'Ja, Ergebnisse lassen sich via pdf und csv exportieren.',
-      },
-      {
-        question: 'Ersetzt KommMa eine fachliche Beratung?',
-        answer:
-          'Nein. KommMa dient als Orientierungshilfe und Priorisierungswerkzeug, ersetzt aber keine vertiefte fachliche oder rechtliche Beratung bei der konkreten Umsetzung von Maßnahmen.',
-      },
-    ],
-  },
-];
+  p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+  ul: ({ children }) => (
+    <ul className="list-disc pl-5 mb-2 last:mb-0 space-y-1">{children}</ul>
+  ),
+  ol: ({ children }) => (
+    <ol className="list-decimal pl-5 mb-2 last:mb-0 space-y-1">{children}</ol>
+  ),
+};
 
 // --- Component ---
 
@@ -207,8 +175,10 @@ const FAQPage = () => {
                       </button>
 
                       {isOpen && (
-                        <div className="px-5 pb-4 text-sm text-gray-600 leading-relaxed">
-                          {item.answer}
+                        <div className="px-5 pb-4 text-sm text-left text-gray-600 leading-relaxed">
+                          <ReactMarkdown components={MARKDOWN_COMPONENTS}>
+                            {item.answer}
+                          </ReactMarkdown>
                         </div>
                       )}
                     </div>
