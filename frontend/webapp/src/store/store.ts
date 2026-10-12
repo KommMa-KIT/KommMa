@@ -8,7 +8,7 @@
  */
 
 import { configureStore } from '@reduxjs/toolkit';
-import measuresReducer  from './MeasuresSlice';
+import measuresReducer  from './MeasureSlice';
 import resultReducer    from './ResultSlice';
 import communityReducer from './CommunitySlice';
 import uiReducer        from './UISlice';

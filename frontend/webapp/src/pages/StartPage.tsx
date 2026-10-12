@@ -12,14 +12,14 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowRight, AlertTriangle, Upload, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
-import Button from '../components/Button';
+import Button from '../components/common/Button';
 import { API_BASE_URL, SHOW_OUTDATED_DATA_WARNING } from '../config';
-import ImportButton from '../components/ImportButton';
+import ImportButton from '../components/start/ImportButton';
 import { fetchReferenceCommune } from '../store/CommunitySlice';
 import { setCurrentCategory } from '../store/UISlice';
 import { ReferenceCommunePreview } from '../types/inputTypes';
 import { communityService } from '../services/CommunityService';
-import ReferenceCommuneCard from '../components/ReferenceCommuneCard';
+import ReferenceCommuneCard from '../components/start/ReferenceCommuneCard';
 import { AppDispatch } from '@/store/store';
 
 // --- Types ---

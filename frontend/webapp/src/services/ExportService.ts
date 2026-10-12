@@ -1,6 +1,5 @@
 /**
  * ExportService.ts
- * @author FladYannic
  *
  * Singleton service that handles exporting ranked measure data to PDF, DOCX,
  * and CSV formats.

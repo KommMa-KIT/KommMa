@@ -30,7 +30,7 @@ import MainLayout            from './layout/MainLayout';
 import NotFoundPage          from './pages/NotFoundPage';
 import LegalDisclosurePage   from './pages/LegalDisclosurePage';
 import ResultProtectedRoute  from './routing/ResultProtectedRoute';
-import PrivacyPolicyPage     from './pages/PrivacyPolicy';
+import PrivacyPolicyPage     from './pages/PrivacyPolicyPage';
 import FAQPage               from './pages/FAQPage';
 
 // --- Component ---

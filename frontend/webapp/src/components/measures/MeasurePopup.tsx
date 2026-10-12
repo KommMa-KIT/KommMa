@@ -9,13 +9,13 @@
  */
 
 import { useSelector } from 'react-redux';
-import { selectAllMeasures } from '../../store/MeasuresSlice';
+import { selectAllMeasures } from '../../store/MeasureSlice';
 import dependencyGraphService from '../../services/DependencyGraphService';
 import * as Dialog from '@radix-ui/react-dialog';
 import { Users, ArrowUpRight, Minus, ArrowDownRight, CircleX, X, ExternalLink } from 'lucide-react';
 import { Measure, PopularityLevel } from '../../types/measureTypes';
-import GraphInitializer from '../GraphInitializer';
-import LinkifiedText from './LinkifiedText';
+import GraphInitializer from '../common/GraphInitializer';
+import LinkifiedText from '../common/LinkifiedText';
 
 // --- Types ---
 

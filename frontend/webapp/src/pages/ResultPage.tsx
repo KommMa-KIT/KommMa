@@ -14,10 +14,10 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AlertTriangle, BarChart3, Grid3x3, List, Network, SlidersHorizontal, Download } from 'lucide-react';
-import { ResultMeasureSkeletonList } from '../components/results/ResultMeasureSkeleton';
-import IndividualisationProgressBar from '../components/results/IndividualisationProgressBar';
-import FilterSortDialog from '../components/results/FilterSortDialog';
-import ExportDialog from '../components/results/ExportDialog';
+import { ResultMeasureSkeletonList } from '../components/results/result-measure/card/ResultMeasureSkeleton';
+import IndividualisationProgressBar from '../components/results/result-header/individualisation/IndividualisationProgressBar';
+import FilterSortDialog from '../components/results/result-header/FilterSortDialog';
+import ExportDialog from '../components/results/result-header/ExportDialog';
 import exportService from '../services/ExportService';
 import graphService from '../services/GraphService';
 import {
@@ -32,14 +32,14 @@ import {
 import {
   fetchMeasures,
   selectMeasuresLoading,
-} from '../store/MeasuresSlice';
+} from '../store/MeasureSlice';
 import { AppDispatch } from '../store/store';
-import OverviewView from '../components/results/Overview';
-import ListView from '../components/results/ListView';
-import GraphView from '../components/results/GraphView';
-import MatrixView from '../components/results/MatrixView';
-import GraphInitializer from '../components/GraphInitializer';
-import Button from '../components/Button';
+import OverviewView from '../components/results/overview-view/Overview';
+import ListView from '../components/results/list-view/ListView';
+import GraphView from '../components/results/graph-view/GraphView';
+import MatrixView from '../components/results/matrix-view/MatrixView';
+import GraphInitializer from '../components/common/GraphInitializer';
+import Button from '../components/common/Button';
 
 type ViewType = 'overview' | 'list' | 'matrix' | 'graph';
 

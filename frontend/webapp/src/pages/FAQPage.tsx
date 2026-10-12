@@ -14,7 +14,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ChevronDown, ArrowLeft } from 'lucide-react';
 import ReactMarkdown, { type Components } from 'react-markdown';
-import Button from '../components/Button';
+import Button from '../components/common/Button';
 import faqData from '../content/faq.json';
 
 // --- Types ---

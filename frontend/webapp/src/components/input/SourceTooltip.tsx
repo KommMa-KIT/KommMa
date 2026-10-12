@@ -12,7 +12,7 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '../Tooltip';
+} from '../common/Tooltip';
 
 // --- Types ---
 

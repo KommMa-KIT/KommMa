@@ -1,6 +1,5 @@
 /**
  * graphTypes.ts
- * @author FladYannic
  *
  * Type definitions for the measure dependency graph.
  */

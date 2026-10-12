@@ -1,6 +1,5 @@
 /**
  * DependencyGraphService.ts
- * @author FladYannic
  *
  * Singleton service that builds and queries a directed dependency graph from the GraphEdge data from GraphService. 
  * Supports all edge types except neutral.

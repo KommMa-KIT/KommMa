@@ -26,7 +26,7 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { ChevronLeft, ChevronRight, Calculator } from 'lucide-react';
-import Button from '../Button';
+import Button from '../common/Button';
 import {
   nextCategory,
   prevCategory,

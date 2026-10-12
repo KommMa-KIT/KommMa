@@ -1,6 +1,5 @@
 /**
  * ResultSlice.ts
- * @author FladYannic
  *
  * Redux slice managing the full results state:
  *  - Individualisation levels (general, energy, mobility, water, total).
