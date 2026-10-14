@@ -22,5 +22,5 @@ Hier sind Screenshots aus dem Tool ne gute Idee, die zeigen, wie man es benutzt
 @Jonas
 
 ## Further Information
-[Website: www.kommma-im-klimaschutz.de/index.php](https://www.kommma-im-klimaschutz.de/index.php)
-[JOSS Paper](paper.md)
+- [Website: www.kommma-im-klimaschutz.de/index.php](https://www.kommma-im-klimaschutz.de/index.php) 
+- [JOSS Paper](paper.md)
