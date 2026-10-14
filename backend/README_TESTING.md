@@ -1,28 +1,28 @@
-# Backend-Testing
+# KOMMMA Backend – Testing Guide
 
-Dieses README erklärt, wie das Testing im Backend am zuverlässigsten funktioniert.
+This README explains the most reliable way to run backend tests.
 
-## Empfohlen: Tests mit Docker
+## Recommended: Run Tests with Docker
 
-Starte die Container im Projektverzeichnis:
+Start the containers from the project root:
 
 ```bash
 docker compose up -d
 ```
 
-Führe anschließend die Tests im Backend-Container aus:
+Then run the tests inside the backend container:
 
 ```bash
 docker compose exec backend python -m pytest -q
 ```
 
-Der Backend-Container verwendet Python 3.12. Dadurch werden Unterschiede in
-lokalen Python-Installationen vermieden.
+The backend container uses Python 3.12, preventing discrepancies between local
+Python installations.
 
-## Alternative: lokal mit virtueller Umgebung
+## Alternative: Run Tests Locally with a Virtual Environment
 
-Wenn Docker nicht verfügbar ist. Wechsle zunächst in den
-Backend-Ordner und erstelle eine virtuelle Umgebung:
+Use this option when Docker is unavailable. First, switch to the backend
+directory and create a virtual environment:
 
 ```bash
 cd backend
@@ -30,38 +30,37 @@ python3 -m venv .venv
 source .venv/bin/activate
 ```
 
-Installiere die Projekt- und Test-Abhängigkeiten:
+Install the project and test dependencies:
 
 ```bash
 pip install -r requirements.txt
 pip install pytest httpx
 ```
 
-Führe die Tests aus:
+Run the tests:
 
 ```bash
 python -m pytest -q
 ```
 
-## Wichtig: `src`-Struktur und Imports
+## Important: `src` Structure and Imports
 
-Das Backend verwendet eine `src`-Struktur. Der Import-Root ist daher
-`backend/src`, nicht das gesamte Repository.
+The backend uses a `src` structure. Therefore, the import root is
+`backend/src`, not the repository root.
 
-Richtig:
+Correct:
 
 ```python
 from ApplicationLayer.api.APIRouter import router
 ```
 
-Falsch:
+Incorrect:
 
 ```python
 from backend.src.ApplicationLayer.api.APIRouter import router
 ```
 
-Die Datei `backend/pytest.ini` muss den Import-Pfad und den Testordner
-festlegen:
+The `backend/pytest.ini` file must define the import path and test directory:
 
 ```ini
 [pytest]
@@ -69,15 +68,15 @@ pythonpath = src
 testpaths = test
 ```
 
-## Häufige Fehler
+## Common Errors
 
 ### `ModuleNotFoundError: No module named 'ApplicationLayer'`
 
-**Ursache:** Der Import-Pfad ist nicht gesetzt oder die Tests werden nicht aus
-dem Ordner `backend` gestartet.
+**Cause:** The import path is not configured, or the tests are not being run
+from the `backend` directory.
 
-**Lösung:** Führe die Tests aus `backend` aus und prüfe `pytest.ini`.
-Als einmalige Alternative kann der Import-Pfad explizit gesetzt werden:
+**Solution:** Run the tests from `backend` and check `pytest.ini`. As a
+one-time alternative, set the import path explicitly:
 
 ```bash
 PYTHONPATH=src python -m pytest -q
@@ -85,9 +84,9 @@ PYTHONPATH=src python -m pytest -q
 
 ### `ModuleNotFoundError: No module named 'fastapi'`
 
-**Ursache:** Die Python-Abhängigkeiten fehlen in der lokalen Umgebung.
+**Cause:** The Python dependencies are missing from the local environment.
 
-**Lösung:**
+**Solution:**
 
 ```bash
 pip install -r requirements.txt
@@ -95,10 +94,9 @@ pip install -r requirements.txt
 
 ### `No module named pytest`
 
-**Ursache:** `pytest` ist in der aktiven virtuellen Umgebung nicht
-installiert.
+**Cause:** `pytest` is not installed in the active virtual environment.
 
-**Lösung:**
+**Solution:**
 
 ```bash
 pip install pytest
@@ -106,6 +104,7 @@ pip install pytest
 
 ### `ResponseValidationError` in Tests
 
-**Lösung:** Prüfe insbesondere Enum-Werte, Listenstrukturen und Pflichtfelder
-des Response-Modells. Ergänze oder korrigiere die Fake-Daten, bis sie dem
-Modell entsprechen.
+**Cause:** The fake data does not match the expected Pydantic response model.
+
+**Solution:** Check enum values, list structures, and required fields in the
+response model. Add or correct the fake data until it matches the model.
