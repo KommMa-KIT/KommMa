@@ -6,9 +6,10 @@
  * export dialogs, and the individualisation progress bar.
  *
  * Data flow:
- *  - Measures are fetched from the MeasuresSlice on mount.
+ *  - Measures are fetched from the MeasureSlice on mount.
  *  - Ranked results and filter state are read from the ResultSlice.
- *  - GraphInitializer loads dependency-graph edges in the background.
+ *  - Dependency-graph edges are read from the GraphSlice when exporting. They are
+ *    loaded app-wide by GraphInitializer (mounted in MainLayout).
  */
 
 import { useEffect, useState } from 'react';
@@ -19,7 +20,6 @@ import IndividualisationProgressBar from '../components/results/result-header/in
 import FilterSortDialog from '../components/results/result-header/FilterSortDialog';
 import ExportDialog from '../components/results/result-header/ExportDialog';
 import exportService from '../services/ExportService';
-import graphService from '../services/GraphService';
 import {
   selectRankedMeasures,
   selectIndividualismLevels,
@@ -33,15 +33,29 @@ import {
   fetchMeasures,
   selectMeasuresLoading,
 } from '../store/MeasureSlice';
+import {
+  fetchGraphEdges,
+  selectGraphEdges,
+  selectGraphStatus,
+} from '../store/GraphSlice';
 import { AppDispatch } from '../store/store';
-import OverviewView from '../components/results/overview-view/Overview';
+import { GraphEdge } from '../types/graphTypes';
+import OverviewView from '../components/results/overview-view/OverviewView';
 import ListView from '../components/results/list-view/ListView';
 import GraphView from '../components/results/graph-view/GraphView';
 import MatrixView from '../components/results/matrix-view/MatrixView';
-import GraphInitializer from '../components/common/GraphInitializer';
 import Button from '../components/common/Button';
 
 type ViewType = 'overview' | 'list' | 'matrix' | 'graph';
+
+// --- Helpers ---
+
+/**
+ * Attaches a 1-based rank to each measure in display order, as expected by
+ * the export service.
+ */
+const withRanks = <T extends object>(measures: T[]) =>
+  measures.map((measure, index) => ({ ...measure, rank: index + 1 }));
 
 /**
  * ResultPage
@@ -64,6 +78,8 @@ const ResultPage = () => {
   const measuresLoading    = useSelector(selectMeasuresLoading);
   const filters            = useSelector(selectFilters);
   const visibleMeasures    = useSelector(selectVisibleMeasures);
+  const graphEdges         = useSelector(selectGraphEdges);
+  const graphStatus        = useSelector(selectGraphStatus);
 
   const [activeView,       setActiveView]       = useState<ViewType>('overview');
   const [filterDialogOpen, setFilterDialogOpen] = useState(false);
@@ -88,53 +104,45 @@ const ResultPage = () => {
   // --- Export handlers ---
 
   /**
-   * Exports visible measures to PDF, including the dependency-graph edge table when
-   * graph data is available. Falls back to a graph-free export on fetch failure.
+   * Resolves the dependency-graph edges for an export. Uses the edges already
+   * held in the GraphSlice; if they are not loaded (e.g. an earlier fetch failed),
+   * a fetch is attempted. Returns undefined when no edges can be obtained, so the
+   * export falls back to a version without the relationship table.
    */
-  const handleExportPDF = async () => {
-    const measuresToExport = visibleMeasures.map((item: any, index: number) => ({
-      ...item,
-      rank: index + 1,
-    }));
+  const resolveExportEdges = async (): Promise<GraphEdge[] | undefined> => {
+    if (graphStatus === 'succeeded') return graphEdges;
 
     try {
-      const edges = await graphService.fetchGraph();
-      exportService.exportPDF(measuresToExport, edges);
+      return await dispatch(fetchGraphEdges()).unwrap();
     } catch (err) {
       console.warn('Graph edges unavailable, exporting without relationships:', err);
-      exportService.exportPDF(measuresToExport);
+      return undefined;
     }
   };
 
   /**
+   * Exports visible measures to PDF, including the dependency-graph edge table when
+   * graph data is available.
+   */
+  const handleExportPDF = async () => {
+    const edges = await resolveExportEdges();
+    exportService.exportPDF(withRanks(visibleMeasures), edges);
+  };
+
+  /**
    * Exports visible measures to a Word (.docx) document, including the dependency-graph
-   * edge table when graph data is available. Falls back to a graph-free export on fetch
-   * failure.
+   * edge table when graph data is available.
    */
   const handleExportDOCX = async () => {
-    const measuresToExport = visibleMeasures.map((item: any, index: number) => ({
-      ...item,
-      rank: index + 1,
-    }));
-
-    try {
-      const edges = await graphService.fetchGraph();
-      exportService.exportDOCX(measuresToExport, edges);
-    } catch (err) {
-      console.warn('Graph edges unavailable, exporting without relationships:', err);
-      exportService.exportDOCX(measuresToExport);
-    }
+    const edges = await resolveExportEdges();
+    exportService.exportDOCX(withRanks(visibleMeasures), edges);
   };
 
   /**
    * Exports visible measures to a semicolon-delimited CSV file.
    */
   const handleExportCSV = () => {
-    const measuresToExport = visibleMeasures.map((item: any, index: number) => ({
-      ...item,
-      rank: index + 1,
-    }));
-    exportService.exportCSV(measuresToExport);
+    exportService.exportCSV(withRanks(visibleMeasures));
   };
 
   /** Commits updated filters to the Redux store. */
@@ -144,9 +152,6 @@ const ResultPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/10">
-      {/* Loads dependency-graph edges in the background */}
-      <GraphInitializer />
-
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
         {/* Page header */}

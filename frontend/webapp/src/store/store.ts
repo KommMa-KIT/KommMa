@@ -12,6 +12,7 @@ import measuresReducer  from './MeasureSlice';
 import resultReducer    from './ResultSlice';
 import communityReducer from './CommunitySlice';
 import uiReducer        from './UISlice';
+import graphReducer from './GraphSlice';
 
 // --- Store ---
 
@@ -23,6 +24,7 @@ import uiReducer        from './UISlice';
  *  - measures  → MeasuresSlice (measure catalogue and search filter)
  *  - community → CommunitySlice (commune identity, inputs, prefill data)
  *  - ui        → UISlice        (navigation state, validation errors, sub-input expansion)
+ *  - graph     → GraphSlice (graph-related state)
  */
 export const store = configureStore({
   reducer: {
@@ -30,6 +32,7 @@ export const store = configureStore({
     measures:  measuresReducer,
     community: communityReducer,
     ui:        uiReducer,
+    graph:     graphReducer,
   },
 });
 

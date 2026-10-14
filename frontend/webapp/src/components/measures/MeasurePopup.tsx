@@ -5,16 +5,19 @@
  * when the user clicks a MeasureCard. Sections include a cover image header,
  * short description, popularity badge with optional comment, full description,
  * relevant parameters, external resource links, and a list of prerequisite
- * measures resolved via the DependencyGraphService.
+ * measures resolved via the DependencyGraphService. The dependency graph itself
+ * is loaded app-wide (see GraphInitializer in MainLayout); the popup only
+ * re-resolves its prerequisites once the GraphSlice reports the graph as loaded.
  */
 
+import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { selectAllMeasures } from '../../store/MeasureSlice';
+import { selectGraphStatus } from '../../store/GraphSlice';
 import dependencyGraphService from '../../services/DependencyGraphService';
 import * as Dialog from '@radix-ui/react-dialog';
 import { Users, ArrowUpRight, Minus, ArrowDownRight, CircleX, X, ExternalLink } from 'lucide-react';
 import { Measure, PopularityLevel } from '../../types/measureTypes';
-import GraphInitializer from '../common/GraphInitializer';
 import LinkifiedText from '../common/LinkifiedText';
 
 // --- Types ---
@@ -83,11 +86,22 @@ const MeasurePopup = ({ measure, open, onOpenChange }: MeasurePopupProps) => {
   /** Full measure list from Redux, used to resolve prerequisite IDs to full objects. */
   const allMeasures = useSelector(selectAllMeasures);
 
-  /** Set of measure IDs that must be implemented before this measure can be applied. */
-  const prerequisiteIds = dependencyGraphService.getPrerequisiteMeasures(measure.id);
+  /**
+   * Load state of the dependency graph. DependencyGraphService is not reactive,
+   * so this value only serves as a signal to resolve the prerequisites again
+   * once the graph has been built.
+   */
+  const graphStatus = useSelector(selectGraphStatus);
 
-  /** Full Measure objects for each prerequisite ID, filtered from the Redux list. */
-  const prerequisiteMeasures = allMeasures.filter(m => prerequisiteIds.has(m.id));
+  /**
+   * Measures that must be implemented before this measure can be applied,
+   * resolved from the DependencyGraphService IDs against the Redux measure list.
+   * Empty until the graph has been loaded.
+   */
+  const prerequisiteMeasures = useMemo(() => {
+    const prerequisiteIds = dependencyGraphService.getPrerequisiteMeasures(measure.id);
+    return allMeasures.filter(m => prerequisiteIds.has(m.id));
+  }, [measure.id, allMeasures, graphStatus]);
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
@@ -181,10 +195,6 @@ const MeasurePopup = ({ measure, open, onOpenChange }: MeasurePopupProps) => {
                 </div>
               </div>
             )}
-
-            {/* GraphInitializer — ensures the dependency graph is loaded before
-                the prerequisite list attempts to resolve IDs */}
-            <GraphInitializer />
 
             {/* Prerequisite measures — only rendered when at least one exists */}
             {prerequisiteMeasures.length > 0 && (

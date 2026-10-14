@@ -7,7 +7,7 @@
  * same bidirectional selection pattern used in GraphView.
  */
 
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { BarChart3 } from 'lucide-react';
 import { selectTopNMeasures } from '../../../store/ResultSlice';
@@ -24,7 +24,8 @@ import ResultMeasureCompactList from '../result-measure/compact-card/ResultMeasu
  *  - selectedMeasureId local state — shared between canvas and list panels
  *  - Two-column layout:
  *      Left (2/3): MatrixCanvas
- *      Right (1/3): Sticky ResultMeasureCompactList, scrollable to 700 px
+ *      Right (1/3): Sticky ResultMeasureCompactList with a usage hint,
+ *                   scrollable to 700 px
  */
 const MatrixView = () => {
   /** The top 20 measures by rank, passed to both the canvas and the list. */
@@ -37,6 +38,14 @@ const MatrixView = () => {
    */
   const [selectedMeasureId, setSelectedMeasureId] = useState<string | null>(null);
 
+  /**
+   * Selection handler shared by canvas and list. Selecting the measure that is
+   * already selected clears the selection (toggle); null always clears it.
+   */
+  const handleSelectMeasure = useCallback((id: string | null) => {
+    setSelectedMeasureId((current) => (id === null || current === id ? null : id));
+  }, []);
+
   return (
     <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
 
@@ -46,7 +55,7 @@ const MatrixView = () => {
           <MatrixCanvas
             measures={rankedMeasures}
             selectedMeasureId={selectedMeasureId}
-            onSelectMeasure={setSelectedMeasureId}
+            onSelectMeasure={handleSelectMeasure}
           />
         </div>
       </div>
@@ -60,7 +69,8 @@ const MatrixView = () => {
               <h3 className="font-semibold text-gray-900">Maßnahmen</h3>
             </div>
             <p className="text-xs text-gray-500">
-              Klicken Sie auf eine Maßnahme, um sie in der Matrix hervorzuheben
+              <span className="block">Klicken Sie auf eine Maßnahme, um sie in der Matrix hervorzuheben.</span>
+              <span className="block">Über das Info-Symbol öffnen Sie die Detailansicht.</span>
             </p>
           </div>
 
@@ -68,7 +78,7 @@ const MatrixView = () => {
           <div className="max-h-[700px] overflow-y-auto">
             <ResultMeasureCompactList
               selectedMeasureId={selectedMeasureId}
-              onSelectMeasure={setSelectedMeasureId}
+              onSelectMeasure={handleSelectMeasure}
             />
           </div>
         </div>

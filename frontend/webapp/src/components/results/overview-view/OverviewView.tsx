@@ -8,19 +8,19 @@
  *     the canvas navigates to the corresponding full view.
  *  3. The full ranked ResultMeasureList below the fold.
  *
- * Graph edge data is fetched on mount for the graph preview. The matrix preview
- * requires no additional fetch as it uses the already-loaded ranked measures.
+ * Graph edge data for the graph preview is read from the GraphSlice, which is
+ * populated app-wide by GraphInitializer. The matrix preview requires no
+ * additional data as it uses the already-loaded ranked measures.
  */
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Network, BarChart3, ChevronRight, ChevronLeft } from 'lucide-react';
 import { selectRankedMeasures } from '../../../store/ResultSlice';
+import { selectGraphEdges, selectGraphLoading } from '../../../store/GraphSlice';
 import ResultMeasureList from '../result-measure/card/ResultMeasureList';
 import GraphViewCanvas from '../graph-view/GraphViewCanvas';
 import MatrixCanvas from '../matrix-view/MatrixCanvas';
-import graphService from '../../../services/GraphService';
-import { GraphEdge } from '../../../types/graphTypes';
 
 // --- Types ---
 
@@ -47,9 +47,8 @@ const canvasHeight = 300;
  * OverviewView
  *
  * Sections:
- *  - Redux state (all ranked measures)
+ *  - Redux state (all ranked measures, graph edges and graph loading flag)
  *  - previewType local state — controls which canvas is shown in the preview slot
- *  - Graph edge fetch via useEffect on mount (used only by the graph preview)
  *  - handlePreviewClick — navigates to the full view and scrolls to the tabs
  *  - togglePreview — flips the active preview between graph and matrix
  *  - Top section: info panel (left) + togglable preview canvas (right)
@@ -59,37 +58,14 @@ const OverviewView = ({ onNavigateToView }: OverviewViewProps) => {
   /** All ranked measures from the Redux store, used by both preview canvases. */
   const rankedMeasures = useSelector(selectRankedMeasures);
 
+  /** Graph edges from the GraphSlice; only needed when previewType is 'graph'. */
+  const graphEdges = useSelector(selectGraphEdges);
+
+  /** True until the graph edges are available; shows a loading spinner. */
+  const graphLoading = useSelector(selectGraphLoading);
+
   /** Which canvas is currently displayed in the preview slot. */
   const [previewType, setPreviewType] = useState<PreviewType>('graph');
-
-  /** Graph edges fetched on mount; only needed when previewType is 'graph'. */
-  const [graphEdges, setGraphEdges] = useState<GraphEdge[]>([]);
-
-  /** True while the graph edge fetch is in progress; shows a loading spinner. */
-  const [graphLoading, setGraphLoading] = useState(true);
-
-  // --- Data loading ---
-
-  /**
-   * Fetches graph edges once on mount for the graph preview panel.
-   * Errors are logged but not surfaced in the UI — the graph preview
-   * is decorative in this context and a failed fetch is non-critical.
-   */
-  useEffect(() => {
-    const fetchGraphData = async () => {
-      try {
-        setGraphLoading(true);
-        const edges = await graphService.fetchGraph();
-        setGraphEdges(edges);
-      } catch (err) {
-        console.error('Failed to load graph for preview:', err);
-      } finally {
-        setGraphLoading(false);
-      }
-    };
-
-    fetchGraphData();
-  }, []);
 
   // --- Handlers ---
 

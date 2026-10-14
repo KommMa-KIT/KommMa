@@ -23,15 +23,21 @@
  * edges outside the selected neighbourhood are faded toward the background colour.
  */
 
-import { useMemo, useRef } from 'react';
-import { GraphCanvas, GraphCanvasRef, GraphNode, GraphEdge } from 'reagraph';
-import { GraphEdge as AppGraphEdge } from '../../../types/graphTypes';
+import { useMemo } from 'react';
+import { GraphCanvas, GraphNode, GraphEdge } from 'reagraph';
+import { GraphEdge as AppGraphEdge, RELATION_TYPE_CONFIG, RelationType } from '../../../types/graphTypes';
 
 // --- Types ---
 
+/** The subset of a ranked measure result that the canvas reads. */
+interface RankedMeasureNode {
+  measure: { id: string; title: string };
+  totalScore?: number;
+}
+
 interface GraphViewCanvasProps {
   /** Ranked measure result objects; each contains a nested measure and a totalScore. */
-  measures: any[];
+  measures: RankedMeasureNode[];
   /** Directed edges between measures, typed by relationship (synergy, conflict, etc.). */
   edges: AppGraphEdge[];
   /**
@@ -45,6 +51,14 @@ interface GraphViewCanvasProps {
   /** Canvas height in pixels. Defaults to 600. */
   height?: number;
 }
+
+// --- Constants ---
+
+/**
+ * Canvas background colour. Shared by the theme and by fadeToBackground, so
+ * faded edges blend into exactly the colour they are drawn on.
+ */
+const CANVAS_BACKGROUND = '#fafafa';
 
 // --- Component ---
 
@@ -67,8 +81,6 @@ const GraphViewCanvas = ({
   onSelectMeasure,
   height = 600,
 }: GraphViewCanvasProps) => {
-  const graphRef = useRef<GraphCanvasRef | null>(null);
-
   // --- Node derivation ---
 
   /**
@@ -78,9 +90,9 @@ const GraphViewCanvas = ({
    */
   const nodes: GraphNode[] = useMemo(() => {
     return measures.map((item) => ({
-      id:    item?.measure.id    || '',
-      label: item?.measure.title || '',
-      size:  Math.max(5, Math.min(20, (item?.totalScore || 0) / 10)),
+      id:    item.measure.id,
+      label: item.measure.title,
+      size:  Math.max(5, Math.min(20, (item.totalScore || 0) / 10)),
     }));
   }, [measures]);
 
@@ -89,20 +101,18 @@ const GraphViewCanvas = ({
   /**
    * Converts AppGraphEdges to ReaGraph GraphEdge objects.
    *
-   * Interpolation: Adds a curvature to bidirectional edges. When both A→B and 
-   * B→A exist, drawing both as straight lines makes them overlap completely; 
-   * requesting curved interpolation on both is enough, since ReaGraph detects 
-   * the parallel pair internally and offsets them to opposite sides on its own. 
-   * Edges without a reverse counterpart are left as 'linear', since a lone edge
-   * has nothing to be offset from.
+   * Interpolation: when both A→B and B→A exist, drawing both as straight lines
+   * makes them overlap completely. Requesting curved interpolation on both is
+   * enough, since ReaGraph detects the parallel pair internally and offsets them
+   * to opposite sides on its own. Edges without a reverse counterpart stay
+   * 'linear', since a lone edge has nothing to be offset from.
    *
    * Curving is applied sparingly, only where it actually adds information: if
-   * the reverse edge has the same relationship type, the two edges already
-   * render in the same colour, so an overlapping straight pair looks no
-   * different from a curved one — curving them would just add visual noise.
-   * A pair is only curved when the two directions differ in type, since that's
-   * the case where separating them lets both colours be seen. Edges without a
-   * same-type reverse counterpart are left as 'linear'.
+   * the reverse edge has the same relationship type, both edges already render
+   * in the same colour, so an overlapping straight pair looks no different from
+   * a curved one and curving would just add visual noise. A pair is therefore
+   * curved only when the two directions differ in type, since that is the case
+   * where separating them lets both colours be seen.
    *
    * Colour: the base fill comes from the edge's relationship type. Edges that
    * are not adjacent to the current selection are faded toward the canvas
@@ -110,22 +120,26 @@ const GraphViewCanvas = ({
    * why edges can't use ReaGraph's `actives`-based opacity dimming).
    */
   const graphEdges: GraphEdge[] = useMemo(() => {
-    const findReverseEdge = (from: string, to: string) =>
-      edges.find((e) => e.from === to && e.to === from);
+    /** Type of the first edge per direction, for constant-time reverse lookups. */
+    const typeByDirection = new Map<string, string>();
+    for (const edge of edges) {
+      const key = directionKey(edge.from, edge.to);
+      if (!typeByDirection.has(key)) typeByDirection.set(key, edge.type);
+    }
 
     const isAdjacent = (from: string, to: string) =>
       !selectedMeasureId || from === selectedMeasureId || to === selectedMeasureId;
 
     return edges.map((edge, index) => {
-      const { fill } = getEdgeStyle(edge.type);
-      const reverseEdge = findReverseEdge(edge.from, edge.to);
-      const isBidirectional = !!reverseEdge && reverseEdge.type !== edge.type;
+      const fill = getEdgeColor(edge.type);
+      const reverseType = typeByDirection.get(directionKey(edge.to, edge.from));
+      const hasConflictingReverse = reverseType !== undefined && reverseType !== edge.type;
 
       return {
         id:            `${edge.from}-${edge.to}-${index}`,
         source:        edge.from,
         target:        edge.to,
-        interpolation: isBidirectional ? 'curved' : 'linear',
+        interpolation: hasConflictingReverse ? 'curved' : 'linear',
         fill:          isAdjacent(edge.from, edge.to) ? fill : fadeToBackground(fill, 0.3),
       };
     });
@@ -190,11 +204,10 @@ const GraphViewCanvas = ({
 
   return (
     <div
-      className="relative w-full h-[600px] bg-gray-50 rounded-lg border-2 border-gray-200 overflow-hidden"
+      className="relative w-full bg-gray-50 rounded-lg border-2 border-gray-200 overflow-hidden"
       style={{ height: `${height}px` }}
     >
       <GraphCanvas
-        ref={graphRef}
         nodes={nodes}
         edges={graphEdges}
         selections={selections}
@@ -204,8 +217,8 @@ const GraphViewCanvas = ({
         layoutType="forceDirected2d"
         theme={{
           canvas: {
-            background: '#fafafa',
-            fog: '#fafafa',
+            background: CANVAS_BACKGROUND,
+            fog: CANVAS_BACKGROUND,
           },
           node: {
             fill: '#67AE6E',           /** Default node fill — mid-green. */
@@ -265,29 +278,24 @@ const GraphViewCanvas = ({
 // --- Utilities ---
 
 /**
- * Returns a ReaGraph-compatible fill/activeFill colour pair for a given edge type.
- * Colours match the legend displayed in GraphView. Falls back to neutral grey
- * for any unrecognised type — the neutral case should not occur in practice.
+ * Builds the lookup key identifying a directed edge by its endpoints.
  *
- * Note: ReaGraph reads `fill` from the edge object but takes the highlighted colour
- * from theme.edge.activeFill, so the per-edge activeFill here may not be applied.
- *
- * @param type The relationship type string from the backend graph data.
- * @returns An object with fill and activeFill colour strings.
+ * @param from ID of the source measure.
+ * @param to   ID of the target measure.
+ * @returns A string unique to the direction from → to.
  */
-const getEdgeStyle = (type: string): { fill: string; activeFill: string } => {
-  const styles = {
-    synergy:      { fill: '#22c55e', activeFill: '#16a34a' },
-    conflict:     { fill: '#ef4444', activeFill: '#dc2626' },
-    contribution: { fill: '#ca8a04', activeFill: '#a16207' },
-    dependency:   { fill: '#3b82f6', activeFill: '#2563eb' },
-    prerequisite: { fill: '#a855f7', activeFill: '#9333ea' },
-    /** Fallback for unrecognised edge types — should not occur in practice. */
-    neutral:      { fill: '#9ca3af', activeFill: '#6b7280' },
-  };
+const directionKey = (from: string, to: string): string => `${from}→${to}`;
 
-  return styles[type as keyof typeof styles] || styles.neutral;
-};
+/**
+ * Returns the canvas colour configured for an edge type in RELATION_TYPE_CONFIG.
+ * Falls back to the neutral colour for a type the config does not know, which can
+ * only happen if the backend sends a type the frontend has not registered yet.
+ *
+ * @param type The relationship type of the edge.
+ * @returns A six-digit hex colour string.
+ */
+const getEdgeColor = (type: RelationType): string =>
+  (RELATION_TYPE_CONFIG[type] ?? RELATION_TYPE_CONFIG.neutral).edgeColor;
 
 /**
  * Blends a hex colour toward the canvas background, preserving hue while reducing
@@ -304,7 +312,7 @@ const getEdgeStyle = (type: string): { fill: string; activeFill: string } => {
 const fadeToBackground = (
   hex: string,
   amount: number,
-  background = '#fafafa',
+  background = CANVAS_BACKGROUND,
 ): string => {
   const channels = (value: string) =>
     [1, 3, 5].map(offset => parseInt(value.slice(offset, offset + 2), 16));

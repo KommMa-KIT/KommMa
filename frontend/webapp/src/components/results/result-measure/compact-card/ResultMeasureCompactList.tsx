@@ -27,8 +27,9 @@ interface ResultMeasureCompactListProps {
  * Renders one of three states:
  *  - **Loading** – skeleton placeholder list.
  *  - **Empty** – informational message prompting the user to run a calculation.
- *  - **Populated** – divider-separated list of ResultMeasureCompactCard instances
- *    with automatic scroll-to-selection.
+ *  - **Populated** – list of ResultMeasureCompactCard instances with automatic
+ *    scroll-to-selection. Row separators are drawn by the cards themselves so
+ *    that their left selection border is styled identically for every row.
  */
 const ResultMeasureCompactList = ({
   selectedMeasureId,
@@ -63,7 +64,7 @@ const ResultMeasureCompactList = ({
   }
 
   return (
-    <div className="divide-y divide-gray-100">
+    <div>
       {measures.map((item: any, index: number) => (
         <ResultMeasureCompactCard
           key={item.measure.id}

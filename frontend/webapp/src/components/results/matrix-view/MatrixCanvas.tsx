@@ -4,14 +4,41 @@
  * A Recharts bubble (scatter) chart that plots the top-ranked measures on a
  * two-dimensional cost-vs-time matrix. Bubble size encodes the climate score,
  * giving a three-dimensional view of each measure's trade-offs at a glance.
- * Clicking a bubble selects the corresponding measure, synchronising with any
- * sibling panels that share the selectedMeasureId prop.
+ * Clicking a bubble selects the corresponding measure. While a measure is
+ * selected, its bubble is drawn in the dark selection colour and all other
+ * bubbles are dimmed, mirroring the highlighting of GraphViewCanvas.
  */
 
 import {
   ScatterChart, Scatter, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, Cell, ZAxis,
 } from 'recharts';
+
+// --- Constants ---
+
+/** Bubble colours; identical to the node colours used by GraphViewCanvas. */
+const BUBBLE_FILL      = '#67AE6E';
+const BUBBLE_STROKE    = '#328E6E';
+const SELECTED_FILL    = '#328E6E';
+const SELECTED_STROKE  = '#1a5a4a';
+
+/** Bubble opacity: default, while another measure is selected, and while selected. */
+const OPACITY_DEFAULT  = 0.7;
+const OPACITY_DIMMED   = 0.3;
+const OPACITY_SELECTED = 1;
+
+/**
+ * Removes the browser focus outline from every element inside the chart.
+ * Recharts renders focusable SVG elements, and a click on a bubble would
+ * otherwise leave a black focus frame around the chart.
+ */
+const CHART_FOCUS_RESET = `
+  .matrix-canvas,
+  .matrix-canvas * {
+    outline: none !important;
+    -webkit-tap-highlight-color: transparent;
+  }
+`;
 
 // --- Types ---
 
@@ -20,8 +47,8 @@ interface MatrixCanvasProps {
   measures: any[];
   /** ID of the currently highlighted measure; null when no selection is active. */
   selectedMeasureId: string | null;
-  /** Callback fired when the user clicks a bubble. */
-  onSelectMeasure: (id: string) => void;
+  /** Callback fired when the user clicks a bubble (id) or the empty chart area (null). */
+  onSelectMeasure: (id: string | null) => void;
   /** Canvas height in pixels. Defaults to 600. */
   height?: number;
 }
@@ -145,6 +172,16 @@ const MatrixCanvas = ({
     onSelectMeasure(data.id);
   };
 
+  /**
+   * Clears the selection when the click did not land on a bubble. Bubble clicks
+   * are recognised by their Recharts symbol wrapper and left to handleClick.
+   */
+  const handleCanvasClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    const target = event.target as Element;
+    if (target.closest('.recharts-scatter-symbol')) return;
+    onSelectMeasure(null);
+  };
+
   // --- Empty state ---
 
   if (data.length === 0) {
@@ -161,13 +198,21 @@ const MatrixCanvas = ({
     );
   }
 
+  const hasSelection = selectedMeasureId !== null;
+
   return (
     <div
-      className="w-full bg-white rounded-lg p-6"
+      className="matrix-canvas w-full bg-white rounded-lg p-6"
       style={{ height: `${height}px` }}
+      onClick={handleCanvasClick}
     >
+      <style>{CHART_FOCUS_RESET}</style>
+
       <ResponsiveContainer width="100%" height="100%">
-        <ScatterChart margin={{ top: 20, right: 30, bottom: 60, left: 80 }}>
+
+        <ScatterChart
+          margin={{ top: 20, right: 30, bottom: 60, left: 80 }}
+        >
           <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
 
           {/* X-axis — implementation time in months */}
@@ -213,19 +258,23 @@ const MatrixCanvas = ({
 
           <Scatter
             data={data}
-            fill="#67AE6E"
+            fill={BUBBLE_FILL}
             onClick={(data) => handleClick(data as MatrixDataPoint)}
           >
-            {/* Per-bubble Cell styling — selected bubble uses darker fill and heavier stroke */}
+            {/* Per-bubble Cell styling — selected bubble is dark and opaque, the rest is dimmed */}
             {data.map((entry, index) => {
               const isSelected = entry.id === selectedMeasureId;
+              const opacity = isSelected
+                ? OPACITY_SELECTED
+                : hasSelection ? OPACITY_DIMMED : OPACITY_DEFAULT;
+
               return (
                 <Cell
                   key={`cell-${index}`}
-                  fill={isSelected ? '#328E6E' : '#67AE6E'}
-                  stroke={isSelected ? '#1a5a4a' : '#328E6E'}
+                  fill={isSelected ? SELECTED_FILL : BUBBLE_FILL}
+                  stroke={isSelected ? SELECTED_STROKE : BUBBLE_STROKE}
                   strokeWidth={isSelected ? 3 : 1}
-                  opacity={isSelected ? 1 : 0.7}
+                  opacity={opacity}
                   cursor="pointer"
                 />
               );

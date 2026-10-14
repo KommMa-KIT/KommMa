@@ -4,25 +4,55 @@
  * Singleton service that builds and queries a directed dependency graph from the GraphEdge data from GraphService. 
  * Supports all edge types except neutral.
  *
+ * Edge direction per type (edge.from → edge.to):
+ *  - prerequisite: from is a prerequisite of to (to requires from).
+ *  - dependency:   from depends on to (from requires to).
+ *  - contribution: from implemented → to benefits.
+ *  - synergy:      from implemented → to benefits.
+ *  - conflict:     from implemented → to is negatively affected.
+ *
+ * The service is populated by the fetchGraphEdges thunk in GraphSlice, which
+ * calls buildGraph before the loaded edges are published to the store.
  */
 
 import { GraphEdge } from '../types/graphTypes';
 
+// --- Types ---
+
+/** Maps a measure ID to the IDs of the measures related to it by one edge type. */
+type AdjacencyMap = Map<string, string[]>;
+
+// --- Helpers ---
+
+/**
+ * Adds a value to the list stored under a key, creating the list if needed.
+ * Duplicates are ignored, so repeated edges do not inflate the result.
+ *
+ * @param map   Adjacency map to extend.
+ * @param key   ID of the source measure.
+ * @param value ID of the related measure.
+ */
+const addUnique = (map: AdjacencyMap, key: string, value: string): void => {
+  const values = map.get(key) || [];
+  if (!values.includes(value)) values.push(value);
+  map.set(key, values);
+};
+
 class DependencyGraphService {
   /** Maps measure A → all measures that require A as a prerequisite (non-transitive). */
-  private prerequisiteMap: Map<string, string[]> = new Map();
+  private prerequisiteMap: AdjacencyMap = new Map();
 
   /** Maps measure A → all measures that A itself requires (non-transitive). */
-  private dependencyMap: Map<string, string[]> = new Map();
+  private dependencyMap: AdjacencyMap = new Map();
 
-  /** Maps measure A → measures that benefit when A is implemented. */
-  private contributionMap: Map<string, string[]> = new Map();
+  /** Maps measure A → measures that A contributes to; they benefit when A is implemented. */
+  private contributionMap: AdjacencyMap = new Map();
 
-  /** Maps measure A → measures that benefit when A is implemented. */
-  private synergyMap: Map<string, string[]> = new Map();
+  /** Maps measure A → measures that have a synergy with A; they benefit when A is implemented. */
+  private synergyMap: AdjacencyMap = new Map();
 
   /** Maps measure A → measures that are negatively affected when A is implemented. */
-  private conflictMap: Map<string, string[]> = new Map();
+  private conflictMap: AdjacencyMap = new Map();
 
   private initialized: boolean = false;
 
@@ -31,50 +61,45 @@ class DependencyGraphService {
   /**
    * Builds all internal maps from a flat list of graph edges.
    * Clears any previously stored data before processing.
+   * Edges of unsupported types (e.g. neutral) are ignored.
    *
    * @param edges Array of directed edges from the backend graph endpoint.
    */
   buildGraph(edges: GraphEdge[]): void {
+    this.clearMaps();
+
+    edges.forEach((edge) => {
+      const map = this.getMapForType(edge.type);
+      if (map) addUnique(map, edge.from, edge.to);
+    });
+
+    this.initialized = true;
+  }
+
+  /**
+   * Returns the adjacency map that stores edges of the given type.
+   *
+   * @param type Relationship type of an edge.
+   * @returns The matching map, or undefined for unsupported types.
+   */
+  private getMapForType(type: GraphEdge['type']): AdjacencyMap | undefined {
+    switch (type) {
+      case 'prerequisite': return this.prerequisiteMap;
+      case 'dependency':   return this.dependencyMap;
+      case 'contribution': return this.contributionMap;
+      case 'synergy':      return this.synergyMap;
+      case 'conflict':     return this.conflictMap;
+      default:             return undefined;
+    }
+  }
+
+  /** Empties all adjacency maps without touching the initialised flag. */
+  private clearMaps(): void {
     this.prerequisiteMap.clear();
     this.dependencyMap.clear();
     this.contributionMap.clear();
     this.synergyMap.clear();
     this.conflictMap.clear();
-
-    edges.forEach((edge) => {
-      if (edge.type === 'prerequisite') {
-        // "A is a prerequisite of B" → prerequisiteMap: A → [..., B]
-        const dependents = this.prerequisiteMap.get(edge.from) || [];
-        if (!dependents.includes(edge.to)) dependents.push(edge.to);
-        this.prerequisiteMap.set(edge.from, dependents);
-
-      } else if (edge.type === 'dependency') {
-        // "A depends on B" → dependencyMap: A → [..., B]
-        const requirements = this.dependencyMap.get(edge.from) || [];
-        if (!requirements.includes(edge.to)) requirements.push(edge.to);
-        this.dependencyMap.set(edge.from, requirements);
-
-      } else if (edge.type === 'contribution') {
-        // "A contributes to B" → contributionMap: A → [..., B]
-        const contributionList = this.contributionMap.get(edge.from) || [];
-        if (!contributionList.includes(edge.to)) contributionList.push(edge.to);
-        this.contributionMap.set(edge.from, contributionList);
-
-      } else if (edge.type === 'synergy') {
-        // Directed: A implemented → B benefits
-        const synergyList = this.synergyMap.get(edge.from) || [];
-        if (!synergyList.includes(edge.to)) synergyList.push(edge.to);
-        this.synergyMap.set(edge.from, synergyList);
-
-      } else if (edge.type === 'conflict') {
-        // Directed: A implemented → B negatively affected
-        const conflictList = this.conflictMap.get(edge.from) || [];
-        if (!conflictList.includes(edge.to)) conflictList.push(edge.to);
-        this.conflictMap.set(edge.from, conflictList);
-      }
-    });
-
-    this.initialized = true;
   }
 
   // --- Infeasibility propagation ---
@@ -121,17 +146,16 @@ class DependencyGraphService {
     return new Set<string>(this.dependencyMap.get(id) || []);
   }
 
-  // --- Synergy / conflict resolution ---
+  // --- Benefit / conflict resolution ---
 
   /**
-   * Returns all measures that benefit from at least one of the implemented measures (via synergy OR contribution)
-   * (i.e. candidates for a green border), excluding already-implemented measures.
-   * 
-   * Note: deprecated name: not synergy only - also contribution relationships are taken into account!
+   * Returns all measures that benefit from at least one of the implemented measures
+   * (via synergy OR contribution), i.e. candidates for a green border, excluding
+   * already-implemented measures.
    *
    * @param implementedIds IDs of all currently implemented measures.
    */
-  getSynergyMeasures(implementedIds: string[]): Set<string> {
+  getBenefitingMeasures(implementedIds: string[]): Set<string> {
     const result = new Set<string>();
     implementedIds.forEach((id) => {
       const synergies = this.synergyMap.get(id) || [];
@@ -180,11 +204,7 @@ class DependencyGraphService {
 
   /** Clears all graph data and resets the initialised flag. */
   reset(): void {
-    this.prerequisiteMap.clear();
-    this.dependencyMap.clear();
-    this.contributionMap.clear();
-    this.synergyMap.clear();
-    this.conflictMap.clear();
+    this.clearMaps();
     this.initialized = false;
   }
 }

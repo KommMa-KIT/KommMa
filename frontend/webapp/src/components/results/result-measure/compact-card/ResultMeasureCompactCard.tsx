@@ -4,10 +4,10 @@
  * Condensed card for displaying a ranked measure in list or sidebar views
  * where horizontal space is limited. Shows rank, title, short description,
  * and icon-scale scores for time, cost, and climate impact.
- * Clicking the card opens the full MeasurePopup.
+ * Clicking the card selects the measure; an info button opens the full MeasurePopup.
  */
 
-import { Clock, Euro, Leaf } from 'lucide-react';
+import { Clock, Euro, Info, Leaf } from 'lucide-react';
 import { useState, forwardRef } from 'react';
 import { Measure } from '../../../../types/measureTypes';
 import MeasurePopup from '../../../measures/MeasurePopup';
@@ -24,6 +24,7 @@ interface ResultMeasureCompactCardProps {
   };
   /** Highlights the card when true (e.g. selected in an adjacent map view). */
   isSelected: boolean;
+  /** Invoked when the card is clicked; the parent owns the selection state. */
   onClick?:   () => void;
 }
 
@@ -83,20 +84,25 @@ const renderCostScale = (costScale: number, totalCost: number) => {
  * ResultMeasureCompactCard
  *
  * Layout:
- *  - **Header row** – circular rank badge + title + short description.
+ *  - **Header row** – circular rank badge + title + short description + info button.
  *  - **Score grid** – three mini panels (Zeit / Kosten / Klima) with icon scales.
  *
  * Selection state (controlled externally via `isSelected`) styles the left border
- * and rank badge in blue. Clicking the card opens MeasurePopup; the `onClick` prop
- * is intentionally not called on card click to keep selection logic in the parent.
+ * and rank badge in blue. The left border is always reserved (transparent when
+ * unselected, grey on hover) so the layout and its appearance are identical for
+ * every card; the row separator is a bottom border on the card itself.
+ *
+ * Clicking the card calls `onClick` so the parent can update the selection. The
+ * info button opens MeasurePopup instead and does not trigger a selection.
  * Supports ref forwarding for programmatic scrolling (e.g. scroll-to-selection).
  */
 const ResultMeasureCompactCard = forwardRef<HTMLDivElement, ResultMeasureCompactCardProps>(
   ({ measure, result, isSelected, onClick }, ref) => {
     const [popupOpen, setPopupOpen] = useState(false);
 
-    /** Opens the detail popup. Selection is managed by the parent, not this handler. */
-    const handleCardClick = () => {
+    /** Opens the detail popup without propagating the click to the card's selection handler. */
+    const handleInfoClick = (e: React.MouseEvent) => {
+      e.stopPropagation();
       setPopupOpen(true);
     };
 
@@ -104,14 +110,14 @@ const ResultMeasureCompactCard = forwardRef<HTMLDivElement, ResultMeasureCompact
       <>
         <div
           ref={ref}
-          onClick={handleCardClick}
-          className={`p-3 hover:bg-gray-50 transition-all cursor-pointer border-l-4 ${
+          onClick={onClick}
+          className={`p-3 hover:bg-gray-50 transition-all cursor-pointer border-l-4 border-b border-b-gray-100 last:border-b-0 ${
             isSelected
-              ? 'bg-blue-50 border-blue-500'
-              : 'border-transparent hover:border-gray-200'
+              ? 'bg-blue-50 border-l-blue-500'
+              : 'border-l-transparent hover:border-l-gray-200'
           }`}
         >
-          {/* Header: rank badge + title + description */}
+          {/* Header: rank badge + title + description + info button */}
           <div className="flex items-start gap-2 mb-2">
             <div className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
               isSelected ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'
@@ -128,6 +134,15 @@ const ResultMeasureCompactCard = forwardRef<HTMLDivElement, ResultMeasureCompact
                 {measure.shortDescription}
               </p>
             </div>
+            <button
+              type="button"
+              onClick={handleInfoClick}
+              aria-label="Details zur Maßnahme anzeigen"
+              title="Details anzeigen"
+              className="flex-shrink-0 -mt-1 -mr-1 p-1 rounded-full text-gray-400 hover:text-blue-600 hover:bg-blue-100 transition-colors"
+            >
+              <Info className="h-4 w-4" />
+            </button>
           </div>
 
           {/* Score grid */}

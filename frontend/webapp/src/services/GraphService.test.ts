@@ -1,7 +1,7 @@
 import { graphService } from './GraphService';
 import { API_BASE_URL } from '../config';
 
-describe('GraphService – additional coverage', () => {
+describe('GraphService', () => {
   beforeEach(() => {
     jest.resetAllMocks();
   });
@@ -33,5 +33,10 @@ describe('GraphService – additional coverage', () => {
       statusText: 'Not Found',
     } as any);
     await expect(graphService.fetchGraph()).rejects.toThrow('404');
+  });
+
+  it('propagates network errors', async () => {
+    global.fetch = jest.fn().mockRejectedValue(new Error('Network down'));
+    await expect(graphService.fetchGraph()).rejects.toThrow('Network down');
   });
 });

@@ -7,12 +7,13 @@
  * PDF and DOCX output both contain three sections:
  *  1. Main measures table with scores and costs.
  *  2. Social-acceptance comments (measures with a non-empty popularityComment).
- *  3. Dependency-graph relationships between exported measures (optional). Rows are
- *     ordered by the rank of the source measure and, for ties, by the rank of the
- *     target measure, so the table reads top-to-bottom in the same order as the main
- *     measures table. The "Beziehung" text is coloured to match the edge colours used
- *     in the interactive graph view, so the exported report stays visually consistent
- *     with the on-screen legend.
+ *  3. Dependency-graph relationships between exported measures (only when graph
+ *     edges are supplied). Rows are ordered by the rank of the source measure and,
+ *     for ties, by the rank of the target measure, so the table reads top-to-bottom
+ *     in the same order as the main measures table. Labels and the colour of the
+ *     "Beziehung" text come from RELATION_TYPE_CONFIG, so the exported report stays
+ *     visually consistent with the interactive graph view. Sections 2 and 3 show a
+ *     short notice instead of a table when they have no entries.
  */
 
 import jsPDF from 'jspdf';
@@ -29,66 +30,102 @@ import {
   AlignmentType,
   WidthType,
 } from 'docx';
-import { GraphEdge } from '../types/graphTypes';
+import { GraphEdge, RELATION_TYPE_CONFIG, RelationTypeConfig } from '../types/graphTypes';
+
+// --- Types ---
 
 /** Text alignment options accepted by docx table cells. */
 type CellAlignment = (typeof AlignmentType)[keyof typeof AlignmentType];
 
+/** Relationship data prepared for the relationships table of an export. */
+interface ExportedRelationships {
+  /** Edges between exported measures, sorted by source rank, then target rank. */
+  sortedEdges: GraphEdge[];
+  /** Maps an exported measure ID to its title. */
+  idToTitle: Map<string, string>;
+  /** Maps an exported measure ID to its rank. */
+  idToRank: Map<string, number>;
+}
+
 class ExportService {
 
+  // --- Relationship type helpers ---
+
   /**
-   * Maps a raw graph-edge type to a human-readable German label.
+   * Looks up the display config of a raw graph-edge type.
+   *
+   * @param type Raw edge type string.
+   * @returns The matching config, or undefined for a type that is not registered.
+   */
+  private findRelationConfig(type: string): RelationTypeConfig | undefined {
+    return (RELATION_TYPE_CONFIG as Record<string, RelationTypeConfig | undefined>)[type];
+  }
+
+  /**
+   * Maps a raw graph-edge type to its human-readable German label.
+   * Falls back to the raw type string for any unregistered type.
    */
   private getRelationTypeLabel(type: string): string {
-    switch (type) {
-      case 'prerequisite': return 'Voraussetzung';
-      case 'dependency':   return 'Abhängigkeit';
-      case 'synergy':      return 'Synergie';
-      case 'conflict':     return 'Konflikt';
-      case 'neutral':      return 'Neutral';
-      case 'contribution': return 'Beitrag';
-      default:             return type;
-    }
+    return this.findRelationConfig(type)?.label ?? type;
   }
 
   /**
    * Maps a raw graph-edge type to the RGB colour used for that relationship
-   * type in the interactive graph (GraphViewCanvas / GraphView legend), so
-   * exported relationship tables can render their "Beziehung" text in
-   * matching colours. Falls back to neutral grey for any unrecognised type.
+   * type in the interactive graph, so exported relationship tables can render
+   * their "Beziehung" text in matching colours. Falls back to the neutral
+   * colour for any unregistered type.
    */
   private getRelationTypeColor(type: string): [number, number, number] {
-    const colors: Record<string, [number, number, number]> = {
-      synergy:      [34, 197, 94],   // #22c55e
-      conflict:     [239, 68, 68],   // #ef4444
-      contribution: [202, 138, 4],   // #ca8a04
-      dependency:   [59, 130, 246],  // #3b82f6
-      prerequisite: [168, 85, 247],  // #a855f7
-      neutral:      [156, 163, 175], // #9ca3af
-    };
-
-    return colors[type] || colors.neutral;
+    const { edgeColor } = this.findRelationConfig(type) ?? RELATION_TYPE_CONFIG.neutral;
+    return this.hexToRgb(edgeColor);
   }
 
   /**
-   * Converts an [r, g, b] triple into a 6-digit uppercase hex string
-   * (without a leading '#'), the format expected by docx's `color` /
-   * `shading.fill` properties.
-   */
-  private rgbToHex([r, g, b]: [number, number, number]): string {
-    return [r, g, b]
-      .map((channel) => channel.toString(16).padStart(2, '0'))
-      .join('')
-      .toUpperCase();
-  }
-
-  /**
-   * Hex-string variant of {@link getRelationTypeColor}, used by the DOCX
-   * export so both output formats derive their relationship colours from
-   * the same single source of truth.
+   * Hex-string variant of {@link getRelationTypeColor}: six uppercase hex digits
+   * without a leading '#', the format expected by docx's `color` / `shading.fill`
+   * properties. Both output formats derive their colours from the same config.
    */
   private getRelationTypeColorHex(type: string): string {
-    return this.rgbToHex(this.getRelationTypeColor(type));
+    const { edgeColor } = this.findRelationConfig(type) ?? RELATION_TYPE_CONFIG.neutral;
+    return edgeColor.slice(1).toUpperCase();
+  }
+
+  /**
+   * Converts a six-digit hex colour with a leading '#' into an [r, g, b] triple.
+   */
+  private hexToRgb(hex: string): [number, number, number] {
+    const [r, g, b] = [1, 3, 5].map((offset) => parseInt(hex.slice(offset, offset + 2), 16));
+    return [r, g, b];
+  }
+
+  /**
+   * Prepares the data of the relationships table shared by the PDF and DOCX export.
+   *
+   * Only edges whose endpoints are both part of the exported measures are kept.
+   * They are sorted primarily by the rank of the source measure and secondarily by
+   * the rank of the target measure, so the table follows the same top-to-bottom
+   * order as the main measures table.
+   *
+   * @param measures Array of ranked measure objects.
+   * @param edges    All graph edges.
+   */
+  private getExportedRelationships(measures: any[], edges: GraphEdge[]): ExportedRelationships {
+    const idToTitle = new Map<string, string>();
+    const idToRank  = new Map<string, number>();
+    measures.forEach((item) => {
+      idToTitle.set(item.measure.id, item.measure.title);
+      idToRank.set(item.measure.id, item.rank);
+    });
+
+    const sortedEdges = edges
+      .filter((edge) => idToTitle.has(edge.from) && idToTitle.has(edge.to))
+      .sort((a, b) => {
+        const rankFromDiff = idToRank.get(a.from)! - idToRank.get(b.from)!;
+        if (rankFromDiff !== 0) return rankFromDiff;
+        return idToRank.get(a.to)! - idToRank.get(b.to)!;
+      });
+
+    return { sortedEdges, idToTitle, idToRank };
   }
 
   // --- CSV export ---
@@ -145,8 +182,10 @@ class ExportService {
    *
    * The report contains:
    *  1. **Main table** – all measures with rank, name, social acceptance, time, and costs.
-   *  2. **Comments table** – measures that include a social-acceptance comment.
-   *  3. **Relationships table** – graph edges between exported measures (only when `edges` is provided).
+   *  2. **Comments table** – measures that include a social-acceptance comment; a notice
+   *     replaces the table when there are none.
+   *  3. **Relationships table** – graph edges between exported measures (only when `edges` is
+   *     provided; a notice replaces the table when no edge connects two exported measures).
    *     Rows are sorted primarily by the rank of the source measure and secondarily by the
    *     rank of the target measure. The relationship label of each row is coloured to match
    *     the corresponding edge colour from the interactive graph.
@@ -154,7 +193,7 @@ class ExportService {
    * Page numbers are added in the footer of each page.
    *
    * @param measures Array of ranked measure objects.
-   * @param edges    Optional graph edges; when supplied a relationship table is appended.
+   * @param edges    Optional graph edges; when supplied a relationship section is appended.
    */
   exportPDF(measures: any[], edges?: GraphEdge[]): void {
     const doc = new jsPDF('l', 'mm', 'a4');
@@ -255,15 +294,18 @@ class ExportService {
         tableWidth: usableWidth,
         margin: { left: marginLeft, right: marginRight },
       });
+      currentY = (doc as any).lastAutoTable.finalY + 15;
     } else {
       doc.setFont('helvetica', 'italic');
       doc.setFontSize(9);
       doc.text('Keine Kommentare vorhanden.', marginLeft, currentY + 10);
+      currentY += 25;
     }
 
-    // --- Table 3: measure relationships (optional) ---
-    if (edges && edges.length > 0) {
-      currentY = (doc as any).lastAutoTable?.finalY + 15 || currentY + 20;
+    // --- Table 3: measure relationships ---
+    if (edges) {
+      const { sortedEdges, idToTitle, idToRank } = this.getExportedRelationships(measures, edges);
+
       if (currentY > doc.internal.pageSize.height - 40) {
         doc.addPage();
         currentY = 15;
@@ -272,28 +314,6 @@ class ExportService {
       doc.setFontSize(12);
       doc.setFont('helvetica', 'bold');
       doc.text('Beziehungen zwischen Maßnahmen', marginLeft, currentY);
-
-      // Build lookup maps from measure data
-      const idToTitle = new Map<string, string>();
-      const idToRank  = new Map<string, number>();
-      measures.forEach((item) => {
-        idToTitle.set(item.measure.id, item.measure.title);
-        idToRank.set(item.measure.id, item.rank);
-      });
-
-      // Only include edges where both endpoints appear in the exported measures
-      const relevantEdges = edges.filter(
-        (edge) => idToTitle.has(edge.from) && idToTitle.has(edge.to),
-      );
-
-      // Sort primarily by the rank of the source measure and secondarily by
-      // the rank of the target measure, so the table follows the same
-      // top-to-bottom order as the main measures table.
-      const sortedEdges = [...relevantEdges].sort((a, b) => {
-        const rankFromDiff = idToRank.get(a.from)! - idToRank.get(b.from)!;
-        if (rankFromDiff !== 0) return rankFromDiff;
-        return idToRank.get(a.to)! - idToRank.get(b.to)!;
-      });
 
       if (sortedEdges.length > 0) {
         // The relationship colour for each row is precomputed alongside the
@@ -334,6 +354,10 @@ class ExportService {
             }
           },
         });
+      } else {
+        doc.setFont('helvetica', 'italic');
+        doc.setFontSize(9);
+        doc.text('Keine Beziehungen zwischen den exportierten Maßnahmen.', marginLeft, currentY + 10);
       }
     }
 
@@ -465,7 +489,7 @@ class ExportService {
    * but as an editable Word document instead of a fixed-layout PDF.
    *
    * @param measures Array of ranked measure objects.
-   * @param edges    Optional graph edges; when supplied a relationship table is appended.
+   * @param edges    Optional graph edges; when supplied a relationship section is appended.
    */
   async exportDOCX(measures: any[], edges?: GraphEdge[]): Promise<void> {
     const children: (Paragraph | Table)[] = [
@@ -497,34 +521,21 @@ class ExportService {
       children.push(new Paragraph({ children: [new TextRun({ text: 'Keine Kommentare vorhanden.', italics: true })] }));
     }
 
-    // --- Measure relationships (optional) ---
-    if (edges && edges.length > 0) {
-      const idToTitle = new Map<string, string>();
-      const idToRank  = new Map<string, number>();
-      measures.forEach((item) => {
-        idToTitle.set(item.measure.id, item.measure.title);
-        idToRank.set(item.measure.id, item.rank);
-      });
+    // --- Measure relationships ---
+    if (edges) {
+      const { sortedEdges, idToTitle, idToRank } = this.getExportedRelationships(measures, edges);
 
-      const relevantEdges = edges.filter(
-        (edge) => idToTitle.has(edge.from) && idToTitle.has(edge.to),
-      );
-
-      // Sorted primarily by the rank of the source measure and secondarily by
-      // the rank of the target measure, matching the main table's order.
-      const sortedEdges = [...relevantEdges].sort((a, b) => {
-        const rankFromDiff = idToRank.get(a.from)! - idToRank.get(b.from)!;
-        if (rankFromDiff !== 0) return rankFromDiff;
-        return idToRank.get(a.to)! - idToRank.get(b.to)!;
-      });
-
+      children.push(new Paragraph({
+        text: 'Beziehungen zwischen Maßnahmen',
+        heading: HeadingLevel.HEADING_2,
+        spacing: { before: 300, after: 100 },
+      }));
       if (sortedEdges.length > 0) {
-        children.push(new Paragraph({
-          text: 'Beziehungen zwischen Maßnahmen',
-          heading: HeadingLevel.HEADING_2,
-          spacing: { before: 300, after: 100 },
-        }));
         children.push(this.buildRelationshipsTable(sortedEdges, idToTitle, idToRank));
+      } else {
+        children.push(new Paragraph({
+          children: [new TextRun({ text: 'Keine Beziehungen zwischen den exportierten Maßnahmen.', italics: true })],
+        }));
       }
     }
 

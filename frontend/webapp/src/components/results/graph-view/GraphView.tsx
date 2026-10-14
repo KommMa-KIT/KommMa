@@ -3,20 +3,31 @@
  *
  * The results-page view that renders an interactive dependency graph for the
  * top-ranked measures alongside a scrollable compact measure list. Graph edge
- * data is fetched asynchronously from GraphService on mount; the top 20 ranked
- * measures are read from the Redux store. Selecting a measure in either the
- * canvas or the list highlights it in both panels via shared selectedMeasureId
- * state.
+ * data and its loading state are read from the GraphSlice (populated app-wide by
+ * GraphInitializer); the top-ranked measures are read from the ResultSlice.
+ * Selecting a measure in either the canvas or the list highlights it in both
+ * panels via shared selectedMeasureId state.
  */
 
-import { useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Network } from 'lucide-react';
 import { selectTopNMeasures } from '../../../store/ResultSlice';
+import { selectGraphEdges, selectGraphError, selectGraphLoading } from '../../../store/GraphSlice';
+import { LEGEND_RELATION_TYPES, RELATION_TYPE_CONFIG } from '../../../types/graphTypes';
 import GraphViewCanvas from './GraphViewCanvas';
-import graphService from '../../../services/GraphService';
-import { GraphEdge } from '../../../types/graphTypes';
 import ResultMeasureCompactList from '../result-measure/compact-card/ResultMeasureCompactList';
+
+// --- Constants ---
+
+/** Maximum number of top-ranked measures shown as graph nodes and list entries. */
+const GRAPH_NODE_LIMIT = 20;
+
+/**
+ * Selector for the top-ranked measures. Created once at module level so that
+ * useSelector receives a stable function reference across renders.
+ */
+const selectGraphMeasures = selectTopNMeasures(GRAPH_NODE_LIMIT);
 
 // --- Component ---
 
@@ -24,25 +35,25 @@ import ResultMeasureCompactList from '../result-measure/compact-card/ResultMeasu
  * GraphView
  *
  * Sections:
- *  - Redux state (top 20 ranked measures)
- *  - Local state: edges, loading, error, selectedMeasureId
- *  - Graph edge fetch via useEffect on mount
+ *  - Redux state (top ranked measures, graph edges, loading flag, error)
+ *  - Local state: selectedMeasureId
  *  - Two-column layout:
  *      Left (2/3): GraphViewCanvas with loading/error/canvas states + edge legend
- *      Right (1/3): Sticky ResultMeasureCompactList, scrollable to 700 px
+ *      Right (1/3): Sticky ResultMeasureCompactList with a usage hint,
+ *                   scrollable to 700 px
  */
 const GraphView = () => {
-  /** The top 20 measures by rank, used as graph nodes and list entries. */
-  const rankedMeasures = useSelector(selectTopNMeasures(20));
+  /** The top-ranked measures, used as graph nodes and list entries. */
+  const rankedMeasures = useSelector(selectGraphMeasures);
 
-  /** Directed edges between measures fetched from the backend graph data. */
-  const [edges, setEdges] = useState<GraphEdge[]>([]);
+  /** Directed edges between measures, loaded once by GraphInitializer. */
+  const edges = useSelector(selectGraphEdges);
 
-  /** True while the graph edge fetch is in progress. */
-  const [loading, setLoading] = useState(true);
+  /** True until the graph edges are available. */
+  const loading = useSelector(selectGraphLoading);
 
   /** Error message from a failed edge fetch; null when healthy. */
-  const [error, setError] = useState<string | null>(null);
+  const error = useSelector(selectGraphError);
 
   /**
    * The ID of the measure currently highlighted in both the canvas and the
@@ -52,27 +63,12 @@ const GraphView = () => {
    */
   const [selectedMeasureId, setSelectedMeasureId] = useState<string | null>(null);
 
-  // --- Data loading ---
-
   /**
-   * Fetches all graph edges on mount. Edges are static relative to the result
-   * set, so a single fetch on mount is sufficient — no dependency on Redux state.
+   * Selection handler shared by canvas and list. Selecting the measure that is
+   * already selected clears the selection (toggle); null always clears it.
    */
-  useEffect(() => {
-    const fetchGraphData = async () => {
-      try {
-        setLoading(true);
-        const graphEdges = await graphService.fetchGraph();
-        setEdges(graphEdges);
-        setError(null);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Fehler beim Laden des Graphen');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchGraphData();
+  const handleSelectMeasure = useCallback((id: string | null) => {
+    setSelectedMeasureId((current) => (id === null || current === id ? null : id));
   }, []);
 
   return (
@@ -99,37 +95,24 @@ const GraphView = () => {
               measures={rankedMeasures}
               edges={edges}
               selectedMeasureId={selectedMeasureId}
-              onSelectMeasure={setSelectedMeasureId}
+              onSelectMeasure={handleSelectMeasure}
             />
           )}
         </div>
 
-        {/* Edge type legend — colour-coded to match GraphViewCanvas rendering */}
+        {/* Edge type legend — generated from RELATION_TYPE_CONFIG; types with showInLegend: false are omitted */}
         <div className="bg-white rounded-lg shadow-sm p-4">
           <h4 className="font-semibold text-gray-900 mb-3">Legende</h4>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-1 bg-green-500 rounded"></div>
-              <span className="text-sm text-gray-700">Synergie</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-1 bg-red-500 rounded"></div>
-              <span className="text-sm text-gray-700">Konflikt</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-1 bg-yellow-500 rounded"></div>
-              <span className="text-sm text-gray-700">Beitrag</span>
-            </div>
-            {/*
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-1 bg-blue-500 rounded"></div>
-              <span className="text-sm text-gray-700">Abhängigkeit</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-1 bg-purple-500 rounded"></div>
-              <span className="text-sm text-gray-700">Voraussetzung</span>
-            </div>
-            */}
+            {LEGEND_RELATION_TYPES.map((type) => {
+              const { label, legendColor } = RELATION_TYPE_CONFIG[type];
+              return (
+                <div key={type} className="flex items-center gap-2">
+                  <div className="w-8 h-1 rounded" style={{ backgroundColor: legendColor }}></div>
+                  <span className="text-sm text-gray-700">{label}</span>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -142,13 +125,17 @@ const GraphView = () => {
               <Network className="w-5 h-5 text-primary" />
               <h3 className="font-semibold text-gray-900">Maßnahmen</h3>
             </div>
+            <p className="text-xs text-gray-500">
+              <span className="block">Klicken Sie auf eine Maßnahme, um sie in der Matrix hervorzuheben.</span>
+              <span className="block">Über das Info-Symbol öffnen Sie die Detailansicht.</span>
+            </p>
           </div>
 
           {/* Scrollable list — capped at 700 px to keep the panel within the viewport */}
           <div className="max-h-[700px] overflow-y-auto">
             <ResultMeasureCompactList
               selectedMeasureId={selectedMeasureId}
-              onSelectMeasure={setSelectedMeasureId}
+              onSelectMeasure={handleSelectMeasure}
             />
           </div>
         </div>
