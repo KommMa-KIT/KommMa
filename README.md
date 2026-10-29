@@ -38,18 +38,92 @@ Open ports: 3000 (Frontend), 8000 (Backend), 4000 (Stub)
 
 ## Configuration
 ### Secrets
-data/
-infra/nginx/login
-infra/nginx/.htpasswd
-infra/.env
-login_data.env
+- data/
+- infra/nginx/login
+- infra/nginx/.htpasswd
+- infra/.env
+- login_data.env
 
 ## Usage
+@Micha
 Hier sind Screenshots aus dem Tool ne gute Idee, die zeigen, wie man es benutzt
-@Micha; vlt sehr gut mit den Features zusammen machbar?
+vlt sehr gut mit den Features zusammen machbar?
 
 ## Project Structure
-@Jonas
+KommMa has a Python Backend and a Rust Frontend. The tree below shows the important structure of the project:
+```bash
+KommMa/
+├── backend/
+│   ├── Dockerfile
+│   ├── requirements.txt                         # Python dependencies
+│   ├── services/                                # systemd services and timers
+│   ├── test/                                    # Backend tests
+│   └── src/
+│       ├── ApplicationLayer/                    # Application logic and API
+│       │   ├── api/
+│       │   ├── CalculationApi/
+│       │   ├── DataApi/
+│       │   └── Validation/
+│       ├── app_logging/                         # Application logging
+│       ├── config.py                            # Backend configuration
+│       ├── DatabaseRepositoryLayer/             # Excel-backed data access and calculations
+│       │   ├── CalculationRepository/
+│       │   │   ├── engine/
+│       │   │   │   └── formulaEngine.py
+│       │   │   └── preprocessing/
+│       │   ├── DataInputRepository/
+│       │   ├── ExcelSyncRepository/
+│       │   ├── GraphRepository/
+│       │   ├── MeasureRepository/
+│       │   └── ReferenceCommuneRepository/
+│       ├── dependencies/                        # Dependency injection and service wiring
+│       ├── EMail_Service.py                     # Automated administrator emails
+│       ├── Exceptions/                          # Custom exceptions
+│       ├── externalAPI/                         # External data integration
+│       │   ├── Checker.py                       # Source freshness checks
+│       │   ├── DaemonJob.py                     # Nightly data download and update job
+│       │   ├── Downloader.py                    # External data downloads
+│       │   ├── HalfyearJob.py                   # Semiannual source update checks
+│       │   ├── Parser.py                        # Municipal data lookup, prefilling and validation
+│       │   └── Updater.py                       # Local dataset updates
+│       └── main.py                              # Backend entry point
+├── config/                                      # Configuration files
+│   ├── Checker.json                             # Source update checks and last-seen metadata
+│   ├── constants_that_change.json               # Last notification dates and dataset reference year
+│   ├── DownloadConfig.json                      # External data source settings
+│   ├── ExcelSyncConfig.json                     # Automatic Excel synchronization
+│   └── Input_fields_id.json                     # Input field identifier mappings
+├── data/                                        # Data directory for Excel models, external datasets, and images
+├── frontend/
+│   ├── Dockerfile
+│   ├── stub_backend/                            # Mock backend for frontend testing
+│   └── webapp/
+│       ├── package.json                         # Dependencies and build scripts
+│       ├── public/                              # Static assets
+│       └── src/
+│           ├── App.tsx
+│           ├── components/                      # Reusable UI components
+│           │   ├── input/
+│           │   │   └── fields/
+│           │   ├── measures/
+│           │   ├── ReferenceCommuneCard.tsx
+│           │   └── results/
+│           ├── config.tsx
+│           ├── index.tsx
+│           ├── layout/                          # Page layouts
+│           ├── pages/                           # Application pages
+│           ├── routing/                         # Route guards
+│           ├── services/                        # API clients and import/export services
+│           ├── store/                           # Redux state management
+│           ├── types/                           # Type definitions
+│           └── utils/                           # Utility functions
+└── infra/                                       # Deployment infrastructure
+    ├── docker-compose.yml
+    └── nginx/                                   # Reverse proxy and optional access control
+```
+The frontend tests are located in `*.test` directories alongside the corresponding source directories in `frontend/webapp/src/`.
+
+
 
 ## Further Information
 - [Website: www.kommma-im-klimaschutz.de/index.php](https://www.kommma-im-klimaschutz.de/index.php) 
