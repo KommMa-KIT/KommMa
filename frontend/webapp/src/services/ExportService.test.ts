@@ -1,7 +1,7 @@
 /**
  * ExportService.test.ts
  *
- * Maximale Coverage für ExportService:
+ * Tests für CSV- und PDF-Export sowie Beziehungsbezeichnungen:
  *  - exportCSV:  Header, Rows, BOM, Formatierung, Download-Trigger
  *  - exportPDF:  Alle 3 Tabellen, addPage-Branch, leere Comments, Edges-Filter
  *  - getRelationTypeLabel: alle 5 bekannten Typen + Fallback

@@ -1,8 +1,7 @@
 /**
  * ResultMeasureCompactList.test.tsx
  *
- * Fix: React.forwardRef in jest.mock() Factory ist out-of-scope.
- * Lösung: require('react') innerhalb der Factory verwenden.
+ * React wird innerhalb der Mock-Factory geladen, um forwardRef dort zu verwenden.
  */
 
 import { render, screen } from '@testing-library/react';
@@ -20,12 +19,10 @@ jest.mock('../../components/results/ResultMeasureCompactSkeleton', () => ({
   ),
 }));
 
-// capturedCards muss mock-Prefix haben damit Jest es in hoisted Factory erlaubt,
-// ODER wir nutzen require() innerhalb der Factory. Hier: require-Trick.
+// Der mock-Prefix erlaubt die Referenz auf mockCapturedCards in der hoisted Mock-Factory.
 const mockCapturedCards: any[] = [];
 
 jest.mock('../../components/results/ResultMeasureCompactCard', () => {
-  // require innerhalb der Factory ist immer erlaubt
   const { forwardRef } = require('react');
   return forwardRef((props: any, ref: any) => {
     mockCapturedCards.push(props);

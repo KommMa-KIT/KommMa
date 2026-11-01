@@ -1,7 +1,7 @@
 /**
  * ResultMeasureList.test.tsx
  *
- * Tests for ResultMeasureList covering all three render states:
+ * Tests for ResultMeasureList covering these render states:
  *  1. Completely empty (visibleMeasures=[], filteredOutMeasures=[])
  *  2. All hidden (visibleMeasures=[], filteredOutMeasures=[...])
  *  3. Normal (visibleMeasures=[...], filteredOutMeasures=[])

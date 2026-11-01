@@ -1,9 +1,8 @@
 /**
- * UISlice.additional.test.ts
+ * UISlice.test.ts
  *
- * Additional tests to reach ~100% coverage for UISlice.
  * Covers: visitedCategories tracking, boundary navigation, resetVisitedCategories,
- * selectVisitedCategories selector, and all uncovered branches.
+ * selectVisitedCategories selector.
  */
 
 import reducer, {

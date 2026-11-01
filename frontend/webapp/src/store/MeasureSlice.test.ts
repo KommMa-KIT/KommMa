@@ -1,9 +1,8 @@
 /**
- * MeasuresSlice.additional.test.ts
+ * MeasureSlice.test.ts
  *
- * Additional tests for MeasuresSlice to reach ~100% coverage.
  * Covers: clearSearch when already empty, setSearchQuery with empty/whitespace,
- * fetchMeasures with generic non-Error rejection, and all selector edge cases.
+ * fetchMeasures with generic non-Error rejection, and selector edge cases.
  */
 
 import reducer, {

@@ -1,32 +1,9 @@
 /**
- * EndView.test.tsx  (fixed)
+ * EndView.test.tsx
  *
- * Fixes vs. original:
- *
- * 1. RTK actionCreatorInvariantMiddleware
- *    Same root cause as StartView: mock action-creators return plain objects
- *    but lack RTK's internal Symbol tag → dispatch throws.
- *    Fix: `middleware: () => []` in buildStore.
- *
- * 2. Categories not appearing / "Weitere" button missing
- *    The component loads categories in a useEffect. renderEndView wraps
- *    render in act(async), which flushes the microtask queue — but only if
- *    the mock is already configured before render. Some tests set up the mock
- *    after renderEndView, so the effect ran against the previous mock.
- *    Fix: always configure mockGetSubsidyCategories before renderEndView.
- *    Also added a post-render waitFor where the test relies on async-loaded
- *    category data appearing in the DOM.
- *
- * 3. "Weitere Fördermittel hinzufügen" button not found
- *    The button only renders when categories.length > subsidies.length.
- *    With 1 subsidy and 2 categories that condition holds — but categories
- *    are loaded asynchronously. Added waitFor to let the effect resolve first.
- *
- * 4. updateSubsidy called with old id='' instead of 'cat1'
- *    fireEvent.change on a <select> does not update the DOM value in jsdom
- *    unless the option actually exists. The mock returned categories only
- *    after renderEndView, so the option was not rendered.
- *    Fix: same as (2) — configure mock before render.
+ * Configure the category mock before renderEndView: categories load in a useEffect.
+ * Wait for category data before selecting options or checking the "Weitere" button.
+ * That button is shown when categories.length > subsidies.length.
  */
 
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';

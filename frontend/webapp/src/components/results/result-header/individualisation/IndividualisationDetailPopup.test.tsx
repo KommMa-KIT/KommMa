@@ -1,10 +1,8 @@
 /**
  * IndividualisationDetailPopup.test.tsx
  *
- * Fix: capturedTooltipContent war null weil Recharts Tooltip content als
- * React.ReactElement rendert, nicht als plain function.
- * Lösung: CustomTooltip wird direkt über getByText/queryByText im DOM getestet,
- * da die Komponente es intern als JSX rendert.
+ * Der Recharts-Mock rendert Tooltip content als React-Element mit aktiven
+ * Testdaten, damit der Tooltip-Inhalt im DOM geprüft werden kann.
  */
 
 import React from 'react';

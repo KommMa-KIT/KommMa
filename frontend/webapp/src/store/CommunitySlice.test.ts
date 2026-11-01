@@ -1,13 +1,12 @@
 /**
- * CommunitySlice.additional.test.ts
+ * CommunitySlice.test.ts
  *
- * Additional tests for CommunitySlice to significantly increase coverage.
  * Covers:
  * - initial state
- * - all sync reducers
+ * - sync reducers
  * - async thunk pending / fulfilled / rejected branches
  * - partial overwrite behaviour
- * - selector coverage
+ * - selector results
  * - subsidy edge cases
  * - import/reset edge cases
  */

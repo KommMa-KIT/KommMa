@@ -1,5 +1,5 @@
 /**
- * GraphViewCanvas.test.tsx
+ * GraphView.test.tsx
  */
 
 import { render, screen, fireEvent } from '@testing-library/react';

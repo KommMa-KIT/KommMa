@@ -41,7 +41,7 @@ jest.mock('../../components/results/MatrixCanvas', () => ({ height }: any) => (
 ));
 
 const mockFetchGraph = jest.fn();
-// Fix GraphService mock - lazy reference
+// Resolve mockFetchGraph when fetchGraph is called, after the mock factory runs.
 jest.mock('../../services/GraphService', () => ({
   __esModule: true,
   default: {

@@ -95,9 +95,7 @@ describe('CustomSelect', () => {
     const { container } = render(
       <CustomSelect options={options} value={null} onChange={jest.fn()} hasSource={false} />
     );
-    // Primary styles do NOT set background on control; muted styles do
-    // We verify the component renders a container without bg-gray applied inline
-    // (Style objects are injected inline by react-select; we verify no crash and correct render)
+    // Only the rendered container is checked here; control styles are not asserted.
     expect(container.firstChild).toBeDefined();
   });
 

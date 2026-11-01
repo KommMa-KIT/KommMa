@@ -37,9 +37,7 @@ describe('SourceTooltip', () => {
   // --- Tooltip content ---
 
   it('shows the source text in the tooltip when the tooltip is open', () => {
-    // We can verify by checking the rendered output with `open` forced via
-    // Radix – here we simply confirm the component renders without throwing
-    // and the trigger button is accessible.
+    // Only the trigger button is checked here; tooltip visibility and content are not asserted.
     render(<SourceTooltip source="Mein Datensatz" />);
     expect(screen.getByRole('button')).toBeDefined();
   });
