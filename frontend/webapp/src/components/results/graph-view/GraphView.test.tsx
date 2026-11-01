@@ -1,246 +1,189 @@
-/**
- * GraphView.test.tsx
- */
-
 import { render, screen, fireEvent } from '@testing-library/react';
-import GraphViewCanvas from './GraphViewCanvas';
+import { Provider } from 'react-redux';
+import { configureStore } from '@reduxjs/toolkit';
+import GraphView from './GraphView';
+import { GraphState } from '../../../store/GraphSlice';
 
-// ---------------------------------------------------------------------------
-// Mocks — ReaGraph
-// ---------------------------------------------------------------------------
+// Rendering WebGL is outside this view's responsibility. The canvas mock exposes
+// selection events so the view's shared selection state can be checked.
+let mockCanvasProps: any;
+jest.mock('./GraphViewCanvas', () => (props: any) => {
+  mockCanvasProps = props;
+  return (
+    <div data-testid="canvas" data-selected={props.selectedMeasureId ?? 'none'}>
+      <button onClick={() => props.onSelectMeasure('m1')}>canvas-m1</button>
+      <button onClick={() => props.onSelectMeasure(null)}>clear-selection</button>
+    </div>
+  );
+});
 
-let capturedGraphProps: any = {};
-const mockOnNodeClick   = jest.fn();
-const mockOnCanvasClick = jest.fn();
+jest.mock('../result-measure/compact-card/ResultMeasureCompactList', () => (props: any) => (
+  <div data-testid="list" data-selected={props.selectedMeasureId ?? 'none'}>
+    <button onClick={() => props.onSelectMeasure('m2')}>list-m2</button>
+  </div>
+));
 
-jest.mock('reagraph', () => {
-  const React = require('react');
+jest.mock('../../../store/ResultSlice', () => {
+  const { createSelector } = require('@reduxjs/toolkit');
   return {
-    __esModule: true,
-    GraphCanvas: React.forwardRef((props: any, _ref: any) => {
-      capturedGraphProps = props;
-      return (
-        <div data-testid="graph-canvas">
-          <button onClick={() => props.onNodeClick?.({ id: 'n1', label: 'Node 1' })}>
-            click-node
-          </button>
-          <button onClick={() => props.onCanvasClick?.({})}>
-            click-canvas
-          </button>
-        </div>
-      );
-    }),
-    GraphNode:    {},
-    GraphEdge:    {},
-    useSelection: (...args: any[]) => ({
-      selections:    [],
-      onNodeClick:   mockOnNodeClick,
-      onCanvasClick: mockOnCanvasClick,
-    }),
+    selectTopNMeasures: (n: number) => createSelector(
+      [(state: any) => state.result.measures], (measures: any[]) => measures.slice(0, n),
+    ),
   };
 });
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
+const MEASURES = Array.from({ length: 25 }, (_, index) => ({
+  measure: { id: `m${index}`, title: `Measure ${index}` }, totalScore: 100 - index,
+}));
+const EDGES = [{ from: 'm1', to: 'm2', type: 'synergy' as const }];
 
-const MEASURES = [
-  { measure: { id: 'm1', title: 'Solar' },  totalScore: 200 },
-  { measure: { id: 'm2', title: 'Wind' },   totalScore: 10  },
-  { measure: { id: 'm3', title: 'Wasser' }, totalScore: 80  },
-  { measure: { id: 'm4', title: 'Leere' },  totalScore: 0   },
-];
-
-const EDGES = [
-  { from: 'm1', to: 'm2', type: 'synergy'      },
-  { from: 'm2', to: 'm1', type: 'conflict'     },
-  { from: 'm3', to: 'm4', type: 'dependency'   },
-  { from: 'm1', to: 'm3', type: 'prerequisite' },
-  { from: 'm2', to: 'm3', type: 'unknown_type' },
-];
-
-function renderCanvas(overrides: {
-  measures?:          any[];
-  edges?:             any[];
-  selectedMeasureId?: string | null;
-  onSelectMeasure?:   jest.Mock;
-  height?:            number;
-} = {}) {
-  const {
-    measures          = MEASURES,
-    edges             = EDGES,
-    selectedMeasureId = null,
-    onSelectMeasure   = jest.fn(),
-    height,
-  } = overrides;
-
-  const props: any = { measures, edges, selectedMeasureId, onSelectMeasure };
-  if (height !== undefined) props.height = height;
-
-  render(<GraphViewCanvas {...props} />);
-  return { onSelectMeasure };
+function renderView(graph: GraphState = { edges: EDGES, status: 'succeeded', error: null }) {
+  const store = configureStore({ reducer: {
+    result: () => ({ measures: MEASURES }), graph: () => graph,
+  } });
+  return render(<Provider store={store}><GraphView /></Provider>);
 }
 
-// ---------------------------------------------------------------------------
-// Tests
-// ---------------------------------------------------------------------------
+describe('GraphView', () => {
+  beforeEach(() => { mockCanvasProps = undefined; });
 
-describe('GraphViewCanvas', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    capturedGraphProps = {};
-    // Restore after clearAllMocks wipes the jest.fn() implementations
-    mockOnNodeClick.mockImplementation(() => {});
-    mockOnCanvasClick.mockImplementation(() => {});
+  it('renders the graph canvas after loading', () => {
+    renderView();
+    expect(screen.getByTestId('canvas')).toBeInTheDocument();
   });
 
-  // --- Renders GraphCanvas --------------------------------------------------
-
-  it('renders the GraphCanvas element', () => {
-    renderCanvas();
-    expect(screen.getByTestId('graph-canvas')).toBeInTheDocument();
+  it('renders the compact measure list', () => {
+    renderView();
+    expect(screen.getByTestId('list')).toBeInTheDocument();
   });
 
-  // --- Node derivation ------------------------------------------------------
-
-  it('derives correct number of nodes from measures', () => {
-    renderCanvas();
-    expect(capturedGraphProps.nodes).toHaveLength(MEASURES.length);
+  it('passes the first 20 ranked measures to the canvas', () => {
+    renderView();
+    expect(mockCanvasProps.measures).toEqual(MEASURES.slice(0, 20));
   });
 
-  it('maps measure id to node id', () => {
-    renderCanvas();
-    expect(capturedGraphProps.nodes[0].id).toBe('m1');
+  it('passes shared graph edges to the canvas', () => {
+    renderView();
+    expect(mockCanvasProps.edges).toEqual(EDGES);
   });
 
-  it('maps measure title to node label', () => {
-    renderCanvas();
-    expect(capturedGraphProps.nodes[0].label).toBe('Solar');
+  it('starts without a selected canvas node', () => {
+    renderView();
+    expect(screen.getByTestId('canvas')).toHaveAttribute('data-selected', 'none');
   });
 
-  it('clamps node size to max 20 for large totalScore', () => {
-    renderCanvas();
-    expect(capturedGraphProps.nodes[0].size).toBe(20);
+  it('starts without a selected list item', () => {
+    renderView();
+    expect(screen.getByTestId('list')).toHaveAttribute('data-selected', 'none');
   });
 
-  it('clamps node size to min 5 for small totalScore', () => {
-    renderCanvas();
-    const windNode = capturedGraphProps.nodes.find((n: any) => n.id === 'm2');
-    expect(windNode.size).toBe(5);
+  it('selects a canvas node', () => {
+    renderView();
+    fireEvent.click(screen.getByText('canvas-m1'));
+    expect(screen.getByTestId('canvas')).toHaveAttribute('data-selected', 'm1');
   });
 
-  it('calculates correct size for mid-range totalScore (80 → 8)', () => {
-    renderCanvas();
-    const wasserNode = capturedGraphProps.nodes.find((n: any) => n.id === 'm3');
-    expect(wasserNode.size).toBe(8);
+  it('synchronises canvas selection to the list', () => {
+    renderView();
+    fireEvent.click(screen.getByText('canvas-m1'));
+    expect(screen.getByTestId('list')).toHaveAttribute('data-selected', 'm1');
   });
 
-  it('handles missing measure data gracefully (empty id/label)', () => {
-    const measures = [{ measure: { id: undefined, title: undefined }, totalScore: undefined }];
-    renderCanvas({ measures });
-    expect(capturedGraphProps.nodes[0].id).toBe('');
-    expect(capturedGraphProps.nodes[0].label).toBe('');
-    expect(capturedGraphProps.nodes[0].size).toBe(5);
+  it('selects a list item', () => {
+    renderView();
+    fireEvent.click(screen.getByText('list-m2'));
+    expect(screen.getByTestId('list')).toHaveAttribute('data-selected', 'm2');
   });
 
-  // --- Edge derivation ------------------------------------------------------
-
-  it('derives correct number of edges', () => {
-    renderCanvas();
-    expect(capturedGraphProps.edges).toHaveLength(EDGES.length);
+  it('synchronises list selection to the canvas', () => {
+    renderView();
+    fireEvent.click(screen.getByText('list-m2'));
+    expect(screen.getByTestId('canvas')).toHaveAttribute('data-selected', 'm2');
   });
 
-  it('edge id format is "from-to-index"', () => {
-    renderCanvas();
-    expect(capturedGraphProps.edges[0].id).toBe('m1-m2-0');
+  it('clears selection when the same canvas node is clicked again', () => {
+    renderView();
+    fireEvent.click(screen.getByText('canvas-m1'));
+    fireEvent.click(screen.getByText('canvas-m1'));
+    expect(screen.getByTestId('canvas')).toHaveAttribute('data-selected', 'none');
+    expect(screen.getByTestId('list')).toHaveAttribute('data-selected', 'none');
   });
 
-  it('edge source maps to edge.from', () => {
-    renderCanvas();
-    expect(capturedGraphProps.edges[0].source).toBe('m1');
+  it('clears selection when the same list item is clicked again', () => {
+    renderView();
+    fireEvent.click(screen.getByText('list-m2'));
+    fireEvent.click(screen.getByText('list-m2'));
+    expect(screen.getByTestId('canvas')).toHaveAttribute('data-selected', 'none');
+    expect(screen.getByTestId('list')).toHaveAttribute('data-selected', 'none');
   });
 
-  it('edge target maps to edge.to', () => {
-    renderCanvas();
-    expect(capturedGraphProps.edges[0].target).toBe('m2');
+  it('clears selection on an empty canvas click', () => {
+    renderView();
+    fireEvent.click(screen.getByText('list-m2'));
+    fireEvent.click(screen.getByText('clear-selection'));
+    expect(screen.getByTestId('canvas')).toHaveAttribute('data-selected', 'none');
+    expect(screen.getByTestId('list')).toHaveAttribute('data-selected', 'none');
   });
 
-  // --- getEdgeStyle colours -------------------------------------------------
-
-  it('synergy edge gets green fill', () => {
-    renderCanvas();
-    expect(capturedGraphProps.edges[0].fill).toBe('#22c55e');
+  it('shows loading feedback while the graph is loading', () => {
+    renderView({ edges: [], status: 'loading', error: null });
+    expect(screen.getByText('Lade Graphdaten...')).toBeInTheDocument();
+    expect(screen.queryByTestId('canvas')).not.toBeInTheDocument();
   });
 
-  it('conflict edge gets red fill', () => {
-    renderCanvas();
-    const conflictEdge = capturedGraphProps.edges.find(
-      (e: any) => e.source === 'm2' && e.target === 'm1'
-    );
-    expect(conflictEdge.fill).toBe('#ef4444');
+  it('shows loading feedback before the first graph request', () => {
+    renderView({ edges: [], status: 'idle', error: null });
+    expect(screen.getByText('Lade Graphdaten...')).toBeInTheDocument();
   });
 
-  it('dependency edge gets blue fill', () => {
-    renderCanvas();
-    const depEdge = capturedGraphProps.edges.find((e: any) => e.source === 'm3');
-    expect(depEdge.fill).toBe('#3b82f6');
+  it('keeps the measure list usable while the graph loads', () => {
+    renderView({ edges: [], status: 'loading', error: null });
+    fireEvent.click(screen.getByText('list-m2'));
+    expect(screen.getByTestId('list')).toHaveAttribute('data-selected', 'm2');
+    expect(screen.getByText('Lade Graphdaten...')).toBeInTheDocument();
   });
 
-  it('prerequisite edge gets purple fill', () => {
-    renderCanvas();
-    const prereqEdge = capturedGraphProps.edges.find(
-      (e: any) => e.source === 'm1' && e.target === 'm3'
-    );
-    expect(prereqEdge.fill).toBe('#a855f7');
+  it('shows a failed graph request error', () => {
+    renderView({ edges: [], status: 'failed', error: 'Graph nicht verfügbar' });
+    expect(screen.getByText('Graph nicht verfügbar')).toBeInTheDocument();
+    expect(screen.queryByTestId('canvas')).not.toBeInTheDocument();
   });
 
-  it('unknown type falls back to neutral grey fill', () => {
-    renderCanvas();
-    const neutralEdge = capturedGraphProps.edges.find(
-      (e: any) => e.source === 'm2' && e.target === 'm3'
-    );
-    expect(neutralEdge.fill).toBe('#9ca3af');
+  it('keeps the measure list available when the graph request fails', () => {
+    renderView({ edges: [], status: 'failed', error: 'offline' });
+    expect(screen.getByTestId('list')).toBeInTheDocument();
   });
 
-  // --- Node click -----------------------------------------------------------
-
-  it('calls onSelectMeasure with node.id when node clicked', () => {
-    const { onSelectMeasure } = renderCanvas();
-    fireEvent.click(screen.getByText('click-node'));
-    expect(onSelectMeasure).toHaveBeenCalledWith('n1');
+  it('renders the measure heading', () => {
+    renderView();
+    expect(screen.getByRole('heading', { name: 'Maßnahmen' })).toBeInTheDocument();
   });
 
-  it('calls ReaGraph onNodeClick when node clicked', () => {
-    renderCanvas();
-    fireEvent.click(screen.getByText('click-node'));
-    expect(mockOnNodeClick).toHaveBeenCalled();
+  it('renders the relationship legend', () => {
+    renderView();
+    expect(screen.getByRole('heading', { name: 'Legende' })).toBeInTheDocument();
+    expect(screen.getByText('Synergie')).toBeInTheDocument();
+    expect(screen.getByText('Konflikt')).toBeInTheDocument();
+    expect(screen.getByText('Beitrag')).toBeInTheDocument();
   });
 
-  // --- Canvas click ---------------------------------------------------------
-
-  it('calls onSelectMeasure(null) when canvas clicked', () => {
-    const { onSelectMeasure } = renderCanvas();
-    fireEvent.click(screen.getByText('click-canvas'));
-    expect(onSelectMeasure).toHaveBeenCalledWith(null);
+  it('omits relationship types configured as hidden from the legend', () => {
+    renderView();
+    expect(screen.queryByText('Neutral')).not.toBeInTheDocument();
+    expect(screen.queryByText('Abhängigkeit')).not.toBeInTheDocument();
+    expect(screen.queryByText('Voraussetzung')).not.toBeInTheDocument();
   });
 
-  it('calls ReaGraph onCanvasClick when canvas clicked', () => {
-    renderCanvas();
-    fireEvent.click(screen.getByText('click-canvas'));
-    expect(mockOnCanvasClick).toHaveBeenCalled();
+  it('renders the detail-button hint', () => {
+    renderView();
+    expect(screen.getByText(/Über das Info-Symbol öffnen Sie die Detailansicht/)).toBeInTheDocument();
   });
 
-  // --- Height ---------------------------------------------------------------
-
-  it('applies default height=600', () => {
-    renderCanvas();
-    const wrapper = document.querySelector('[style*="height"]') as HTMLElement;
-    expect(wrapper?.style.height).toBe('600px');
-  });
-
-  it('applies custom height prop', () => {
-    renderCanvas({ height: 400 });
-    const wrapper = document.querySelector('[style*="height"]') as HTMLElement;
-    expect(wrapper?.style.height).toBe('400px');
+  it('replaces the canvas selection when a different list item is selected', () => {
+    renderView();
+    fireEvent.click(screen.getByText('canvas-m1'));
+    fireEvent.click(screen.getByText('list-m2'));
+    expect(screen.getByTestId('canvas')).toHaveAttribute('data-selected', 'm2');
+    expect(screen.getByTestId('list')).toHaveAttribute('data-selected', 'm2');
   });
 });

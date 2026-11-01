@@ -8,6 +8,12 @@ jest.mock('../store/store', () => ({
   },
 }));
 
+const originalBrowserAPIs = {
+  createElement: document.createElement, appendChild: document.body.appendChild,
+  removeChild: document.body.removeChild, FileReader: global.FileReader,
+  createObjectURL: URL.createObjectURL, revokeObjectURL: URL.revokeObjectURL,
+};
+
 describe('SaveService – additional coverage', () => {
   const fullCommunity = {
     communeKey: '123',
@@ -22,11 +28,24 @@ describe('SaveService – additional coverage', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2026-01-15T12:30:00.000Z'));
     (store.getState as jest.Mock).mockReturnValue({ community: fullCommunity });
     global.URL.createObjectURL = jest.fn().mockReturnValue('mocked-url');
     global.URL.revokeObjectURL = jest.fn();
     document.body.appendChild = jest.fn();
     document.body.removeChild = jest.fn();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+    jest.useRealTimers();
+    document.createElement = originalBrowserAPIs.createElement;
+    document.body.appendChild = originalBrowserAPIs.appendChild;
+    document.body.removeChild = originalBrowserAPIs.removeChild;
+    global.FileReader = originalBrowserAPIs.FileReader;
+    URL.createObjectURL = originalBrowserAPIs.createObjectURL;
+    URL.revokeObjectURL = originalBrowserAPIs.revokeObjectURL;
   });
 
   // ─── downloadCurrent ───────────────────────────────────────────────────
@@ -43,7 +62,7 @@ describe('SaveService – additional coverage', () => {
     it('include todays date in the filename', () => {
       const mockLink = { href: '', download: '', click: jest.fn() };
       document.createElement = jest.fn().mockReturnValue(mockLink as any);
-      const today = new Date().toISOString().split('T')[0];
+      const today = '2026-01-15';
 
       saveService.downloadCurrent();
       expect(mockLink.download).toContain(today);
@@ -61,9 +80,10 @@ describe('SaveService – additional coverage', () => {
       saveService.downloadCurrent();
 
       const parsed = JSON.parse(capturedContent);
-      expect(parsed.communeKey).toBe('123');
-      expect(parsed.inputs.f1).toBe(10);
-      expect(parsed.subsidies).toHaveLength(1);
+      expect(parsed).toEqual({
+        ...fullCommunity, timestamp: '2026-01-15T12:30:00.000Z',
+      });
+      expect(URL.revokeObjectURL).toHaveBeenCalledWith('mocked-url');
     });
 
     it('uses "unbekannt" when communeName is null', () => {
@@ -118,7 +138,7 @@ describe('SaveService – additional coverage', () => {
       expect(result.postalCode).toBeNull();
       expect(result.selectedReferenceCommune).toBeNull();
       expect(result.subsidies).toEqual([]);
-      expect(result.timestamp).toBeDefined();
+      expect(result.timestamp).toBe('2026-01-15T12:30:00.000Z');
     });
 
     it('rejects when inputs field is missing', async () => {

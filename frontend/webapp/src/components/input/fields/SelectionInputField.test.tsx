@@ -108,14 +108,14 @@ describe('SelectionInputField', () => {
 
   it('renders the CustomSelect wrapper', () => {
     renderField();
-    expect(screen.getByTestId('custom-select')).toBeDefined();
+    expect(screen.getByTestId('custom-select')).toBeInTheDocument();
   });
 
   it('renders all selectable options', () => {
     renderField();
-    expect(screen.getByText('Option A')).toBeDefined();
-    expect(screen.getByText('Option B')).toBeDefined();
-    expect(screen.getByText('Option C')).toBeDefined();
+    expect(screen.getByText('Option A')).toBeInTheDocument();
+    expect(screen.getByText('Option B')).toBeInTheDocument();
+    expect(screen.getByText('Option C')).toBeInTheDocument();
   });
 
   it('shows the current value as selected', () => {
@@ -132,19 +132,19 @@ describe('SelectionInputField', () => {
 
   it('uses "Bitte wählen..." placeholder for critical fields', () => {
     renderField({ critical: true });
-    expect(screen.getByText('Bitte wählen...')).toBeDefined();
+    expect(screen.getByText('Bitte wählen...')).toBeInTheDocument();
   });
 
   it('uses "Optional" placeholder for non-critical fields', () => {
     renderField({ critical: false });
-    expect(screen.getByText('Optional')).toBeDefined();
+    expect(screen.getByText('Optional')).toBeInTheDocument();
   });
 
   // --- Clear button ---
 
   it('renders clear button for non-critical fields', () => {
     renderField({ critical: false });
-    expect(screen.getByTestId('clear-btn')).toBeDefined();
+    expect(screen.getByTestId('clear-btn')).toBeInTheDocument();
   });
 
   it('does not render clear button for critical fields', () => {
@@ -187,7 +187,7 @@ describe('SelectionInputField', () => {
 
   it('shows validation error message when present', () => {
     renderField({}, null, {}, { field1: 'Pflichtfeld' });
-    expect(screen.getByText('Pflichtfeld')).toBeDefined();
+    expect(screen.getByText('Pflichtfeld')).toBeInTheDocument();
   });
 
   it('does not show error message when no error', () => {

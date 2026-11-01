@@ -109,14 +109,14 @@ describe('MultiSelectionInputField', () => {
 
   it('renders the CustomMultiSelect wrapper', () => {
     renderField();
-    expect(screen.getByTestId('custom-multi-select')).toBeDefined();
+    expect(screen.getByTestId('custom-multi-select')).toBeInTheDocument();
   });
 
   it('renders a checkbox for each selectable option', () => {
     renderField();
-    expect(screen.getByTestId('checkbox-Auto')).toBeDefined();
-    expect(screen.getByTestId('checkbox-Bus')).toBeDefined();
-    expect(screen.getByTestId('checkbox-Fahrrad')).toBeDefined();
+    expect(screen.getByTestId('checkbox-Auto')).toBeInTheDocument();
+    expect(screen.getByTestId('checkbox-Bus')).toBeInTheDocument();
+    expect(screen.getByTestId('checkbox-Fahrrad')).toBeInTheDocument();
   });
 
   // --- Value display ---
@@ -205,7 +205,7 @@ describe('MultiSelectionInputField', () => {
 
   it('shows validation error message when present', () => {
     renderField(null, {}, { multiField: 'Bitte auswählen' });
-    expect(screen.getByText('Bitte auswählen')).toBeDefined();
+    expect(screen.getByText('Bitte auswählen')).toBeInTheDocument();
   });
 
   it('does not show error message when no error', () => {

@@ -253,7 +253,7 @@ describe('EndView', () => {
     // Find the percent button by its SVG class (buttons have no text label).
     const allButtons = screen.getAllByRole('button');
     const pBtn = allButtons.find(b => b.querySelector('.lucide-percent'));
-    expect(pBtn).toBeDefined();
+    expect(pBtn).toBeInTheDocument();
     fireEvent.click(pBtn!);
     expect(mockUpdateSubsidy).toHaveBeenCalledWith({
       index: 0,

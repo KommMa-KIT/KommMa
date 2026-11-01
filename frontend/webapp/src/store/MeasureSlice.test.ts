@@ -104,11 +104,19 @@ describe('measuresSlice – additional coverage', () => {
     });
 
     it('passes the exact query to measureService.searchMeasures', () => {
-      // Mock explizit für diesen Test setzen
-      (measureService.searchMeasures as jest.Mock).mockReturnValue([]);
+      // Capture plain values during the call: Immer revokes reducer drafts afterwards.
+      let receivedMeasures: Measure[] = [];
+      let receivedQuery = '';
+      (measureService.searchMeasures as jest.Mock).mockImplementation((items, query) => {
+        receivedMeasures = JSON.parse(JSON.stringify(items));
+        receivedQuery = query;
+        return [];
+      });
       const state: MeasuresState = { ...initialState, measures, filteredMeasures: [] };
       reducer(state, setSearchQuery('Wind'));
-      expect(measureService.searchMeasures).toHaveBeenCalledWith(measures, 'Wind');
+      expect(receivedMeasures).toEqual(measures);
+      expect(receivedQuery).toBe('Wind');
+      expect(measureService.searchMeasures).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -170,7 +178,7 @@ describe('measuresSlice – additional coverage', () => {
       (measureService.fetchMeasures as jest.Mock).mockRejectedValue('plain string');
       const store = configureStore({ reducer: { measures: reducer } });
       await store.dispatch(fetchMeasures() as any);
-      expect(store.getState().measures.error).toBe('Error while fetching measure.');
+      expect(store.getState().measures.error).toBe('Error while fetching measures.');
     });
 
     it('clears previous error when a new fetch starts', async () => {

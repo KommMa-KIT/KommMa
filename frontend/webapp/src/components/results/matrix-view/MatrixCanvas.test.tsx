@@ -243,9 +243,15 @@ describe('MatrixCanvas', () => {
     expect(capture.cells[0].opacity).toBe(1);
   });
 
-  it('unselected bubble has opacity=0.7', () => {
-    renderCanvas({ selectedMeasureId: 'm1' });
+  it('unselected bubbles retain default opacity=0.7 when no selection exists', () => {
+    renderCanvas({ selectedMeasureId: null });
     expect(capture.cells[1].opacity).toBe(0.7);
+  });
+
+  it('dims unrelated bubbles to match graph selection highlighting', () => {
+    renderCanvas({ selectedMeasureId: 'm1' });
+    expect(capture.cells[1].opacity).toBe(0.3);
+    expect(capture.cells[0].opacity).toBe(1);
   });
 
   it('all bubbles unselected when selectedMeasureId=null', () => {

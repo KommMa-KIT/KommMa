@@ -49,6 +49,7 @@ jest.mock('../../store/UISlice', () => ({
     return { type: 'ui/clearErrors' };
   },
   selectCurrentCategory: (state: any) => state.ui.currentCategory,
+  selectCalculationAttempted: (state: any) => state.ui.calculationAttempted ?? false,
   selectVisitedCategories: (state: any) => state.ui.visitedCategories ?? [],
 }));
 
@@ -108,6 +109,8 @@ async function renderBar(opts: Parameters<typeof buildStore>[0] = {}) {
 // ---------------------------------------------------------------------------
 
 describe('InputProgressBar', () => {
+  afterEach(() => jest.restoreAllMocks());
+
   beforeEach(() => {
     jest.clearAllMocks();
     jest.spyOn(console, 'error').mockImplementation(() => {});
@@ -124,7 +127,9 @@ describe('InputProgressBar', () => {
 
   it('does not crash when field fetch fails', async () => {
     mockGetInputParameters.mockRejectedValue(new Error('fetch error'));
-    await expect(renderBar()).resolves.not.toThrow();
+    await renderBar();
+    expect(screen.getByText('Start')).toBeInTheDocument();
+    expect(screen.getAllByRole('button')).toHaveLength(6);
   });
 
   // --- Labels ---------------------------------------------------------------

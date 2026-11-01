@@ -12,7 +12,7 @@ import ListView from './ListView';
 // Mocks
 // ---------------------------------------------------------------------------
 
-jest.mock('../../components/results/ResultMeasureList', () => () => (
+jest.mock('../result-measure/card/ResultMeasureList', () => () => (
   <div data-testid="result-measure-list" />
 ));
 
@@ -21,8 +21,9 @@ jest.mock('../../components/results/ResultMeasureList', () => () => (
 // ---------------------------------------------------------------------------
 
 describe('ListView', () => {
-  it('renders without crashing', () => {
+  it('renders one ranked measure list', () => {
     render(<ListView />);
+    expect(screen.getAllByTestId('result-measure-list')).toHaveLength(1);
   });
 
   it('renders the ResultMeasureList component', () => {

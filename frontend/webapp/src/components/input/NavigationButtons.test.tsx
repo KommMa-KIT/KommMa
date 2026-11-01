@@ -29,7 +29,7 @@ jest.mock('react-router-dom', () => {
   };
 });
 
-jest.mock('../../components/Button', () => {
+jest.mock('../common/Button', () => {
   const MockButton = ({ children, onClick, disabled, className }: any) => (
     <button onClick={onClick} disabled={disabled} className={className}>
       {children}
@@ -54,11 +54,7 @@ jest.mock('../../store/CommunitySlice', () => ({
 
 jest.mock('../../store/ResultSlice', () => ({
   __esModule: true,
-  calculateResults: jest.fn(() => {
-    const action: any = { type: 'results/calculateResults' };
-    action.unwrap = () => Promise.resolve({});
-    return action;
-  }),
+  calculateResults: jest.fn(),
 }));
 
 jest.mock('../../services/CommunityService', () => ({
@@ -82,6 +78,8 @@ const mockPrevCategory = jest.spyOn(UISlice, 'prevCategory');
 const mockSetValidationError = jest.spyOn(UISlice, 'setValidationError');
 const mockClearAllValidationErrors = jest.spyOn(UISlice, 'clearAllValidationErrors');
 
+const mockSetCalculationAttempted = jest.spyOn(UISlice, 'setCalculationAttempted');
+
 const mockCalculateResults = ResultSlice.calculateResults as jest.Mock;
 const mockGetInputParameters = CommunityService.getInputParameters as jest.Mock;
 const mockValidateCategory = validationHelper.validateCategory as jest.Mock;
@@ -95,6 +93,9 @@ beforeEach(() => {
   jest.clearAllMocks();
   jest.spyOn(console, 'error').mockImplementation(() => {});
 
+  mockSetCalculationAttempted.mockImplementation((payload: boolean) => ({
+    type: 'ui/setCalculationAttempted', payload,
+  }));
   mockNextCategory.mockImplementation(() => ({ type: 'ui/nextCategory' }));
   mockPrevCategory.mockImplementation(() => ({ type: 'ui/prevCategory' }));
   mockSetValidationError.mockImplementation((payload: any) => ({
@@ -108,10 +109,9 @@ beforeEach(() => {
   mockGetInputParameters.mockResolvedValue(EMPTY_FIELDS);
   mockValidateCategory.mockReturnValue([]);
 
-  mockCalculateResults.mockImplementation(() => {
-    const action: any = { type: 'results/calculateResults' };
-    action.unwrap = () => Promise.resolve({});
-    return action;
+  mockCalculateResults.mockImplementation(() => () => {
+    const result = Promise.resolve({});
+    return Object.assign(result, { unwrap: () => result });
   });
 
   window.scrollTo = jest.fn();
@@ -124,6 +124,7 @@ function buildStore(
     communeKey?: string | null;
     referenceCommune?: string | null;
     inputs?: Record<string, any>;
+    calculationAttempted?: boolean;
   } = {}
 ) {
   const {
@@ -131,11 +132,12 @@ function buildStore(
     communeKey = null,
     referenceCommune = null,
     inputs = {},
+    calculationAttempted = false,
   } = overrides;
 
   return configureStore({
     reducer: {
-      ui: () => ({ currentCategory }),
+      ui: () => ({ currentCategory, calculationAttempted }),
       community: () => ({
         communeKey,
         selectedReferenceCommune: referenceCommune,
@@ -234,11 +236,13 @@ describe('NavigationButtons', () => {
     expect(screen.getByText(/Weiter/).closest('button')).not.toBeDisabled();
   });
 
-  it('shows alert when Start page Next clicked without commune', async () => {
+  it('blocks Next clicks without a commune', async () => {
     await act(async () => {
       renderNav({ currentCategory: 'Start', communeKey: null });
     });
 
+    fireEvent.click(screen.getByText(/Weiter/));
+    expect(mockNextCategory).not.toHaveBeenCalled();
     expect(screen.getByText(/Weiter/).closest('button')).toBeDisabled();
   });
 
@@ -256,14 +260,12 @@ describe('NavigationButtons', () => {
     });
   });
 
-  it('dispatches validation errors on Next click when required fields missing', async () => {
+  it('marks missing fields when revisiting a category after a failed calculation', async () => {
     mockValidateCategory.mockReturnValue(['g1']);
 
     await act(async () => {
-      renderNav({ currentCategory: 'General', communeKey: '12345678' });
+      renderNav({ currentCategory: 'General', communeKey: '12345678', calculationAttempted: true });
     });
-
-    fireEvent.click(screen.getByText(/Weiter/));
 
     await waitFor(() => {
       expect(mockSetValidationError).toHaveBeenCalledWith({
@@ -273,7 +275,7 @@ describe('NavigationButtons', () => {
     });
   });
 
-  it('does NOT dispatch nextCategory when validation fails', async () => {
+  it('allows Next with incomplete fields before calculation', async () => {
     mockValidateCategory.mockReturnValue(['g1']);
 
     await act(async () => {
@@ -283,7 +285,8 @@ describe('NavigationButtons', () => {
     fireEvent.click(screen.getByText(/Weiter/));
 
     await waitFor(() => {
-      expect(mockNextCategory).not.toHaveBeenCalled();
+      expect(mockNextCategory).toHaveBeenCalledTimes(1);
+      expect(mockSetValidationError).not.toHaveBeenCalled();
     });
   });
 
@@ -320,7 +323,7 @@ describe('NavigationButtons', () => {
     });
   });
 
-  it('shows alert when Calculate clicked with missing required fields', async () => {
+  it('marks a failed calculation attempt and blocks calculation with missing required fields', async () => {
     mockValidateCategory.mockReturnValue(['g1']);
 
     await act(async () => {
@@ -331,7 +334,8 @@ describe('NavigationButtons', () => {
       fireEvent.click(screen.getByText(/Berechnung starten/));
     });
 
-    expect(window.alert).toHaveBeenCalled();
+    expect(mockSetCalculationAttempted).toHaveBeenCalledWith(true);
+    expect(mockCalculateResults).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 

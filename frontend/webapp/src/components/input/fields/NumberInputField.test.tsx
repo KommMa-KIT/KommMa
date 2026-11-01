@@ -105,7 +105,7 @@ describe('NumberInputField', () => {
 
   it('renders the unit label when field has a unit', () => {
     renderField({ unit: 'Einwohner' });
-    expect(screen.getByText('Einwohner')).toBeDefined();
+    expect(screen.getByText('Einwohner')).toBeInTheDocument();
   });
 
   it('does not render a unit label when unit is undefined', () => {
@@ -159,7 +159,7 @@ describe('NumberInputField', () => {
 
   it('shows validation error message when present', () => {
     renderField({}, null, {}, { numField: 'Bitte ausfüllen' });
-    expect(screen.getByText('Bitte ausfüllen')).toBeDefined();
+    expect(screen.getByText('Bitte ausfüllen')).toBeInTheDocument();
   });
 
   it('applies red border class when validation error exists', () => {

@@ -20,7 +20,7 @@ import MatrixView from './MatrixView';
 // ---------------------------------------------------------------------------
 
 let capturedCanvasProps: any = {};
-jest.mock('../../components/results/MatrixCanvas', () => (props: any) => {
+jest.mock('./MatrixCanvas', () => (props: any) => {
   capturedCanvasProps = props;
   return (
     <div data-testid="matrix-canvas" data-selected={props.selectedMeasureId ?? 'none'}>
@@ -30,7 +30,7 @@ jest.mock('../../components/results/MatrixCanvas', () => (props: any) => {
 });
 
 let capturedListProps: any = {};
-jest.mock('../../components/results/ResultMeasureCompactList', () => (props: any) => {
+jest.mock('../result-measure/compact-card/ResultMeasureCompactList', () => (props: any) => {
   capturedListProps = props;
   return (
     <div data-testid="compact-list" data-selected={props.selectedMeasureId ?? 'none'}>
@@ -39,9 +39,14 @@ jest.mock('../../components/results/ResultMeasureCompactList', () => (props: any
   );
 });
 
-jest.mock('../../store/ResultSlice', () => ({
-  selectTopNMeasures: (n: number) => (state: any) => state.result.measures.slice(0, n),
-}));
+jest.mock('../../../store/ResultSlice', () => {
+  const { createSelector } = require('@reduxjs/toolkit');
+  return {
+    selectTopNMeasures: (n: number) => createSelector(
+      [(state: any) => state.result.measures], (measures: any[]) => measures.slice(0, n),
+    ),
+  };
+});
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -92,11 +97,12 @@ describe('MatrixView', () => {
     expect(capturedCanvasProps.measures).toHaveLength(20);
   });
 
-  it('passes top 20 measures to compact list', () => {
-    // The list reads from the store independently, not from MatrixView props.
-    // Just assert the list is rendered.
+  it('clears selection in both panels when the selected list item is clicked again', () => {
     renderMatrixView();
-    expect(screen.getByTestId('compact-list')).toBeInTheDocument();
+    fireEvent.click(screen.getByText('select-list-m2'));
+    fireEvent.click(screen.getByText('select-list-m2'));
+    expect(screen.getByTestId('compact-list')).toHaveAttribute('data-selected', 'none');
+    expect(screen.getByTestId('matrix-canvas')).toHaveAttribute('data-selected', 'none');
   });
 
   it('selectedMeasureId is null initially in canvas', () => {

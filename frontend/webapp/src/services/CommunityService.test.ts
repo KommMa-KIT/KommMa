@@ -278,7 +278,7 @@ describe('CommunityService', () => {
       const result = await communityService.getInputParameters();
 
       expect(result).toEqual({ General: [{ id: '1' }], Energy: [{ id: '2' }] });
-      expect(warnSpy).toHaveBeenCalledWith('Unbekannte Kategorie vom Backend: Unbekannt');
+      expect(warnSpy).toHaveBeenCalledWith('Unknown category received from backend: Unbekannt');
       expect(result).not.toHaveProperty('Unbekannt');
 
       warnSpy.mockRestore();
@@ -292,8 +292,8 @@ describe('CommunityService', () => {
       await communityService.getInputParameters();
 
       expect(warnSpy).toHaveBeenCalledTimes(2);
-      expect(warnSpy).toHaveBeenCalledWith('Unbekannte Kategorie vom Backend: X');
-      expect(warnSpy).toHaveBeenCalledWith('Unbekannte Kategorie vom Backend: Y');
+      expect(warnSpy).toHaveBeenCalledWith('Unknown category received from backend: X');
+      expect(warnSpy).toHaveBeenCalledWith('Unknown category received from backend: Y');
 
       warnSpy.mockRestore();
     });

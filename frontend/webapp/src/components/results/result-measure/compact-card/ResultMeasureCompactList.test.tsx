@@ -13,7 +13,7 @@ import ResultMeasureCompactList from './ResultMeasureCompactList';
 // Mocks
 // ---------------------------------------------------------------------------
 
-jest.mock('../../components/results/ResultMeasureCompactSkeleton', () => ({
+jest.mock('./ResultMeasureCompactSkeleton', () => ({
   ResultMeasureCompactSkeletonList: ({ count }: { count: number }) => (
     <div data-testid="skeleton-list" data-count={count} />
   ),
@@ -22,7 +22,7 @@ jest.mock('../../components/results/ResultMeasureCompactSkeleton', () => ({
 // Der mock-Prefix erlaubt die Referenz auf mockCapturedCards in der hoisted Mock-Factory.
 const mockCapturedCards: any[] = [];
 
-jest.mock('../../components/results/ResultMeasureCompactCard', () => {
+jest.mock('./ResultMeasureCompactCard', () => {
   const { forwardRef } = require('react');
   return forwardRef((props: any, ref: any) => {
     mockCapturedCards.push(props);
@@ -38,7 +38,7 @@ jest.mock('../../components/results/ResultMeasureCompactCard', () => {
   });
 });
 
-jest.mock('../../store/ResultSlice', () => ({
+jest.mock('../../../../store/ResultSlice', () => ({
   selectVisibleMeasures: (state: any) => state.result.visibleMeasures,
   selectResultsLoading:  (state: any) => state.result.loading,
 }));
@@ -54,11 +54,11 @@ window.HTMLElement.prototype.scrollIntoView = mockScrollIntoView;
 const MEASURES = [
   {
     measure: { id: 'm1', title: 'Measure 1', shortDescription: 'Desc 1' },
-    timeScale: 3, costScale: 2, climateScale: 4, ongoingCost: 500,
+    timeScale: 3, costScale: 2, climateScale: 4, totalCost: 500,
   },
   {
     measure: { id: 'm2', title: 'Measure 2', shortDescription: 'Desc 2' },
-    timeScale: 1, costScale: 3, climateScale: 2, ongoingCost: -100,
+    timeScale: 1, costScale: 3, climateScale: 2, totalCost: -100,
   },
 ];
 
@@ -147,13 +147,13 @@ describe('ResultMeasureCompactList', () => {
     expect(screen.getByTestId('compact-card-m2')).toHaveAttribute('data-rank', '2');
   });
 
-  it('passes timeScale, costScale, climateScale, ongoingCost to card', () => {
+  it('passes timeScale, costScale, climateScale, totalCost to card', () => {
     renderList();
     const card = mockCapturedCards.find(c => c.measure.id === 'm1');
     expect(card.result.timeScale).toBe(3);
     expect(card.result.costScale).toBe(2);
     expect(card.result.climateScale).toBe(4);
-    expect(card.result.ongoingCost).toBe(500);
+    expect(card.result.totalCost).toBe(500);
   });
 
   // --- Selection state ------------------------------------------------------
@@ -176,10 +176,11 @@ describe('ResultMeasureCompactList', () => {
 
   // --- Divider wrapper ------------------------------------------------------
 
-  it('wraps cards in a divide-y container', () => {
+  it('keeps cards in ranked order within a shared container', () => {
     renderList();
     const container = screen.getByTestId('compact-card-m1').parentElement;
-    expect(container?.className).toContain('divide-y');
+    expect(Array.from(container!.children).map(card => card.getAttribute('data-testid')))
+      .toEqual(['compact-card-m1', 'compact-card-m2']);
   });
 
   // --- scrollIntoView -------------------------------------------------------

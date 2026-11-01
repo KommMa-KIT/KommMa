@@ -16,7 +16,7 @@ describe('Button', () => {
 
   it('renders a <button> element by default', () => {
     render(<Button>Click me</Button>);
-    expect(screen.getByRole('button')).toBeDefined();
+    expect(screen.getByRole('button')).toBeInTheDocument();
   });
 
   it('applies default (green) variant classes', () => {
@@ -109,7 +109,7 @@ describe('Button', () => {
   it('forwards ref to the underlying <button> element', () => {
     const ref = React.createRef<HTMLButtonElement>();
     render(<Button ref={ref}>Ref</Button>);
-    expect(ref.current).toBeDefined();
+    expect(ref.current).toBeInTheDocument();
     expect(ref.current?.tagName).toBe('BUTTON');
   });
 
@@ -122,7 +122,7 @@ describe('Button', () => {
       </Button>
     );
     const link = screen.getByRole('link', { name: 'Link Button' });
-    expect(link).toBeDefined();
+    expect(link).toBeInTheDocument();
     expect(link.className).toContain('bg-green-800');
   });
 

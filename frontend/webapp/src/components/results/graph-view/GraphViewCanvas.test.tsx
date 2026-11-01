@@ -11,12 +11,6 @@ import GraphViewCanvas from './GraphViewCanvas';
 
 let capturedGraphProps: any = {};
 
-// These are defined OUTSIDE the factory and referenced via closure,
-// but useSelection must NOT be jest.fn() — it must be a plain function
-// that always returns a valid object.
-const mockOnNodeClick   = { calls: [] as any[] };
-const mockOnCanvasClick = { calls: [] as any[] };
-
 jest.mock('reagraph', () => {
   const React = require('react');
   return {
@@ -36,11 +30,7 @@ jest.mock('reagraph', () => {
     }),
     GraphNode: {},
     GraphEdge: {},
-    useSelection: () => ({
-      selections:    [],
-      onNodeClick:   () => { mockOnNodeClick.calls.push(true); },
-      onCanvasClick: () => { mockOnCanvasClick.calls.push(true); },
-    }),
+
   };
 });
 
@@ -93,8 +83,6 @@ describe('GraphViewCanvas', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     capturedGraphProps = {};
-    mockOnNodeClick.calls   = [];
-    mockOnCanvasClick.calls = [];
   });
 
   // --- Renders GraphCanvas --------------------------------------------------
@@ -138,11 +126,13 @@ describe('GraphViewCanvas', () => {
     expect(wasserNode.size).toBe(8);
   });
 
-  it('handles missing measure data gracefully (empty id/label)', () => {
-    const measures = [{ measure: { id: undefined, title: undefined }, totalScore: undefined }];
+  // IDs and titles are required by the props contract. Handling malformed nodes
+  // with missing required fields is unspecified; only totalScore is optional.
+  it('uses the minimum size when the optional score is absent', () => {
+    const measures = [{ measure: { id: 'm1', title: 'Solar' } }];
     renderCanvas({ measures });
-    expect(capturedGraphProps.nodes[0].id).toBe('');
-    expect(capturedGraphProps.nodes[0].label).toBe('');
+    expect(capturedGraphProps.nodes[0].id).toBe('m1');
+    expect(capturedGraphProps.nodes[0].label).toBe('Solar');
     expect(capturedGraphProps.nodes[0].size).toBe(5);
   });
 
@@ -213,10 +203,10 @@ describe('GraphViewCanvas', () => {
     expect(onSelectMeasure).toHaveBeenCalledWith('n1');
   });
 
-  it('calls ReaGraph onNodeClick when node clicked', () => {
-    renderCanvas();
-    fireEvent.click(screen.getByText('click-node'));
-    expect(mockOnNodeClick.calls.length).toBe(1);
+  it('highlights a selection supplied by the parent and its direct neighbours', () => {
+    renderCanvas({ selectedMeasureId: 'm1' });
+    expect(capturedGraphProps.selections).toEqual(['m1']);
+    expect(new Set(capturedGraphProps.actives)).toEqual(new Set(['m2', 'm3']));
   });
 
   // --- Canvas click ---------------------------------------------------------
@@ -227,10 +217,33 @@ describe('GraphViewCanvas', () => {
     expect(onSelectMeasure).toHaveBeenCalledWith(null);
   });
 
-  it('calls ReaGraph onCanvasClick when canvas clicked', () => {
+  it('leaves selection empty until the parent supplies a selected id', () => {
     renderCanvas();
-    fireEvent.click(screen.getByText('click-canvas'));
-    expect(mockOnCanvasClick.calls.length).toBe(1);
+    fireEvent.click(screen.getByText('click-node'));
+    expect(capturedGraphProps.selections).toEqual([]);
+    expect(capturedGraphProps.actives).toEqual([]);
+  });
+
+  it('curves both directions when their relationship types differ', () => {
+    renderCanvas({ edges: [
+      { from: 'm1', to: 'm2', type: 'synergy' },
+      { from: 'm2', to: 'm1', type: 'conflict' },
+    ] });
+    expect(capturedGraphProps.edges.map((edge: any) => edge.interpolation)).toEqual(['curved', 'curved']);
+  });
+
+  it('keeps same-type reverse edges straight', () => {
+    renderCanvas({ edges: [
+      { from: 'm1', to: 'm2', type: 'synergy' },
+      { from: 'm2', to: 'm1', type: 'synergy' },
+    ] });
+    expect(capturedGraphProps.edges.map((edge: any) => edge.interpolation)).toEqual(['linear', 'linear']);
+  });
+
+  it('keeps isolated selected nodes out of their own neighbourhood', () => {
+    renderCanvas({ selectedMeasureId: 'm4', edges: [{ from: 'm4', to: 'm4', type: 'neutral' }] });
+    expect(capturedGraphProps.selections).toEqual(['m4']);
+    expect(capturedGraphProps.actives).toEqual([]);
   });
 
   // --- Height ---------------------------------------------------------------

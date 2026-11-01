@@ -35,31 +35,18 @@ const mockSetRankingWeights = jest.fn((w: any) => ({
   payload: w,
 }));
 
-jest.mock('../../store/ResultSlice', () => ({
+jest.mock('../../../store/ResultSlice', () => ({
   setRankingWeights:    (w: any) => mockSetRankingWeights(w),
   selectRankingWeights: (state: any) => state.result.weights,
   // Re-export FilterState type
   FilterState: {},
 }));
 
-// Mock canvas getContext to avoid JSDOM errors
-HTMLCanvasElement.prototype.getContext = jest.fn(() => ({
-  clearRect:   jest.fn(),
-  beginPath:   jest.fn(),
-  moveTo:      jest.fn(),
-  lineTo:      jest.fn(),
-  closePath:   jest.fn(),
-  stroke:      jest.fn(),
-  fill:        jest.fn(),
-  arc:         jest.fn(),
-  fillText:    jest.fn(),
-  get canvas() { return { width: 300, height: 300 }; },
-  strokeStyle: '',
-  lineWidth:   0,
-  fillStyle:   '',
-  font:        '',
-  textAlign:   'left' as CanvasTextAlign,
-})) as any;
+// Canvas drawing is a browser boundary; interactions still use the real dialog.
+const mockCanvasContext = {
+  clearRect: jest.fn(), beginPath: jest.fn(), moveTo: jest.fn(), lineTo: jest.fn(),
+  closePath: jest.fn(), stroke: jest.fn(), fill: jest.fn(), arc: jest.fn(), fillText: jest.fn(),
+};
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -124,11 +111,14 @@ describe('FilterSortDialog', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(mockCanvasContext as any);
     mockSetRankingWeights.mockImplementation((w: any) => ({
       type: 'result/setRankingWeights',
       payload: w,
     }));
   });
+
+  afterEach(() => jest.restoreAllMocks());
 
   // --- Visibility -----------------------------------------------------------
 
@@ -241,41 +231,57 @@ describe('FilterSortDialog', () => {
 
   // --- Canvas mouse events --------------------------------------------------
 
-  it('sets isDragging on mouseDown and clears on mouseUp', () => {
+  it('stops updating weights after mouseUp', () => {
     renderDialog();
     const canvas = document.querySelector('canvas')!;
-    // mouseDown starts dragging — no observable output but shouldn't throw
     fireEvent.mouseDown(canvas);
+    fireEvent.mouseMove(canvas, { clientX: 150, clientY: 0 });
     fireEvent.mouseUp(canvas);
-    // Passes without throwing
+    fireEvent.mouseMove(canvas, { clientX: 290, clientY: 247 });
+    expect(screen.getByText('Zeit').parentElement).toHaveTextContent('100%');
+    expect(screen.getByText('Klima').parentElement).toHaveTextContent('0%');
   });
 
-  it('clears isDragging on mouseLeave', () => {
+  it('stops updating weights after mouseLeave', () => {
     renderDialog();
     const canvas = document.querySelector('canvas')!;
     fireEvent.mouseDown(canvas);
+    fireEvent.mouseMove(canvas, { clientX: 150, clientY: 0 });
     fireEvent.mouseLeave(canvas);
+    fireEvent.mouseMove(canvas, { clientX: 290, clientY: 247 });
+    expect(screen.getByText('Zeit').parentElement).toHaveTextContent('100%');
+    expect(screen.getByText('Klima').parentElement).toHaveTextContent('0%');
   });
 
-  it('handles canvas click without throwing', () => {
+  it('sets time weight to 100% when clicking the top of the triangle', () => {
     renderDialog();
     const canvas = document.querySelector('canvas')!;
-    // getBoundingClientRect returns zeros in jsdom
-    fireEvent.click(canvas, { clientX: 150, clientY: 150 });
+    fireEvent.click(canvas, { clientX: 150, clientY: 0 });
+    expect(screen.getByText('Zeit').parentElement).toHaveTextContent('100%');
+    expect(screen.getByText('Kosten').parentElement).toHaveTextContent('0%');
+    expect(screen.getByText('Klima').parentElement).toHaveTextContent('0%');
+    expect(mockSetRankingWeights).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByText('Anwenden'));
+    expect(mockSetRankingWeights).toHaveBeenCalledWith({ time: 1, cost: 0, climate: 0 });
   });
 
-  it('handles mouseMove when dragging without throwing', () => {
+  it('updates weights while dragging toward the climate vertex', () => {
     renderDialog();
     const canvas = document.querySelector('canvas')!;
     fireEvent.mouseDown(canvas);
-    fireEvent.mouseMove(canvas, { clientX: 150, clientY: 100 });
+    fireEvent.mouseMove(canvas, { clientX: 290, clientY: 247 });
+    expect(screen.getByText('Klima').parentElement).toHaveTextContent('100%');
+    expect(screen.getByText('Zeit').parentElement).toHaveTextContent('0%');
+    expect(screen.getByText('Kosten').parentElement).toHaveTextContent('0%');
   });
 
   it('does NOT update weights on mouseMove when not dragging', () => {
     renderDialog();
     const canvas = document.querySelector('canvas')!;
-    // No mouseDown — should be a no-op
-    fireEvent.mouseMove(canvas, { clientX: 150, clientY: 100 });
+    fireEvent.mouseMove(canvas, { clientX: 150, clientY: 0 });
+    expect(screen.getAllByText('33%')).toHaveLength(3);
+    fireEvent.click(screen.getByText('Anwenden'));
+    expect(mockSetRankingWeights).toHaveBeenCalledWith(DEFAULT_WEIGHTS);
   });
 
   // --- Backdrop closes dialog -----------------------------------------------
@@ -310,12 +316,11 @@ describe('FilterSortDialog', () => {
   // --- Zurücksetzen (reset) -------------------------------------------------
 
   it('resets weight display to 33% after Zurücksetzen', () => {
-    // First canvas-click to change weights, then reset
-    renderDialog();
+    renderDialog({ weights: { time: 1, cost: 0, climate: 0 } });
+    expect(screen.getByText('100%')).toBeInTheDocument();
     fireEvent.click(screen.getByText('Zurücksetzen'));
-    // After reset both Zeit panels should show 33%
     const pcts = screen.getAllByText('33%');
-    expect(pcts.length).toBeGreaterThanOrEqual(1);
+    expect(pcts).toHaveLength(3);
   });
 
   it('clears filter inputs after Zurücksetzen', () => {
@@ -331,12 +336,14 @@ describe('FilterSortDialog', () => {
     renderDialog();
     fireEvent.click(screen.getByText('Anwenden'));
     expect(mockSetRankingWeights).toHaveBeenCalledTimes(1);
+    expect(mockSetRankingWeights).toHaveBeenCalledWith(DEFAULT_WEIGHTS);
   });
 
   it('calls onFiltersChange with localFilters when Anwenden clicked', () => {
     const { onFiltersChange } = renderDialog();
     fireEvent.click(screen.getByText('Anwenden'));
     expect(onFiltersChange).toHaveBeenCalledTimes(1);
+    expect(onFiltersChange).toHaveBeenCalledWith(EMPTY_FILTERS);
   });
 
   it('calls onOpenChange(false) when Anwenden clicked', () => {

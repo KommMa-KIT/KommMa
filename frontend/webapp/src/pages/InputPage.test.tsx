@@ -79,50 +79,50 @@ function renderInputPage(category: string) {
 describe('InputPage', () => {
   it('always renders ProgressBar, ExportButton and NavigationButtons', () => {
     renderInputPage('Start');
-    expect(screen.getByTestId('progress-bar')).toBeDefined();
-    expect(screen.getByTestId('export-button')).toBeDefined();
-    expect(screen.getByTestId('navigation-buttons')).toBeDefined();
+    expect(screen.getByTestId('progress-bar')).toBeInTheDocument();
+    expect(screen.getByTestId('export-button')).toBeInTheDocument();
+    expect(screen.getByTestId('navigation-buttons')).toBeInTheDocument();
   });
 
   it('renders StartView for category "Start"', () => {
     renderInputPage('Start');
-    expect(screen.getByTestId('start-view')).toBeDefined();
+    expect(screen.getByTestId('start-view')).toBeInTheDocument();
   });
 
   it('renders InputCategoryView with General for category "General"', () => {
     renderInputPage('General');
-    expect(screen.getByTestId('category-view-General')).toBeDefined();
+    expect(screen.getByTestId('category-view-General')).toBeInTheDocument();
   });
 
   it('renders InputCategoryView with Energy for category "Energy"', () => {
     renderInputPage('Energy');
-    expect(screen.getByTestId('category-view-Energy')).toBeDefined();
+    expect(screen.getByTestId('category-view-Energy')).toBeInTheDocument();
   });
 
   it('renders InputCategoryView with Mobility for category "Mobility"', () => {
     renderInputPage('Mobility');
-    expect(screen.getByTestId('category-view-Mobility')).toBeDefined();
+    expect(screen.getByTestId('category-view-Mobility')).toBeInTheDocument();
   });
 
   it('renders InputCategoryView with Water for category "Water"', () => {
     renderInputPage('Water');
-    expect(screen.getByTestId('category-view-Water')).toBeDefined();
+    expect(screen.getByTestId('category-view-Water')).toBeInTheDocument();
   });
 
   it('renders EndView for category "End"', () => {
     renderInputPage('End');
-    expect(screen.getByTestId('end-view')).toBeDefined();
+    expect(screen.getByTestId('end-view')).toBeInTheDocument();
   });
 
   it('renders error message for unknown category', () => {
     renderInputPage('Unknown');
-    expect(screen.getByText(/Unbekannte Kategorie: Unknown/)).toBeDefined();
+    expect(screen.getByText(/Unbekannte Kategorie: Unknown/)).toBeInTheDocument();
   });
 
   it('only renders one view at a time', () => {
     renderInputPage('General');
     expect(screen.queryByTestId('start-view')).toBeNull();
     expect(screen.queryByTestId('end-view')).toBeNull();
-    expect(screen.getByTestId('category-view-General')).toBeDefined();
+    expect(screen.getByTestId('category-view-General')).toBeInTheDocument();
   });
 });

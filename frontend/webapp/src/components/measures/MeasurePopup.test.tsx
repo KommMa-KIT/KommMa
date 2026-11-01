@@ -12,7 +12,7 @@
  *  - Further info external links
  *  - Prerequisite measures resolved from DependencyGraphService
  *  - Close button calls onOpenChange(false)
- *  - GraphInitializer is mounted
+ *  - Prerequisites use the graph loaded by the layout
  */
 
 import { render, screen, fireEvent } from '@testing-library/react';
@@ -24,11 +24,6 @@ import { Measure, PopularityLevel } from '../../types/measureTypes';
 // ---------------------------------------------------------------------------
 // Mocks
 // ---------------------------------------------------------------------------
-
-jest.mock('../../components/GraphInitializer', () => ({
-  __esModule: true,
-  default: () => <div data-testid="graph-init" />,
-}));
 
 const mockGetPrerequisiteMeasures = jest.fn(() => new Set<string>());
 jest.mock('../../services/DependencyGraphService', () => ({
@@ -44,7 +39,7 @@ const ALL_MEASURES = [
   { id: 'm1', title: 'Main Measure' },
 ];
 
-jest.mock('../../store/MeasuresSlice', () => ({
+jest.mock('../../store/MeasureSlice', () => ({
   selectAllMeasures: (state: any) => state.measures.all,
 }));
 
@@ -54,7 +49,10 @@ jest.mock('../../store/MeasuresSlice', () => ({
 
 function buildStore() {
   return configureStore({
-    reducer: { measures: () => ({ all: ALL_MEASURES }) },
+    reducer: {
+      graph: () => ({ status: 'succeeded', edges: [], error: null }),
+      measures: () => ({ all: ALL_MEASURES }),
+    },
   });
 }
 
@@ -248,9 +246,11 @@ describe('MeasurePopup', () => {
 
   // --- GraphInitializer -----------------------------------------------------
 
-  it('renders GraphInitializer inside dialog', () => {
+  it('resolves prerequisites from the graph loaded by the layout', () => {
+    mockGetPrerequisiteMeasures.mockReturnValue(new Set(['pre1']));
     renderPopup({});
-    expect(screen.getByTestId('graph-init')).toBeInTheDocument();
+    expect(screen.getByText('Prerequisite One')).toBeInTheDocument();
+    expect(screen.queryByText('Prerequisite Two')).not.toBeInTheDocument();
   });
 
   // --- Close button ---------------------------------------------------------
@@ -259,16 +259,8 @@ describe('MeasurePopup', () => {
     const onOpenChange = jest.fn();
     renderPopup({ onOpenChange });
 
-    const closeBtn =
-      document.querySelector('button') ??
-      document.querySelector('[aria-label]') ??
-      document.querySelector('.rounded-full');
+    fireEvent.click(screen.getByRole('button'));
 
-    expect(closeBtn).not.toBeNull();
-    if (closeBtn) {
-      fireEvent.click(closeBtn);
-    }
-
-    expect(onOpenChange).toHaveBeenCalled();
+    expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 });

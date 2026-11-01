@@ -4,7 +4,7 @@
  * Tests for SourceTooltip – button accessibility and tooltip content rendering.
  */
 
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import SourceTooltip from './SourceTooltip';
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
@@ -14,7 +14,7 @@ describe('SourceTooltip', () => {
 
   it('renders the info trigger button', () => {
     render(<SourceTooltip source="Statistisches Bundesamt" />);
-    expect(screen.getByRole('button', { name: 'Quellenangabe anzeigen' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Quellenangabe anzeigen' })).toBeInTheDocument();
   });
 
   it('button has type="button" to prevent accidental form submission', () => {
@@ -25,21 +25,22 @@ describe('SourceTooltip', () => {
 
   it('button has the correct aria-label', () => {
     render(<SourceTooltip source="Source A" />);
-    expect(screen.getByLabelText('Quellenangabe anzeigen')).toBeDefined();
+    expect(screen.getByLabelText('Quellenangabe anzeigen')).toBeInTheDocument();
   });
 
   it('renders the Info icon inside the button', () => {
     const { container } = render(<SourceTooltip source="Some Source" />);
     // lucide-react renders an SVG inside the button
-    expect(container.querySelector('button svg')).toBeDefined();
+    expect(container.querySelector('button svg')).toBeInTheDocument();
   });
 
   // --- Tooltip content ---
 
-  it('shows the source text in the tooltip when the tooltip is open', () => {
-    // Only the trigger button is checked here; tooltip visibility and content are not asserted.
+  it('shows the source text in the tooltip when the tooltip is open', async () => {
     render(<SourceTooltip source="Mein Datensatz" />);
-    expect(screen.getByRole('button')).toBeDefined();
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+    fireEvent.focus(screen.getByRole('button', { name: 'Quellenangabe anzeigen' }));
+    expect(await screen.findByRole('tooltip')).toHaveTextContent('Quelle: Mein Datensatz');
   });
 
   // --- Multiple instances ---
@@ -52,7 +53,10 @@ describe('SourceTooltip', () => {
       </div>
     );
     const buttons = screen.getAllByRole('button', { name: 'Quellenangabe anzeigen' });
-    expect(buttons.length).toBe(2);
+    expect(buttons).toHaveLength(2);
+    fireEvent.focus(buttons[0]);
+    expect(screen.getByRole('tooltip')).toHaveTextContent('Quelle: Source A');
+    expect(within(screen.getByRole('tooltip')).queryByText('Quelle: Source B')).not.toBeInTheDocument();
   });
 
   // --- Style ---

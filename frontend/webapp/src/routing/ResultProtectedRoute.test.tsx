@@ -60,7 +60,7 @@ describe('ResultProtectedRoute', () => {
   it('redirects to / when result is null and not loading', () => {
     renderRoute(null, false);
 
-    expect(screen.getByTestId('navigate')).toBeDefined();
+    expect(screen.getByTestId('navigate')).toBeInTheDocument();
     expect(screen.getByTestId('navigate').getAttribute('data-to')).toBe('/');
     expect(screen.queryByTestId('result-children')).toBeNull();
   });
@@ -68,21 +68,21 @@ describe('ResultProtectedRoute', () => {
   it('renders children when result is null but loading is true', () => {
     renderRoute(null, true);
 
-    expect(screen.getByTestId('result-children')).toBeDefined();
+    expect(screen.getByTestId('result-children')).toBeInTheDocument();
     expect(screen.queryByTestId('navigate')).toBeNull();
   });
 
   it('renders children when result is available and not loading', () => {
     renderRoute([{ id: 'M1' }], false);
 
-    expect(screen.getByTestId('result-children')).toBeDefined();
+    expect(screen.getByTestId('result-children')).toBeInTheDocument();
     expect(screen.queryByTestId('navigate')).toBeNull();
   });
 
   it('renders children when result is available and loading is true', () => {
     renderRoute([{ id: 'M1' }], true);
 
-    expect(screen.getByTestId('result-children')).toBeDefined();
+    expect(screen.getByTestId('result-children')).toBeInTheDocument();
     expect(screen.queryByTestId('navigate')).toBeNull();
   });
 
@@ -96,8 +96,8 @@ describe('ResultProtectedRoute', () => {
       </>
     );
 
-    expect(screen.getByTestId('child-a')).toBeDefined();
-    expect(screen.getByTestId('child-b')).toBeDefined();
+    expect(screen.getByTestId('child-a')).toBeInTheDocument();
+    expect(screen.getByTestId('child-b')).toBeInTheDocument();
     expect(screen.queryByTestId('navigate')).toBeNull();
   });
 });

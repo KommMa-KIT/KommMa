@@ -19,12 +19,12 @@ describe('MeasureService – additional coverage', () => {
 
     it('throws wrapped error when response is not ok', async () => {
       global.fetch = jest.fn().mockResolvedValue({ ok: false, status: 503, statusText: 'Service Unavailable' } as any);
-      await expect(measureService.fetchMeasures()).rejects.toThrow('Unknown error occured when attempting to fetch measures.');
+      await expect(measureService.fetchMeasures()).rejects.toThrow('Unknown error occurred when attempting to fetch measures.');
     });
 
     it('throws wrapped error on network failure', async () => {
       global.fetch = jest.fn().mockRejectedValue(new Error('Network Error'));
-      await expect(measureService.fetchMeasures()).rejects.toThrow('Unknown error occured when attempting to fetch measures.');
+      await expect(measureService.fetchMeasures()).rejects.toThrow('Unknown error occurred when attempting to fetch measures.');
     });
   });
 

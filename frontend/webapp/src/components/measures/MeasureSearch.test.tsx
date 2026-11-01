@@ -10,7 +10,7 @@ import { configureStore } from '@reduxjs/toolkit';
 
 // ─── Mocks ───────────────────────────────────────────────────────────────────
 
-jest.mock('../../store/MeasuresSlice', () => ({
+jest.mock('../../store/MeasureSlice', () => ({
   selectSearchQuery: (state: any) => state.measures.searchQuery,
   setSearchQuery: (value: string) => ({ type: 'measures/setSearchQuery', payload: value }),
   clearSearch: () => ({ type: 'measures/clearSearch' }),

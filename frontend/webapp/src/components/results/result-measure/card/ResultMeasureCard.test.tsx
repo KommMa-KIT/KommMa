@@ -42,7 +42,7 @@ const mockUnmarkMeasure = jest.fn((id) => ({
   payload: id,
 }));
 
-jest.mock('../../store/ResultSlice', () => ({
+jest.mock('../../../../store/ResultSlice', () => ({
   markAsImplemented: (id: string) => mockMarkAsImplemented(id),
   markAsInfeasible: (id: string) => mockMarkAsInfeasible(id),
   unmarkMeasure: (id: string) => mockUnmarkMeasure(id),
@@ -50,13 +50,13 @@ jest.mock('../../store/ResultSlice', () => ({
   selectMeasureResults: (state: any) => state.results.measureResults,
 }));
 
-jest.mock('../../components/measures/PopularityStyling', () => ({
+jest.mock('../../../measures/PopularityStyling', () => ({
   getPopularityStyle: () => 'popularity-style-class',
   getPopularityLabel: () => 'Sehr beliebt',
 }));
 
 let capturedPopupProps: any = {};
-jest.mock('../../components/measures/MeasurePopup', () => (props: any) => {
+jest.mock('../../../measures/MeasurePopup', () => (props: any) => {
   capturedPopupProps = props;
   return props.open ? (
     <div data-testid="measure-popup">
@@ -65,7 +65,7 @@ jest.mock('../../components/measures/MeasurePopup', () => (props: any) => {
   ) : null;
 });
 
-jest.mock('../../components/results/ConfirmationDialog', () => (props: any) =>
+jest.mock('../../result-header/ConfirmationDialog', () => (props: any) =>
   props.open ? (
     <div data-testid="confirm-dialog">
       <span data-testid="confirm-title">{props.title}</span>
@@ -86,7 +86,7 @@ jest.mock('../../components/results/ConfirmationDialog', () => (props: any) =>
 const mockIsInitialized = jest.fn(() => false);
 const mockGetDependents = jest.fn(() => new Set<string>());
 
-jest.mock('../../services/DependencyGraphService', () => ({
+jest.mock('../../../../services/DependencyGraphService', () => ({
   dependencyGraphService: {
     isInitialized: () => mockIsInitialized(),
     getDependentMeasures: (id: string) => mockGetDependents(id),
@@ -332,14 +332,12 @@ describe('ResultMeasureCard', () => {
     expect(screen.getByText('Klima')).toBeInTheDocument();
   });
 
-  it('shows savings indicator when ongoingCost < 0', () => {
+  it('shows savings indicator when total lifetime cost is negative', () => {
     renderCard({
-      result: { ...RESULT, ongoingCost: -500 },
+      result: { ...RESULT, totalCost: -500 },
     });
 
-    const scorePanel = document.querySelector('.bg-gray-50.border-l');
-    const amberIcons = scorePanel?.querySelectorAll('.text-amber-600');
-    expect(amberIcons?.length).toBeGreaterThan(0);
+    expect(screen.getByText('SPART')).toBeInTheDocument();
   });
 
   // --- Status badges --------------------------------------------------------

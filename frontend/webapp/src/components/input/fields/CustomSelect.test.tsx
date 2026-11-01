@@ -5,7 +5,7 @@
  * placeholder, classNamePrefix, and basic interaction via react-select.
  */
 
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import CustomSelect from './CustomSelect';
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
@@ -21,33 +21,27 @@ const options = [
 describe('CustomSelect', () => {
   // --- Rendering ---
 
-  it('renders without throwing', () => {
-    expect(() =>
-      render(<CustomSelect options={options} value={null} onChange={jest.fn()} />)
-    ).not.toThrow();
+  it('renders an enabled combobox by default', () => {
+    render(<CustomSelect options={options} value={null} onChange={jest.fn()} />);
+    expect(screen.getByRole('combobox')).toBeEnabled();
   });
 
-  it('renders with hasSource=false without throwing', () => {
-    expect(() =>
-      render(
-        <CustomSelect options={options} value={null} onChange={jest.fn()} hasSource={false} />
-      )
-    ).not.toThrow();
+  it('forwards disabled state for user-entered fields', () => {
+    render(<CustomSelect options={options} value={null} onChange={jest.fn()} hasSource={false} isDisabled />);
+    expect(screen.getByRole('combobox', { hidden: true })).toBeDisabled();
   });
 
-  it('renders with hasSource=true without throwing', () => {
-    expect(() =>
-      render(
-        <CustomSelect options={options} value={null} onChange={jest.fn()} hasSource={true} />
-      )
-    ).not.toThrow();
+  it('keeps externally sourced selections editable', () => {
+    render(<CustomSelect options={options} value={options[0]} onChange={jest.fn()} hasSource />);
+    expect(screen.getByRole('combobox')).toBeEnabled();
+    expect(screen.getByText('Option A')).toBeInTheDocument();
   });
 
   it('renders a DOM node', () => {
     const { container } = render(
       <CustomSelect options={options} value={null} onChange={jest.fn()} />
     );
-    expect(container.firstChild).toBeDefined();
+    expect(container.firstChild).toBeInTheDocument();
   });
 
   // --- classNamePrefix ---
@@ -58,8 +52,8 @@ describe('CustomSelect', () => {
     );
     // react-select generates class names with the prefix
     expect(
-      container.querySelector('[class*="react-select"]') ?? container.firstChild
-    ).toBeDefined();
+      container.querySelector('.react-select__control')
+    ).toBeInTheDocument();
   });
 
   // --- Placeholder ---
@@ -73,7 +67,7 @@ describe('CustomSelect', () => {
         placeholder="Bitte wählen..."
       />
     );
-    expect(screen.getByText('Bitte wählen...')).toBeDefined();
+    expect(screen.getByText('Bitte wählen...')).toBeInTheDocument();
   });
 
   // --- Current value display ---
@@ -86,7 +80,7 @@ describe('CustomSelect', () => {
         onChange={jest.fn()}
       />
     );
-    expect(screen.getByText('Option B')).toBeDefined();
+    expect(screen.getByText('Option B')).toBeInTheDocument();
   });
 
   // --- Style switching (hasSource) ---
@@ -95,15 +89,24 @@ describe('CustomSelect', () => {
     const { container } = render(
       <CustomSelect options={options} value={null} onChange={jest.fn()} hasSource={false} />
     );
-    // Only the rendered container is checked here; control styles are not asserted.
-    expect(container.firstChild).toBeDefined();
+    expect(container.querySelector('.react-select__control')).toHaveStyle({
+      backgroundColor: 'rgb(255, 255, 255)', borderColor: '#d1d5db',
+    });
   });
 
   it('renders with prefilled (muted) styles when hasSource is true', () => {
     const { container } = render(
       <CustomSelect options={options} value={null} onChange={jest.fn()} hasSource={true} />
     );
-    expect(container.firstChild).toBeDefined();
+    expect(container.querySelector('.react-select__control')).toHaveStyle({ backgroundColor: '#f3f4f6' });
+  });
+
+  it('forwards a selected option to onChange', () => {
+    const onChange = jest.fn();
+    render(<CustomSelect options={options} value={null} onChange={onChange} />);
+    fireEvent.keyDown(screen.getByRole('combobox'), { key: 'ArrowDown' });
+    fireEvent.click(screen.getByText('Option B'));
+    expect(onChange).toHaveBeenCalledWith(options[1], expect.objectContaining({ action: 'select-option' }));
   });
 
   // --- isMulti fixed to false ---

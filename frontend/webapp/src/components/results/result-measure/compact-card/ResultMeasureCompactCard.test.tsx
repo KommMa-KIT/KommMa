@@ -5,11 +5,11 @@
  *  - Renders title, shortDescription, rank
  *  - Renders all three score panels (Zeit / Kosten / Klima)
  *  - renderScaleIcons fills `scale` icons with active colour
- *  - renderCostScale shows savings indicator when ongoingCost < 0
- *  - renderCostScale does NOT show savings indicator when ongoingCost >= 0
+ *  - renderCostScale shows savings indicator when totalCost < 0
+ *  - renderCostScale does NOT show savings indicator when totalCost >= 0
  *  - isSelected=true → blue border + blue rank badge + blue title
  *  - isSelected=false → transparent border + gray badge + gray title
- *  - Clicking the card opens MeasurePopup
+ *  - Clicking the card selects it; the info button opens MeasurePopup
  *  - MeasurePopup receives correct measure prop
  *  - Popup can be closed via onOpenChange
  *  - Ref forwarding works
@@ -25,7 +25,7 @@ import ResultMeasureCompactCard from './ResultMeasureCompactCard';
 // ---------------------------------------------------------------------------
 
 let capturedPopupProps: any = {};
-jest.mock('../../components/measures/MeasurePopup', () => (props: any) => {
+jest.mock('../../../measures/MeasurePopup', () => (props: any) => {
   capturedPopupProps = props;
   return props.open ? (
     <div data-testid="measure-popup">
@@ -51,7 +51,7 @@ const RESULT = {
   timeScale:    3,
   costScale:    2,
   climateScale: 4,
-  ongoingCost:  500,
+  totalCost:  500,
   rank:         1,
 };
 
@@ -119,6 +119,7 @@ describe('ResultMeasureCompactCard', () => {
     const zeitPanel = screen.getByText('Zeit').closest('div')!;
     const icons = zeitPanel.querySelectorAll('svg');
     expect(icons).toHaveLength(5);
+    expect(zeitPanel.querySelectorAll('.text-blue-600')).toHaveLength(3);
   });
 
   it('renders 5 leaf icons for Klima (4 filled, 1 grey)', () => {
@@ -126,38 +127,41 @@ describe('ResultMeasureCompactCard', () => {
     const klimaPanel = screen.getByText('Klima').closest('div')!;
     const icons = klimaPanel.querySelectorAll('svg');
     expect(icons).toHaveLength(5);
+    expect(klimaPanel.querySelectorAll('.text-green-600')).toHaveLength(4);
   });
 
   // --- Cost scale -----------------------------------------------------------
 
-  it('shows savings indicator (amber) when ongoingCost < 0', () => {
-    const { container } = renderCard({ result: { ...RESULT, ongoingCost: -100 } });
+  it('shows savings indicator (amber) when totalCost < 0', () => {
+    const { container } = renderCard({ result: { ...RESULT, totalCost: -100 } });
     // First Euro icon in cost scale should have text-amber-600 (savings indicator)
     const kostenPanel = screen.getByText('Kosten').closest('div')!;
     const amberIcons = kostenPanel.querySelectorAll('.text-amber-600');
-    expect(amberIcons.length).toBeGreaterThan(0);
+    expect(amberIcons).toHaveLength(1);
+    expect(screen.getByText('SPART')).toBeInTheDocument();
   });
 
-  it('does NOT show savings indicator (grey) when ongoingCost >= 0', () => {
-    const { container } = renderCard({ result: { ...RESULT, ongoingCost: 500 } });
+  it('does NOT show savings indicator (grey) when totalCost >= 0', () => {
+    const { container } = renderCard({ result: { ...RESULT, totalCost: 500 } });
     const kostenPanel = screen.getByText('Kosten').closest('div')!;
-    // The savings indicator icon should be gray (text-gray-300), not amber
+    // Non-negative total cost uses four cost-scale icons and no savings badge.
     const grayIcons = kostenPanel.querySelectorAll('.text-gray-300');
-    expect(grayIcons.length).toBeGreaterThan(0);
+    expect(grayIcons).toHaveLength(2);
+    expect(screen.queryByText('SPART')).not.toBeInTheDocument();
   });
 
   // --- Selection state ------------------------------------------------------
 
-  it('applies border-blue-500 when isSelected=true', () => {
+  it('applies border-l-blue-500 when isSelected=true', () => {
     const { container } = renderCard({ isSelected: true });
     const card = container.firstChild as HTMLElement;
-    expect(card.className).toContain('border-blue-500');
+    expect(card.className).toContain('border-l-blue-500');
   });
 
   it('applies transparent border when isSelected=false', () => {
     const { container } = renderCard({ isSelected: false });
     const card = container.firstChild as HTMLElement;
-    expect(card.className).toContain('border-transparent');
+    expect(card.className).toContain('border-l-transparent');
   });
 
   it('rank badge is blue when isSelected=true', () => {
@@ -197,22 +201,32 @@ describe('ResultMeasureCompactCard', () => {
     expect(screen.queryByTestId('measure-popup')).not.toBeInTheDocument();
   });
 
-  it('clicking the card opens MeasurePopup', () => {
-    renderCard();
-    fireEvent.click(screen.getByText('Solar Panels').closest('[class*="cursor-pointer"]')!);
+  it('clicking the info button opens MeasurePopup without selecting the card', () => {
+    const onClick = jest.fn();
+    renderCard({ onClick });
+    fireEvent.click(screen.getByRole('button', { name: 'Details zur Maßnahme anzeigen' }));
     expect(screen.getByTestId('measure-popup')).toBeInTheDocument();
+    expect(onClick).not.toHaveBeenCalled();
   });
 
   it('popup receives correct measure prop', () => {
     renderCard();
-    fireEvent.click(screen.getByText('Solar Panels').closest('[class*="cursor-pointer"]')!);
+    fireEvent.click(screen.getByRole('button', { name: 'Details zur Maßnahme anzeigen' }));
     expect(capturedPopupProps.measure.id).toBe('m1');
   });
 
   it('popup can be closed via onOpenChange', () => {
     renderCard();
-    fireEvent.click(screen.getByText('Solar Panels').closest('[class*="cursor-pointer"]')!);
+    fireEvent.click(screen.getByRole('button', { name: 'Details zur Maßnahme anzeigen' }));
     fireEvent.click(screen.getByText('close-popup'));
+    expect(screen.queryByTestId('measure-popup')).not.toBeInTheDocument();
+  });
+
+  it('clicking the card selects it without opening the popup', () => {
+    const onClick = jest.fn();
+    renderCard({ onClick });
+    fireEvent.click(screen.getByText('Solar Panels'));
+    expect(onClick).toHaveBeenCalledTimes(1);
     expect(screen.queryByTestId('measure-popup')).not.toBeInTheDocument();
   });
 

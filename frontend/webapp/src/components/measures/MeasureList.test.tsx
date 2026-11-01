@@ -15,7 +15,7 @@ jest.mock('../../components/measures/MeasureCard', () => ({
   default: ({ measure }: any) => <div>{measure.title}</div>,
 }));
 
-jest.mock('../../store/MeasuresSlice', () => ({
+jest.mock('../../store/MeasureSlice', () => ({
   selectFilteredMeasures: (state: any) => state.measures.filteredMeasures,
   selectSearchQuery: (state: any) => state.measures.searchQuery,
 }));

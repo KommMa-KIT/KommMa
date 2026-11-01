@@ -8,48 +8,48 @@
  *  - Toggle button switches back to graph preview
  *  - Graph loading spinner shown while fetching
  *  - After fetch success → GraphViewCanvas shown
- *  - After fetch error → MatrixCanvas shown (graph falls back silently)
+ *  - Failed graph state leaves the results summary available
  *  - Clicking canvas area calls onNavigateToView with current previewType
  *  - window.scrollTo called when canvas clicked
- *  - Pagination dot for 'graph' switches to matrix
- *  - Pagination dot for 'matrix' switches to graph
+ *  - Beziehungsansicht pagination button selects the graph
+ *  - Matrixansicht pagination button selects the matrix
  *  - ResultMeasureList rendered at bottom
  *  - Toggle chevron label toggles between Beziehungsansicht/Matrixansicht
  *  - onNavigateToView is optional (no crash without it)
  */
 
-import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
-import OverviewView from '../Overview';
-import { AlignVerticalJustifyCenter } from 'lucide-react';
+import OverviewView from './OverviewView';
+import graphReducer, { GraphState } from '../../../store/GraphSlice';
 
 // ---------------------------------------------------------------------------
 // Mocks
 // ---------------------------------------------------------------------------
 
-jest.mock('../../components/results/ResultMeasureList', () => () => (
+jest.mock('../result-measure/card/ResultMeasureList', () => () => (
   <div data-testid="result-measure-list" />
 ));
 
-jest.mock('../../components/results/GraphViewCanvas', () => ({ height }: any) => (
+jest.mock('../graph-view/GraphViewCanvas', () => ({ height }: any) => (
   <div data-testid="graph-view-canvas" data-height={height} />
 ));
 
-jest.mock('../../components/results/MatrixCanvas', () => ({ height }: any) => (
+jest.mock('../matrix-view/MatrixCanvas', () => ({ height }: any) => (
   <div data-testid="matrix-canvas" data-height={height} />
 ));
 
 const mockFetchGraph = jest.fn();
 // Resolve mockFetchGraph when fetchGraph is called, after the mock factory runs.
-jest.mock('../../services/GraphService', () => ({
+jest.mock('../../../services/GraphService', () => ({
   __esModule: true,
   default: {
     fetchGraph: (...args: any[]) => mockFetchGraph(...args),
   },
 }));
 
-jest.mock('../../store/ResultSlice', () => ({
+jest.mock('../../../store/ResultSlice', () => ({
   selectRankedMeasures: (state: any) => state.result.measures,
 }));
 
@@ -63,14 +63,15 @@ const MEASURES = [
   { measure: { id: 'm3' }, totalScore: 40 },
 ];
 
-function buildStore() {
+function buildStore(graph: GraphState = { edges: [], status: 'succeeded', error: null }) {
   return configureStore({
-    reducer: { result: () => ({ measures: MEASURES }) },
+    reducer: { result: () => ({ measures: MEASURES }), graph: graphReducer },
+    preloadedState: { graph },
   });
 }
 
-async function renderOverview(onNavigateToView?: jest.Mock) {
-  const store = buildStore();
+async function renderOverview(onNavigateToView?: jest.Mock, graph?: GraphState) {
+  const store = buildStore(graph);
   let result: any;
   await act(async () => {
     result = render(
@@ -88,6 +89,8 @@ async function renderOverview(onNavigateToView?: jest.Mock) {
 
 describe('OverviewView', () => {
   let scrollToMock: jest.Mock;
+
+  afterEach(() => jest.restoreAllMocks());
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -121,8 +124,7 @@ describe('OverviewView', () => {
   // --- Graph loading state --------------------------------------------------
 
   it('shows spinner while graph is loading', async () => {
-    mockFetchGraph.mockReturnValue(new Promise(() => {})); // never resolves
-    const store = buildStore();
+    const store = buildStore({ edges: [], status: 'loading', error: null });
     render(
       <Provider store={store}>
         <OverviewView />
@@ -132,8 +134,7 @@ describe('OverviewView', () => {
   });
 
   it('does NOT show GraphViewCanvas while loading', async () => {
-    mockFetchGraph.mockReturnValue(new Promise(() => {}));
-    const store = buildStore();
+    const store = buildStore({ edges: [], status: 'loading', error: null });
     render(
       <Provider store={store}>
         <OverviewView />
@@ -145,8 +146,9 @@ describe('OverviewView', () => {
   // --- Graph loaded state ---------------------------------------------------
 
   it('shows GraphViewCanvas after successful fetch', async () => {
-    mockFetchGraph.mockResolvedValue([{ from: 'm1', to: 'm2', type: 'synergy' }]);
-    await renderOverview();
+    await renderOverview(undefined, {
+      edges: [{ from: 'm1', to: 'm2', type: 'synergy' }], status: 'succeeded', error: null,
+    });
     expect(screen.getByTestId('graph-view-canvas')).toBeInTheDocument();
   });
 
@@ -155,12 +157,10 @@ describe('OverviewView', () => {
     expect(screen.getByTestId('graph-view-canvas')).toHaveAttribute('data-height', '300');
   });
 
-  // --- Graph error state (silent) ------------------------------------------
+  // --- Failed shared graph state ------------------------------------------
 
   it('does not crash on graph fetch error', async () => {
-    jest.spyOn(console, 'error').mockImplementation(() => {});
-    mockFetchGraph.mockRejectedValue(new Error('network fail'));
-    await renderOverview();
+    await renderOverview(undefined, { edges: [], status: 'failed', error: 'network fail' });
     expect(screen.getByText('Ihr Ergebnis')).toBeInTheDocument();
   });
 
@@ -220,13 +220,11 @@ describe('OverviewView', () => {
     expect(screen.getByTestId('matrix-canvas')).toHaveAttribute('data-height', '300');
   });
 
-  // pagination
-  it('clicking second pagination dot switches to graph', async () => {
+  // The accessible names describe the target view, independent of button order.
+  it('clicking the Matrixansicht pagination button switches to matrix', async () => {
     await renderOverview();
-    fireEvent.click(screen.getByLabelText('Zur Matrix'));
-    const dots = screen.getAllByRole('button').filter(b => b.className.includes('h-1'));
-    fireEvent.click(dots[1]);
-    expect(screen.getByTestId('graph-view-canvas')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Matrixansicht' }));
+    expect(screen.getByTestId('matrix-canvas')).toBeInTheDocument();
   });
 
   it('clicking canvas after toggle calls onNavigateToView with "matrix"', async () => {
@@ -244,10 +242,18 @@ describe('OverviewView', () => {
     expect(screen.getByText('Zur Matrixansicht →')).toBeInTheDocument();
   });
 
-  // --- fetchGraph called once -----------------------------------------------
-
-  it('calls graphService.fetchGraph exactly once on mount', async () => {
+  it('clicking the Beziehungsansicht pagination button switches to graph', async () => {
     await renderOverview();
-    expect(mockFetchGraph).toHaveBeenCalledTimes(1);
+    fireEvent.click(screen.getByLabelText('Zur Matrix'));
+    fireEvent.click(screen.getByRole('button', { name: 'Beziehungsansicht' }));
+    expect(screen.getByTestId('graph-view-canvas')).toBeInTheDocument();
+  });
+
+  // --- Shared graph data -----------------------------------------------
+
+  it('uses shared graph data without fetching it again', async () => {
+    await renderOverview();
+    expect(mockFetchGraph).not.toHaveBeenCalled();
+    expect(screen.getByTestId('graph-view-canvas')).toBeInTheDocument();
   });
 });
