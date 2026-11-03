@@ -19,7 +19,7 @@ Docker Compose Plugin
 |---|---|---|
 | CPU | 1 core | 2 cores |
 | RAM | 2 GB | 4 GB |
-| Storage | 15 GB | 30 GB |
+| Storage | 10 GB | 30 GB |
 
 Note: Storage majorly depends on used data (database and pictures)
 
@@ -31,10 +31,11 @@ Cloudflare Tunnel Token (matching the Domain)
 Open ports: 3000 (Frontend), 8000 (Backend), 4000 (Stub)
 
 ## Installation
-0. Install required software (see [Requirements/Software](#Software)).
+0. Make sure that all requirements are met. (see [Requirements](#Requirements)).
 1. Clone git repository.
 2. Add data, secrets and configure (see [Configuration](#Configuration)).
-3. Run "docker compose up -d --build" in "infra/".
+3. Install daemons for external API integration (follow the installation guides provided by [README_DAEMON_JOB](backend/services/README_DAEMON_JOB.md), [README_EXCEL_SYNC_DBRL](backend/services/README_EXCEL_SYNC_DBRL.md), [README_HALFYEAR_DAEMON](backend/services/README_HALFYEAR_DAEMON.md)).
+4. Run "cd infra && docker compose up -d --build".
 
 ## Configuration
 ### Secrets
