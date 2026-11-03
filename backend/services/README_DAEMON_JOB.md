@@ -2,6 +2,12 @@
 
 > **Important:** The files in this repository folder are **not** used by the server automatically.  
 > To apply changes, you must copy `night.timer` and `daemon.service` to `/etc/systemd/system/`.
+
+## What is the Daemon doing?
+The Daemon is a maintenance job that runs every night to keep the tool’s data up to date. It triggers the downloader to retrieve the latest information available from external sources and updates the internal files used by the tool. This ensures that calculations use current data and that the prepared files remain ready for efficient access.
+
+`night.timer` controls the nightly schedule, while daemon.service starts the Python job at `/app/backend/src/externalAPI/DaemonJob.py`.
+
 ### FYI
 The time in `daemon.service` is set on 02, due to the time shift, to achieve downloading at 03am.
 And the `daemon.service` starts the `/app/backend/src/externalAPI/DaemonJob.py`. So if you want to change the behavior of the file. Change `DaemonJob.py`.
