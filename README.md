@@ -31,19 +31,31 @@ Cloudflare Tunnel Token (matching the Domain)
 Open ports: 3000 (Frontend), 8000 (Backend), 4000 (Stub)
 
 ## Installation
-0. Make sure that all requirements are met. (see [Requirements](#Requirements)).
+0. Make sure that all requirements are met. (see [Requirements](#requirements)).
 1. Clone git repository.
-2. Add data, secrets and configure (see [Configuration](#Configuration)).
+2. Add data, secrets and configure (see [Configuration](#configuration)).
 3. Install daemons for external API integration (follow the installation guides provided by [README_DAEMON_JOB](backend/services/README_DAEMON_JOB.md), [README_EXCEL_SYNC_DBRL](backend/services/README_EXCEL_SYNC_DBRL.md), [README_HALFYEAR_DAEMON](backend/services/README_HALFYEAR_DAEMON.md)).
 4. Run "cd infra && docker compose up -d --build".
 
 ## Configuration
+1. Add your usage data in "data/".
+2. Add "login_data.env" by altering "example.login_data.env" and configure the required email and database login credentials inside the file.
+3. Add "infra/.env" by altering "infra/example.env" and configure like described in the file.
+   There you can choose between development and production mode!
+   If you use production mode, make sure to add your Cloudflare tunnel token!
+### PRODUCTION ONLY
+4. Replace all occurences of "kommma.com" in "infra/nginx/nginx.conf" and "frontend/webapp/src/config.tsx" with your own domain.
+5. Replace all legal information (especially [LegalDisclosurePage](frontend/webapp/src/pages/LegalDisclosurePage.tsx), [PrivacyPolicyPage](frontend/webapp/src/pages/PrivacyPolicyPage.tsx), [Footer](frontend/webapp/src/layout/Footer.tsx)) with your own.
+6. [optional] Add login credentials:
+   a) Run "sudo apt install apache2-utils && htpasswd -c infra/nginx/.htpasswd <username>". You will be asked to type in a password.
+   b) [optional] Add a file (e.g. infra/nginx/login) with your credentials (potential security risk!).
+   c) Uncomment both lines in "infra/nginx/auth.conf".
+
 ### Secrets
 - data/
-- infra/nginx/login
-- infra/nginx/.htpasswd
-- infra/.env
 - login_data.env
+- infra/.env
+- infra/nginx/.htpasswd
 
 ## Usage
 @Micha
