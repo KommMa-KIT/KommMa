@@ -100,7 +100,7 @@ describe('CommunityService', () => {
   });
 
   // ---------------------------------------------
-  // getPrefillData (inkl. Mapping-Test)
+  // getPrefillData (including mapping test)
   // ---------------------------------------------
   describe('getPrefillData', () => {
     it('maps array data to PrefillData structure', async () => {

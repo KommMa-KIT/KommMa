@@ -2,7 +2,7 @@
  * BoolInputField.test.tsx
  *
  * Unit tests for the BoolInputField component covering:
- *  - Renders Ja and Nein buttons
+ *  - Renders Yes and No buttons
  *  - handleToggle dispatches setInput(true) and setInput(false)
  *  - handleToggle dispatches clearValidationError when an error exists
  *  - Active button styling (user-set value)

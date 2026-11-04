@@ -7,7 +7,7 @@ import { render, screen } from '@testing-library/react';
 import MatrixCanvas from './MatrixCanvas';
 
 // ---------------------------------------------------------------------------
-// Capture store — Objekt-Mutation ist in jest.mock() Factories erlaubt
+// Capture store — object mutation is allowed in jest.mock() factories
 // ---------------------------------------------------------------------------
 
 const capture = {

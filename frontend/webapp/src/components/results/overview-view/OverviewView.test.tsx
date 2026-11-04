@@ -11,10 +11,10 @@
  *  - Failed graph state leaves the results summary available
  *  - Clicking canvas area calls onNavigateToView with current previewType
  *  - window.scrollTo called when canvas clicked
- *  - Beziehungsansicht pagination button selects the graph
- *  - Matrixansicht pagination button selects the matrix
+ *  - Relationship view pagination button selects the graph
+ *  - Matrix view pagination button selects the matrix
  *  - ResultMeasureList rendered at bottom
- *  - Toggle chevron label toggles between Beziehungsansicht/Matrixansicht
+ *  - Toggle chevron label toggles between relationship view and matrix view
  *  - onNavigateToView is optional (no crash without it)
  */
 

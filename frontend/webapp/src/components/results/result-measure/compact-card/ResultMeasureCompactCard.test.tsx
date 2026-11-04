@@ -3,7 +3,7 @@
  *
  * Tests for ResultMeasureCompactCard covering:
  *  - Renders title, shortDescription, rank
- *  - Renders all three score panels (Zeit / Kosten / Klima)
+ *  - Renders all three score panels (time / cost / climate)
  *  - renderScaleIcons fills `scale` icons with active colour
  *  - renderCostScale shows savings indicator when totalCost < 0
  *  - renderCostScale does NOT show savings indicator when totalCost >= 0
@@ -115,7 +115,7 @@ describe('ResultMeasureCompactCard', () => {
 
   it('renders 5 clock icons for Zeit (3 filled, 2 grey)', () => {
     renderCard({ result: { ...RESULT, timeScale: 3 } });
-    // All SVGs in the Zeit panel — 3 active (text-blue-600) + 2 grey (text-gray-300)
+    // All SVGs in the time panel — 3 active (text-blue-600) + 2 grey (text-gray-300)
     const zeitPanel = screen.getByText('Zeit').closest('div')!;
     const icons = zeitPanel.querySelectorAll('svg');
     expect(icons).toHaveLength(5);

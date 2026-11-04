@@ -1,7 +1,7 @@
 /**
  * ResultMeasureCompactList.test.tsx
  *
- * React wird innerhalb der Mock-Factory geladen, um forwardRef dort zu verwenden.
+ * React is loaded inside the mock factory so forwardRef can be used there.
  */
 
 import { render, screen } from '@testing-library/react';
@@ -19,7 +19,7 @@ jest.mock('./ResultMeasureCompactSkeleton', () => ({
   ),
 }));
 
-// Der mock-Prefix erlaubt die Referenz auf mockCapturedCards in der hoisted Mock-Factory.
+// The mock prefix allows referencing mockCapturedCards in the hoisted mock factory.
 const mockCapturedCards: any[] = [];
 
 jest.mock('./ResultMeasureCompactCard', () => {

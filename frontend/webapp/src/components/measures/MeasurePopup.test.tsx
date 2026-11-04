@@ -5,7 +5,7 @@
  *  - Dialog renders when open=true, not rendered when open=false
  *  - Cover image with error fallback
  *  - Title, short description, full description
- *  - Popularity badge icons (hoch / mittel / niedrig / unknown)
+ *  - Popularity badge icons (high / medium / low / unknown)
  *  - Popularity badge colors (green / yellow / red / gray)
  *  - Popularity comment rendered when provided
  *  - Relevant parameters chips

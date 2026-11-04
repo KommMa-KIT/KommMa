@@ -1,8 +1,8 @@
 /**
  * IndividualisationDetailPopup.test.tsx
  *
- * Der Recharts-Mock rendert Tooltip content als React-Element mit aktiven
- * Testdaten, damit der Tooltip-Inhalt im DOM geprüft werden kann.
+ * The Recharts mock renders tooltip content as a React element with active
+ * test data so the tooltip content can be checked in the DOM.
  */
 
 import React from 'react';
@@ -10,7 +10,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import IndividualisationDetailPopup from './IndividualisationDetailPopup';
 
 // ---------------------------------------------------------------------------
-// Mocks — Recharts: Tooltip content als JSX rendern (aktiver Zustand simulieren)
+// Mocks — Recharts: render tooltip content as JSX (simulate the active state)
 // ---------------------------------------------------------------------------
 
 jest.mock('recharts', () => {
@@ -24,7 +24,7 @@ jest.mock('recharts', () => {
       return <div data-testid="polar-radius" data-formatted={formatted} />;
     },
     ResponsiveContainer: ({ children }: any) => <div data-testid="responsive-container">{children}</div>,
-    // Tooltip: content als React.ReactElement direkt rendern mit aktiven Testdaten
+    // Tooltip: render content directly as a React.ReactElement with active test data
     Tooltip: ({ content }: any) => {
       const R = require('react');
       if (!content) return <div data-testid="tooltip" />;
@@ -163,8 +163,8 @@ describe('IndividualisationDetailPopup', () => {
   });
 
   // --- Tooltip rendered via mock -----------------------------------------------
-  // Der Tooltip-Mock rendert den content direkt mit aktiven Daten, sodass
-  // CustomTooltip im DOM sichtbar ist.
+  // The tooltip mock renders the content directly with active data so
+  // CustomTooltip is visible in the DOM.
 
   it('tooltip is rendered in the DOM', () => {
     renderPopup();
@@ -206,7 +206,7 @@ describe('IndividualisationDetailPopup', () => {
     expect(screen.getByText('Aufschlüsselung nach Kategorien')).toBeInTheDocument();
   });
 
-  // --- Basierend auf Angaben ------------------------------------------------
+  // --- Based on provided information ------------------------------------------------
 
   it('renders description text below overall score', () => {
     renderPopup();

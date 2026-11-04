@@ -5,7 +5,7 @@
  *  - Renders title, description, metrics, rank badge
  *  - Image load / error fallback
  *  - Popularity badge rendered
- *  - renderScaleIcons (Zeit / Klima icon scale)
+ *  - renderScaleIcons (time / climate icon scale)
  *  - renderCostScale (savings indicator when ongoingCost < 0)
  *  - Status badges: implemented, infeasible, transitive infeasible, filtered
  *  - getBorderStyle: none / synergy ring / conflict ring / striped (both)

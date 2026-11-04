@@ -1,10 +1,10 @@
 /**
  * ExportService.test.ts
  *
- * Tests für CSV- und PDF-Export sowie Beziehungsbezeichnungen:
- *  - exportCSV:  Header, Rows, BOM, Formatierung, Download-Trigger
- *  - exportPDF:  Alle 3 Tabellen, addPage-Branch, leere Comments, Edges-Filter
- *  - getRelationTypeLabel: alle 5 bekannten Typen + Fallback
+ * Tests for CSV and PDF exports and relationship labels:
+ *  - exportCSV:  header, rows, BOM, formatting, download trigger
+ *  - exportPDF:  all 3 tables, addPage branch, empty comments, edge filtering
+ *  - getRelationTypeLabel: all 5 known types + fallback
  */
 
 import { exportService } from './ExportService';

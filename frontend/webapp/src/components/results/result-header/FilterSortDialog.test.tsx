@@ -11,9 +11,9 @@
  *  - Canvas mouseDown/mouseUp/mouseLeave toggle isDragging state
  *  - Backdrop click closes dialog
  *  - X button closes dialog
- *  - Abbrechen (cancel) closes dialog
- *  - Zurücksetzen resets weights to 1/3 each and clears filters
- *  - Anwenden dispatches setRankingWeights, calls onFiltersChange, closes dialog
+ *  - Cancel closes dialog
+ *  - Reset resets weights to 1/3 each and clears filters
+ *  - Apply dispatches setRankingWeights, calls onFiltersChange, closes dialog
  *  - weightsToPoint / pointToWeights round-trip (via canvas click)
  *  - Canvas click updates weight display
  *  - useEffect syncs localWeights when external weights change
@@ -159,7 +159,7 @@ describe('FilterSortDialog', () => {
   it('shows 33% for Zeit with equal weights', () => {
     renderDialog();
     const pcts = screen.getAllByText('33%');
-    expect(pcts.length).toBe(3); // Zeit, Kosten, Klima all show 33%
+    expect(pcts.length).toBe(3); // Time, cost, and climate all show 33%
   });
 
   it('shows three weight panels (Zeit / Kosten / Klima)', () => {
@@ -307,13 +307,13 @@ describe('FilterSortDialog', () => {
 
   it('calls onOpenChange(false) when Abbrechen clicked', () => {
     const { onOpenChange } = renderDialog();
-    // There are two Abbrechen buttons — click footer one
+    // There are two cancel buttons — click the footer one
     const cancelBtns = screen.getAllByText('Abbrechen');
     fireEvent.click(cancelBtns[cancelBtns.length - 1]);
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 
-  // --- Zurücksetzen (reset) -------------------------------------------------
+  // --- Reset -------------------------------------------------
 
   it('resets weight display to 33% after Zurücksetzen', () => {
     renderDialog({ weights: { time: 1, cost: 0, climate: 0 } });

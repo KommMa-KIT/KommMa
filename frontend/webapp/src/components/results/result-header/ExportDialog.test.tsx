@@ -6,7 +6,7 @@
  *  - Renders when open=true (title, both options)
  *  - Backdrop click closes dialog
  *  - Header X-button closes dialog
- *  - Footer Abbrechen button closes dialog
+ *  - Footer cancel button closes dialog
  *  - PDF button calls onExportPDF and closes dialog
  *  - CSV button calls onExportCSV and closes dialog
  *  - Option descriptions rendered
