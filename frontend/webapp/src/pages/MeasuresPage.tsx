@@ -20,7 +20,7 @@ import {
   selectMeasuresLoading,
   selectMeasuresError,
   clearError,
-} from '../store/MeasuresSlice';
+} from '../store/MeasureSlice';
 import { AppDispatch } from '../store/store';
 
 // --- Component ---

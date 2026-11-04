@@ -12,7 +12,7 @@ import {
   setSearchQuery,
   clearSearch,
   selectSearchQuery,
-} from '../../store/MeasuresSlice';
+} from '../../store/MeasureSlice';
 
 // --- Component ---
 

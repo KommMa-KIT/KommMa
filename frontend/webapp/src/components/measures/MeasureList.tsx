@@ -8,7 +8,7 @@
 
 import { useSelector } from 'react-redux';
 import MeasureCard from './MeasureCard';
-import { selectFilteredMeasures, selectSearchQuery } from '../../store/MeasuresSlice';
+import { selectFilteredMeasures, selectSearchQuery } from '../../store/MeasureSlice';
 import { AlertCircle } from 'lucide-react';
 
 // --- Component ---
