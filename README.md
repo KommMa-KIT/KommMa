@@ -82,12 +82,12 @@ Open ports: 3000 (Frontend), 8000 (Backend), 4000 (Stub)
    There you can choose between development and production mode!
    If you use production mode, make sure to add your Cloudflare tunnel token!
 ### PRODUCTION ONLY
-4. Replace all occurences of "kommma.com" in "infra/nginx/nginx.conf" and "frontend/webapp/src/config.tsx" with your own domain.
+4. Replace all occurences of "kommma.com" in "infra/nginx/nginx.conf" with your own domain.
 5. Replace all legal information (especially [LegalDisclosurePage](frontend/webapp/src/pages/LegalDisclosurePage.tsx), [PrivacyPolicyPage](frontend/webapp/src/pages/PrivacyPolicyPage.tsx), [Footer](frontend/webapp/src/layout/Footer.tsx)) with your own.
 6. [optional] Add login credentials:
-   a) Run "sudo apt install apache2-utils && htpasswd -c infra/nginx/.htpasswd <username>". You will be asked to type in a password.
-   b) [optional] Add a file (e.g. infra/nginx/login) with your credentials (potential security risk!).
-   c) Uncomment both lines in "infra/nginx/auth.conf".
+   - a) Run "sudo apt install apache2-utils && htpasswd -c infra/nginx/.htpasswd <username>". You will be asked to type in a password.
+   - b) [optional] Add a file (e.g. infra/nginx/login) with your credentials (potential security risk!).
+   - c) Uncomment both lines in "infra/nginx/auth.conf".
 
 ### Secrets
 - data/
