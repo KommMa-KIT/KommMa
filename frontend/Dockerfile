@@ -17,7 +17,7 @@ CMD ["npm", "start"]
 # Build stage:
 # Creates the static production bundle.
 FROM base AS build
-ARG REACT_APP_API_MODE=local
+ARG REACT_APP_API_MODE=prod
 ENV NODE_ENV=production
 ENV REACT_APP_API_MODE=$REACT_APP_API_MODE
 COPY . .
