@@ -45,9 +45,7 @@ class ConvertResult:
 
 
 class Converter_Gemeindeverzeichnis:
-    # =========================
-    # Helpers
-    # =========================
+    # --- Helpers ---
 
     @staticmethod
     def _norm(s: object) -> str:
@@ -149,9 +147,7 @@ class Converter_Gemeindeverzeichnis:
         df.to_csv(tmp_path, sep=sep, encoding=encoding, index=False)
         tmp_path.replace(out_path)
 
-    # =========================
-    # Public API
-    # =========================
+    # --- Public API ---
 
     @staticmethod
     def convert(
@@ -219,9 +215,7 @@ class Converter_Gemeindeverzeichnis:
                 df = df[df[col_satzart].notna()].copy()
                 satzart_str = Converter_Gemeindeverzeichnis._safe_str(df[col_satzart])
 
-                # ---------------------------------
-                # Build district (Kreis) lookup (typically Satzart 40)
-                # ---------------------------------
+                # --- Build district (Kreis) lookup (typically Satzart 40) ---
                 kreis_df = df[satzart_str == C.CONVERTER_GEMEINDEVERZEICHNIS_SATZART_KREIS].copy()
 
                 kreis_code_kreis = (
@@ -232,9 +226,7 @@ class Converter_Gemeindeverzeichnis:
                 kreis_name_kreis = Converter_Gemeindeverzeichnis._safe_str(kreis_df[col_name])
                 kreis_lookup = dict(zip(kreis_code_kreis, kreis_name_kreis))
 
-                # ---------------------------------
-                # Filter Satzart 60 (municipalities)
-                # ---------------------------------
+                # --- Filter Satzart 60 (municipalities) ---
                 df = df[satzart_str == C.SATZART].copy()
 
                 land_code = Converter_Gemeindeverzeichnis._zfill(df[col_land], 2)

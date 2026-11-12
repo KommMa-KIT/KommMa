@@ -5,11 +5,9 @@ import openpyxl
 import pytest
 from openpyxl.worksheet.table import Table, TableColumn
 
-# ---------------------------------------------------------------------
-# ADJUST THIS IMPORT PATH TO YOUR PROJECT
+# --- ADJUST THIS IMPORT PATH TO YOUR PROJECT ---
 # e.g.:
 # from DatabaseRepositoryLayer.CalculationRepository.preprocessing.structuredRefResolver  import ...
-# ---------------------------------------------------------------------
 from DatabaseRepositoryLayer.CalculationRepository.preprocessing.structuredRefResolver import (
     resolve_structured_references,
     _is_formula,
@@ -21,9 +19,7 @@ from DatabaseRepositoryLayer.CalculationRepository.preprocessing.structuredRefRe
 )
 
 
-# -------------------------
-# Helpers
-# -------------------------
+# --- Helpers ---
 
 def _add_table(ws, name: str, ref: str, columns: list[str]):
     """
@@ -40,9 +36,7 @@ def _save_wb(wb, path: Path):
     wb.save(path)
 
 
-# -------------------------
-# Pure helper tests
-# -------------------------
+# --- Pure helper tests ---
 
 def test_is_formula():
     assert _is_formula("=A1+1") is True
@@ -64,9 +58,7 @@ def test_row_range():
     assert _row_range(None, data_start=6, data_end=50, header_row=5) == (6, 50)
 
 
-# -------------------------
-# Table map tests
-# -------------------------
+# --- Table map tests ---
 
 def test_build_table_map_from_openpyxl_tables():
     wb = openpyxl.Workbook()
@@ -92,9 +84,7 @@ def test_build_table_map_from_openpyxl_tables():
     assert t["columns"]["abwassermenge"] == "G"
 
 
-# -------------------------
-# Bracket resolver tests
-# -------------------------
+# --- Bracket resolver tests ---
 
 @pytest.fixture
 def table_dict_same_sheet():
@@ -220,9 +210,7 @@ def test_resolve_bracket_unknown_column_returns_ref_error(table_dict_same_sheet)
     assert out == "#REF!"
 
 
-# -------------------------
-# Formula replacement tests
-# -------------------------
+# --- Formula replacement tests ---
 
 def test_replace_structured_refs_rewrites_multiple_refs(table_dict_same_sheet):
     table_map = {"table1": table_dict_same_sheet}
@@ -250,9 +238,7 @@ def test_replace_structured_refs_unknown_table_left_unchanged(table_dict_same_sh
     assert out == formula
 
 
-# -------------------------
-# End-to-end resolve_structured_references tests
-# -------------------------
+# --- End-to-end resolve_structured_references tests ---
 
 def test_resolve_structured_references_returns_original_if_no_tables(tmp_path: Path):
     wb = openpyxl.Workbook()

@@ -78,9 +78,7 @@ def patch_constants(monkeypatch):
     monkeypatch.setattr(C, "DWD_DOWNLOADER_LOG_FAIL_PREFIX", "FAIL", raising=False)
 
 
-# -----------------------------
-# Pure utilities
-# -----------------------------
+# --- Pure utilities ---
 def test_make_id_5_pads():
     assert M.make_id_5(7) == "00007"
     assert M.make_id_5(" 42 ") == "00042"
@@ -189,9 +187,7 @@ def test_zip_dest_to_csv_dest():
     assert M._zip_dest_to_csv_dest("/tmp/a.zip") == "/tmp/a.csv"
 
 
-# -----------------------------
-# DwdCdcClient (no real HTTP)
-# -----------------------------
+# --- DwdCdcClient (no real HTTP) ---
 def test_client_get_text(monkeypatch):
     client = M.DwdCdcClient(timeout=1)
 
@@ -226,9 +222,7 @@ def test_client_filter_bundesland_normalizes():
     assert out["x"].tolist() == [1]
 
 
-# -----------------------------
-# Download helpers (no real HTTP)
-# -----------------------------
+# --- Download helpers (no real HTTP) ---
 def test_download_file_atomic_skips_existing(tmp_path):
     dest = tmp_path / "f.bin"
     dest.write_bytes(b"abc")
@@ -280,9 +274,7 @@ def test_download_file_atomic_cleans_tmp_on_error(tmp_path):
     assert not dest.exists()
 
 
-# -----------------------------
-# ZIP -> CSV (in-memory)
-# -----------------------------
+# --- ZIP -> CSV (in-memory) ---
 def _make_daily_kl_zip_bytes(txt_name="data.txt", txt_content="MESS_DATUM;A\n20250101;1\n"):
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w", compression=zipfile.ZIP_DEFLATED) as z:
@@ -352,9 +344,7 @@ def test_download_daily_kl_zip_no_data_files(tmp_path):
     assert "ERR_ZIP_NO_DATA" in str(e.value)
 
 
-# -----------------------------
-# convert_all_txt_to_csv
-# -----------------------------
+# --- convert_all_txt_to_csv ---
 def test_convert_all_txt_to_csv_ok(tmp_path):
     root = tmp_path
     txt = root / "a.txt"

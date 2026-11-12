@@ -1,3 +1,10 @@
+"""
+mocks.py
+
+Placeholder data sources for repositories that are not implemented yet.
+Every call reports a missing dependency.
+"""
+
 from __future__ import annotations
 
 from typing import Any
@@ -10,7 +17,6 @@ from Exceptions.MissingDependencyError import _raise_missing_dependency
 
 
 def _missing(name: str) -> None:
-    # nutzt deine bestehende Fehlermeldung mit Dateiname/Zeile/Funktion
     _raise_missing_dependency(name)
 
 

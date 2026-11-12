@@ -10,9 +10,7 @@ from unittest.mock import patch
 from DatabaseRepositoryLayer.ExcelSyncRepository.sync_engine import SyncEngine
 
 
-# --------------------------------------------------
-# Helpers
-# --------------------------------------------------
+# --- Helpers ---
 
 _DEFAULT_CFG = {
     "central_file": "",            # filled per test
@@ -85,9 +83,7 @@ def setup_dirs(tmp_path: Path):
     return central_dir, dep_dir
 
 
-# --------------------------------------------------
-# __init__  /  config loading
-# --------------------------------------------------
+# --- __init__  /  config loading ---
 
 def test_init_loads_config(tmp_path: Path):
     cfg_file = _write_config(tmp_path, {
@@ -101,9 +97,7 @@ def test_init_loads_config(tmp_path: Path):
     assert engine._dep_header_row == 5
 
 
-# --------------------------------------------------
-# _build_lookup
-# --------------------------------------------------
+# --- _build_lookup ---
 
 def test_build_lookup_creates_mapping(tmp_path: Path, setup_dirs):
     central_dir, dep_dir = setup_dirs
@@ -167,9 +161,7 @@ def test_build_lookup_returns_empty_when_column_missing(tmp_path: Path, setup_di
     assert lookup == {}
 
 
-# --------------------------------------------------
-# _find_dependent_files
-# --------------------------------------------------
+# --- _find_dependent_files ---
 
 def test_find_dependent_files_returns_xlsx_only(tmp_path: Path):
     dep_dir = tmp_path / "deps"
@@ -214,9 +206,7 @@ def test_find_dependent_files_returns_empty_for_missing_dir(tmp_path: Path):
     assert engine._find_dependent_files() == []
 
 
-# --------------------------------------------------
-# _sync_single_file
-# --------------------------------------------------
+# --- _sync_single_file ---
 
 def test_sync_single_file_updates_matching_cells(tmp_path: Path, setup_dirs):
     central_dir, dep_dir = setup_dirs
@@ -327,9 +317,7 @@ def test_sync_single_file_skips_if_header_columns_missing(tmp_path: Path, setup_
     assert updated == 0
 
 
-# --------------------------------------------------
-# _values_equal
-# --------------------------------------------------
+# --- _values_equal ---
 
 @pytest.mark.parametrize(
     "a, b, expected",
@@ -354,9 +342,7 @@ def test_values_equal(a, b, expected):
     assert SyncEngine._values_equal(a, b) == expected
 
 
-# --------------------------------------------------
-# run  (integration)
-# --------------------------------------------------
+# --- run  (integration) ---
 
 def test_run_syncs_all_dependent_files(tmp_path: Path, setup_dirs):
     central_dir, dep_dir = setup_dirs

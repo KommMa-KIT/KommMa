@@ -137,9 +137,7 @@ class Dependencies:
     - Replacement, caching, and mocking of dependencies is done here.
     """
 
-    # -------------------------------------------------------------------------
-    # Initialization
-    # -------------------------------------------------------------------------
+    # --- Initialization ---
 
     def __init__(
         self,
@@ -180,9 +178,7 @@ class Dependencies:
         # Validator (current implementation: checks for new/changed data in prefilled fields)
         self.validator = ValidatiorAndUpdater()
 
-    # -------------------------------------------------------------------------
-    # Repositories / Data Sources
-    # -------------------------------------------------------------------------
+    # --- Repositories / Data Sources ---
 
     def get_CommuneRepository(self) -> CommuneDataSource:
         """
@@ -248,9 +244,7 @@ class Dependencies:
             _raise_missing_dependency("InputParametersDataSource_dep")
         return self._input_data_source_dep
 
-    # -------------------------------------------------------------------------
-    # Calculation Services
-    # -------------------------------------------------------------------------
+    # --- Calculation Services ---
 
     def get_CalculationService(self) -> CalculationService:
         """
@@ -275,9 +269,7 @@ class Dependencies:
             _raise_missing_dependency("CalculationEngine_dep")
         return self._calculation_engine_dep
 
-    # -------------------------------------------------------------------------
-    # Validators
-    # -------------------------------------------------------------------------
+    # --- Validators ---
 
     def get_InputValidator(self) -> Any:
         """
@@ -293,9 +285,7 @@ class Dependencies:
         return self.validator
 
 
-# =============================================================================
-# Factory Function
-# =============================================================================
+# --- Factory Function ---
 
 def build_dependencies(build_complete: bool = True, run_updates_flag: bool = True) -> Dependencies:
     """

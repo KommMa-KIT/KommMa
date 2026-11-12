@@ -11,7 +11,6 @@
 #     [pytest]
 #     pythonpath = src
 #     testpaths = test
-# ============================================================
 
 import pytest
 from fastapi import FastAPI, APIRouter
@@ -74,9 +73,7 @@ from ApplicationLayer.api.Pydantic import (
 )
 
 
-# ---------------------------------------------------------------------
-# Fake Repositories / Services (müssen exakt die ResponseModels treffen!)
-# ---------------------------------------------------------------------
+# --- Fake Repositories / Services (müssen exakt die ResponseModels treffen!) ---
 
 class FakeMeasureRepository:
     def get_all_measures(self):
@@ -209,9 +206,7 @@ class FakeInputParametersDataSource:
 
 
 
-# ---------------------------------------------------------------------
-# Fake Dependency Container (stellt alle get_* Methoden bereit)
-# ---------------------------------------------------------------------
+# --- Fake Dependency Container (stellt alle get_* Methoden bereit) ---
 class FakeDeps:
     def __init__(
         self,
@@ -283,9 +278,7 @@ class FakeDeps:
     
 
 
-# ---------------------------------------------------------------------
-# Test-App Factory
-# ---------------------------------------------------------------------
+# --- Test-App Factory ---
 
 
 
@@ -311,9 +304,7 @@ def make_client(deps: FakeDeps) -> TestClient:
 
 
 
-# ---------------------------------------------------------------------
-# Helpers: valide Bodies (sonst gibt FastAPI 422!)
-# ---------------------------------------------------------------------
+# --- Helpers: valide Bodies (sonst gibt FastAPI 422!) ---
 
 def valid_fill_inputs_request_json():
     req = FillInputsRequest(
@@ -332,9 +323,7 @@ def valid_filled_inputs_and_subsidies_json():
     return req.model_dump(mode="json")
 
 
-# ============================================================
-# TESTS: Measures
-# ============================================================
+# --- TESTS: Measures ---
 
 def test_get_measures_ok():
     client = make_client(FakeDeps(measure_repo=FakeMeasureRepository()))
@@ -352,9 +341,7 @@ def test_get_measures_missing_dependency_returns_500():
     assert r.status_code == 500
 
 
-# ============================================================
-# TESTS: Results
-# ============================================================
+# --- TESTS: Results ---
 
 def test_calculate_results_ok():
     client = make_client(FakeDeps(calc_service=FakeCalculationService()))
@@ -388,9 +375,7 @@ def test_results_graph_missing_dependency_returns_500():
     assert r.status_code == 500
 
 
-# ============================================================
-# TESTS: Inputs
-# ============================================================
+# --- TESTS: Inputs ---
 
 #TODO add if finished 
 # def test_get_subsidies_ok():
@@ -438,9 +423,7 @@ def test_get_input_params_ok():
     assert data["Water"][0]["type"] in ["number", "selection", "multiSelection", "bool"]
 
 
-# ============================================================
-# TESTS: Communes
-# ============================================================
+# --- TESTS: Communes ---
 
 def test_search_communes_ok():
     client = make_client(FakeDeps(commune_repo=FakeCommuneRepository()))
@@ -529,9 +512,7 @@ def test_outdated_warning_missing_dependency_returns_500():
     assert r.status_code == 500
 
 
-# ============================================================
-# TESTS: Reference Communes
-# ============================================================
+# --- TESTS: Reference Communes ---
 
 def test_list_reference_communes_ok():
     client = make_client(FakeDeps(ref_commune_repo=FakeReferenceCommuneRepository()))

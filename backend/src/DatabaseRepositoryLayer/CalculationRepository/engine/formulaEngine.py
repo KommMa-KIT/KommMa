@@ -83,9 +83,7 @@ class FormulaEngine:
         self._models: Dict[str, Any] = {}
         self._lock = threading.Lock()
 
-    # ------------------------------------------------------------------
-    # Public API
-    # ------------------------------------------------------------------
+    # --- Public API ---
 
     def build_all(self) -> None:
         """
@@ -148,20 +146,20 @@ class FormulaEngine:
         data_sheet_name   = wb.worksheets[data_sheet_index].title
         result_sheet_name = wb.worksheets[result_sheet_index].title
 
-        # ── Inject inputs ──────────────────────────────────────────────
+        # --- Inject inputs ---
         inputs: Dict[str, Any] = {}
         for param_name, cell_ref in data_city_mapping.items():
             if param_name in filtered_inputs:
                 key = _model_key(xlsx_filename, data_sheet_name, cell_ref)
                 inputs[key] = filtered_inputs[param_name]
 
-        # ── Evaluate (formulas creates a new output dict; thread-safe) ─
+        # --- Evaluate (formulas creates a new output dict; thread-safe) ---
         try:
             outputs = model.calculate(inputs, [])
         except Exception as exc:
             raise RuntimeError(f"formulas evaluation failed: {exc}") from exc
 
-        # ── Collect results ────────────────────────────────────────────
+        # --- Collect results ---
         results: Dict[str, Any] = {}
         for result_name, cell_info in result_mapping.items():
             if isinstance(cell_info, dict):
@@ -187,9 +185,7 @@ class FormulaEngine:
         """
         return xlsx_filename in self._models
 
-    # ------------------------------------------------------------------
-    # Internal
-    # ------------------------------------------------------------------
+    # --- Internal ---
 
     def _build_model(self, xlsx_path: Path) -> None:
         """
@@ -241,9 +237,7 @@ class FormulaEngine:
             return self._models.get(xlsx_filename)
 
 
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
+# --- Helpers ---
 
 def _model_key(xlsx_filename: str, sheet_name: str, cell_ref: str) -> str:
     """

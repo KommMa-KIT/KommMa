@@ -11,9 +11,7 @@ from DatabaseRepositoryLayer.MeasureRepository.scenarioAwareMeasureDataSource im
 )
 
 
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
+# --- Helpers ---
 
 class FakeMeasureSource:
     """Minimal stub implementing MeasureDataSource.get_all_measures()."""
@@ -38,9 +36,7 @@ def _make_measure(mid: str, titel: str = "Some measure") -> dict:
     }
 
 
-# ---------------------------------------------------------------------------
-# Tests — basic behaviour
-# ---------------------------------------------------------------------------
+# --- Tests — basic behaviour ---
 
 class TestNoScenarioExpansion:
     """Measures with zero or one matching calc ID are returned once."""
@@ -75,9 +71,7 @@ class TestNoScenarioExpansion:
         assert result[0]["id"] == "20107a"  # uses calc casing
 
 
-# ---------------------------------------------------------------------------
-# Tests — multi-scenario expansion
-# ---------------------------------------------------------------------------
+# --- Tests — multi-scenario expansion ---
 
 class TestMultiScenarioExpansion:
     """Measures with multiple matching calc IDs are duplicated."""
@@ -112,9 +106,7 @@ class TestMultiScenarioExpansion:
         assert ids == ["10102-e-benzin_pkw", "10102-e-diesel_pkw", "10102-e-lpg_pkw"]
 
 
-# ---------------------------------------------------------------------------
-# Tests — mixed catalogue
-# ---------------------------------------------------------------------------
+# --- Tests — mixed catalogue ---
 
 class TestMixedCatalogue:
     """Combination of single-scenario and multi-scenario measures."""
@@ -142,9 +134,7 @@ class TestMixedCatalogue:
         assert "30101" in ids  # kept unchanged
 
 
-# ---------------------------------------------------------------------------
-# Tests — edge cases
-# ---------------------------------------------------------------------------
+# --- Tests — edge cases ---
 
 class TestEdgeCases:
     """Boundary conditions and defensive behaviour."""

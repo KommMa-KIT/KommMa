@@ -3,7 +3,6 @@ from pathlib import Path
 
 import pytest
 
-# ✅ Passe den Import an deinen echten Pfad an:
 from DatabaseRepositoryLayer.CalculationRepository.engine.formulaEngine import (
     FormulaEngine,
     _model_key,
@@ -12,9 +11,7 @@ from DatabaseRepositoryLayer.CalculationRepository.engine.formulaEngine import (
 )
 
 
-# ----------------------------
-# Small fakes
-# ----------------------------
+# --- Small fakes ---
 
 class FakeSheet:
     def __init__(self, title: str):
@@ -51,9 +48,7 @@ class FakeExcelModel:
         return dict(self._outputs)
 
 
-# ----------------------------
-# Fixtures
-# ----------------------------
+# --- Fixtures ---
 
 @pytest.fixture
 def excel_dir(tmp_path: Path):
@@ -66,9 +61,7 @@ def engine(excel_dir: Path):
     return FormulaEngine(excel_dir)
 
 
-# ----------------------------
-# Tests: build_all
-# ----------------------------
+# --- Tests: build_all ---
 
 def test_build_all_raises_if_no_xlsx(engine, excel_dir: Path):
     with pytest.raises(ValueError):
@@ -93,9 +86,7 @@ def test_build_all_calls_build_model_for_each_file(engine, excel_dir: Path, monk
     assert set(calls) == {"A.xlsx", "B.xlsx"}
 
 
-# ----------------------------
-# Tests: _build_model
-# ----------------------------
+# --- Tests: _build_model ---
 
 def test_build_model_registers_model_and_cleans_tmpdir(engine, excel_dir: Path, monkeypatch, tmp_path: Path):
     xlsx = excel_dir / "ID20106.xlsx"
@@ -145,9 +136,7 @@ def test_build_model_failure_does_not_raise(engine, excel_dir: Path, monkeypatch
     assert engine.has_model("BAD.xlsx") is False
 
 
-# ----------------------------
-# Tests: evaluate
-# ----------------------------
+# --- Tests: evaluate ---
 
 def test_evaluate_injects_inputs_and_collects_results(engine, excel_dir: Path, monkeypatch):
     # Create dummy file (only used for path building)
@@ -234,9 +223,7 @@ def test_evaluate_wraps_formulas_exception(engine, excel_dir: Path, monkeypatch)
     assert "formulas evaluation failed" in str(e.value)
 
 
-# ----------------------------
-# Tests: helper functions
-# ----------------------------
+# --- Tests: helper functions ---
 
 def test_bare_ref_strips_dollars_and_uppercasing():
     assert _bare_ref("$e$6") == "E6"

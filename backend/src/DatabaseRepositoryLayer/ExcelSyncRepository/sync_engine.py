@@ -57,9 +57,7 @@ class SyncEngine:
         self._dep_match_col: str = self._cfg["dependent_match_column"]
         self._dep_value_col: str = self._cfg["dependent_value_column"]
 
-    # ------------------------------------------------------------------
-    # Public API
-    # ------------------------------------------------------------------
+    # --- Public API ---
 
     def run(self) -> dict[str, int]:
         """
@@ -101,9 +99,7 @@ class SyncEngine:
         logger.info("Sync complete — %d cells updated across %d files.", total, len(results))
         return results
 
-    # ------------------------------------------------------------------
-    # Internal helpers
-    # ------------------------------------------------------------------
+    # --- Internal helpers ---
 
     def _build_lookup(self) -> dict[str, Any]:
         """

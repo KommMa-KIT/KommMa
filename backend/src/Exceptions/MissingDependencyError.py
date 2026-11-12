@@ -1,3 +1,10 @@
+"""
+MissingDependencyError.py
+
+Raised when a required dependency was not provided. Notifies the admin by mail
+and includes the caller's file, line and function in the message.
+"""
+
 from EMail_Service import send_admin_email
 
 import inspect
