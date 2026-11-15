@@ -116,11 +116,11 @@ class SyncEngine:
         )
 
         if self._central_match_col not in df.columns:
-                logger.error("Configured central match column not found")
+            logger.error("Configured central match column not found")
             return {}
 
         if self._central_value_col not in df.columns:
-                logger.error("Configured central value column not found")
+            logger.error("Configured central value column not found")
             return {}
 
         lookup: dict[str, Any] = {}
