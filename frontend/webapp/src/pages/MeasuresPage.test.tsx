@@ -35,7 +35,7 @@ jest.mock('../../src/components/measures/MeasureSkeleton', () => ({
 const mockFetchMeasures = jest.fn();
 const mockClearError    = jest.fn();
 
-jest.mock('../../src/store/MeasuresSlice', () => ({
+jest.mock('../store/MeasureSlice', () => ({
   fetchMeasures:          () => mockFetchMeasures(),
   selectMeasuresLoading:  (state: any) => state.measures.loading,
   selectMeasuresError:    (state: any) => state.measures.error,

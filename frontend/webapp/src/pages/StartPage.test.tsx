@@ -28,19 +28,19 @@ jest.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate,
 }));
 
-jest.mock('../../src/components/Button', () =>
+jest.mock('../components/common/Button', () =>
   ({ children, onClick, size, variant, className }: any) => (
     <button onClick={onClick} className={className}>{children}</button>
   )
 );
 
-jest.mock('../../src/components/ImportButton', () =>
+jest.mock('../components/start/ImportButton', () =>
   ({ children }: { children: (fn: () => void) => React.ReactNode }) => (
     <div data-testid="import-button">{children(jest.fn())}</div>
   )
 );
 
-jest.mock('../../src/components/ReferenceCommuneCard', () =>
+jest.mock('../components/start/ReferenceCommuneCard', () =>
   ({ commune, onSelect }: any) => (
     <div data-testid={`commune-card-${commune.id}`} onClick={onSelect}>
       {commune.name}
@@ -68,7 +68,9 @@ jest.mock('../../src/services/CommunityService', () => ({
   communityService: { getReferenceCommunesList: () => mockGetReferenceCommunesList() },
 }));
 
-jest.mock('../../src/config', () => ({ API_BASE_URL: 'http://localhost' }));
+jest.mock('../../src/config', () => ({
+  API_BASE_URL: 'http://localhost', SHOW_OUTDATED_DATA_WARNING: true,
+}));
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -171,9 +173,7 @@ describe('StartPage', () => {
     fetchImpl = () => Promise.resolve({ ok: true, json: async () => stale });
     mockGetReferenceCommunesList.mockResolvedValue([]);
     await act(async () => renderPage());
-    const expectedDate = new Date('2022-06-15').toLocaleDateString('de-DE', {
-      year: 'numeric', month: 'long', day: 'numeric',
-    });
+    const expectedDate = '15. Juni 2022';
     expect(screen.getByText(`(Stand: ${expectedDate})`)).toBeInTheDocument();
   });
 

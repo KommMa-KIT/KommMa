@@ -10,9 +10,7 @@ from DatabaseRepositoryLayer.CalculationRepository.calculation import (
 )
 
 
-# -----------------------
-# Fakes
-# -----------------------
+# --- Fakes ---
 
 class FakeMetaExtractor:
     def __init__(self, directory_path: str):
@@ -78,9 +76,7 @@ class FakeEngine:
         }
 
 
-# -----------------------
-# Fixtures
-# -----------------------
+# --- Fixtures ---
 
 @pytest.fixture
 def tmp_excel_dir(tmp_path: Path) -> Path:
@@ -102,9 +98,7 @@ def repo(tmp_excel_dir, monkeypatch) -> CalculationRepository:
     return r
 
 
-# -----------------------
-# Unit tests
-# -----------------------
+# --- Unit tests ---
 
 def test_init_builds_metadata_and_engine(repo: CalculationRepository):
     assert repo.metadata  # non-empty

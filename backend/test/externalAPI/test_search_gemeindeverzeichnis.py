@@ -81,9 +81,7 @@ def sample_csv(tmp_path) -> Path:
     return p
 
 
-# -----------------------------
-# normalize_text + fuzzy_score
-# -----------------------------
+# --- normalize_text + fuzzy_score ---
 def test_normalize_text_umlauts_and_spaces():
     assert M.normalize_text("  München!!  Alt-Stadt ") == "munchen alt stadt"
 
@@ -95,9 +93,7 @@ def test_fuzzy_score_empty_returns_0(monkeypatch):
     assert M.fuzzy_score("abc", "") == 0
 
 
-# -----------------------------
-# __init__
-# -----------------------------
+# --- __init__ ---
 def test_init_file_not_found(tmp_path):
     with pytest.raises(FileNotFoundError):
         M.Search_Gemeindeverzeichnis(tmp_path / "missing.csv")
@@ -121,9 +117,7 @@ def test_init_creates_norm_and_zfills(sample_csv):
     assert s.df.loc[0, "NAME_NORM"] == "karlsruhe"
 
 
-# -----------------------------
-# search_numeric
-# -----------------------------
+# --- search_numeric ---
 def test_search_numeric_ags_prefix(sample_csv):
     s = M.Search_Gemeindeverzeichnis(sample_csv)
     r = s.search_numeric("0081")
@@ -161,9 +155,7 @@ def test_search_numeric_no_match(sample_csv):
     assert s.search_numeric("99999") is None
 
 
-# -----------------------------
-# search_name
-# -----------------------------
+# --- search_name ---
 def test_search_name_empty_returns_empty(sample_csv):
     s = M.Search_Gemeindeverzeichnis(sample_csv)
     assert s.search_name("   ") == []
@@ -201,9 +193,7 @@ def test_search_name_fuzzy_adds_when_room_left(sample_csv, monkeypatch):
     assert any(r.name == "Berlin" and r.match_type == "fuzzy" for r in res)
 
 
-# -----------------------------
-# print_results
-# -----------------------------
+# --- print_results ---
 def test_print_results_no_results_logs(caplog):
     caplog.clear()
     with caplog.at_level("INFO"):

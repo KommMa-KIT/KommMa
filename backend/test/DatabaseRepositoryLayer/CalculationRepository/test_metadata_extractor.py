@@ -6,9 +6,7 @@ from pathlib import Path
 from DatabaseRepositoryLayer.CalculationRepository.metaDataExtractor import MetaDataExtractor
 
 
-# -----------------------
-# Helpers
-# -----------------------
+# --- Helpers ---
 
 def make_df(nrows: int = 20, ncols: int = 12) -> pd.DataFrame:
     """Create an empty DataFrame of given shape."""
@@ -27,9 +25,7 @@ def cell_to_rc(cell_ref: str) -> tuple[int, int]:
     return row_idx, col_idx
 
 
-# -----------------------
-# Fixtures
-# -----------------------
+# --- Fixtures ---
 
 @pytest.fixture
 def extractor(tmp_path: Path, monkeypatch) -> MetaDataExtractor:
@@ -54,9 +50,7 @@ def extractor(tmp_path: Path, monkeypatch) -> MetaDataExtractor:
     return ex
 
 
-# -----------------------
-# Unit Tests
-# -----------------------
+# --- Unit Tests ---
 
 def test_extract_data_mapping_maps_rows_to_F_cells(extractor, monkeypatch):
     # Base class _read_data_section returns mapping category_clean -> row_number (Excel 1-indexed)

@@ -26,8 +26,16 @@ describe('DependencyGraphService – additional coverage', () => {
         { from: 'A', to: 'C', type: 'synergy' },
       ];
       dependencyGraphService.buildGraph(edges);
-      const result = dependencyGraphService.getSynergyMeasures(['A']);
+      const result = dependencyGraphService.getBenefitingMeasures(['A']);
       expect(result).toEqual(new Set(['B', 'C']));
+    });
+
+    it('includes contribution targets alongside synergy targets', () => {
+      dependencyGraphService.buildGraph([
+        { from: 'A', to: 'B', type: 'synergy' },
+        { from: 'A', to: 'C', type: 'contribution' },
+      ]);
+      expect(dependencyGraphService.getBenefitingMeasures(['A'])).toEqual(new Set(['B', 'C']));
     });
 
     it('handles multiple conflict edges from the same source', () => {
@@ -96,16 +104,16 @@ describe('DependencyGraphService – additional coverage', () => {
     });
   });
 
-  describe('getSynergyMeasures', () => {
+  describe('getBenefitingMeasures', () => {
     it('returns empty Set for empty implementedIds', () => {
       dependencyGraphService.buildGraph([{ from: 'A', to: 'B', type: 'synergy' } as any]);
-      expect(dependencyGraphService.getSynergyMeasures([]).size).toBe(0);
+      expect(dependencyGraphService.getBenefitingMeasures([]).size).toBe(0);
     });
 
     it('does not return measures already in implementedIds', () => {
       dependencyGraphService.buildGraph([{ from: 'A', to: 'B', type: 'synergy' } as any]);
       // B is already implemented
-      const result = dependencyGraphService.getSynergyMeasures(['A', 'B']);
+      const result = dependencyGraphService.getBenefitingMeasures(['A', 'B']);
       expect(result.has('B')).toBe(false);
     });
   });

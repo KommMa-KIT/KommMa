@@ -4,18 +4,13 @@ from pathlib import Path
 
 import pytest
 
-# 🔧 TODO: passe den Import an dein echtes Modul an
-# Beispiel:
-# from externalAPI.downloader import run_downloads, _folder_key, _is_enabled
-from externalAPI.Downloader import run_downloads, _folder_key, _is_enabled  # <- anpassen!
+from externalAPI.Downloader import run_downloads, _folder_key, _is_enabled
 from Exceptions.External_Connection_Error import ExternalConnection
 
 from externalAPI.Constants import Constants
 
 
-# -------------------------
-# Helpers
-# -------------------------
+# --- Helpers ---
 
 def write_cfg(tmp_path: Path, cfg: dict) -> Path:
     p = tmp_path / "cfg.json"
@@ -32,9 +27,7 @@ def base_cfg_with_sources(sources: dict) -> dict:
     }
 
 
-# -------------------------
-# Small unit tests: helpers
-# -------------------------
+# --- Small unit tests: helpers ---
 
 def test_is_enabled():
     assert _is_enabled(None) is False
@@ -56,9 +49,7 @@ def test_folder_key(inp, expected):
     assert _folder_key(inp) == expected
 
 
-# -------------------------
-# run_downloads: config + output rotation
-# -------------------------
+# --- run_downloads: config + output rotation ---
 
 def test_run_downloads_raises_if_config_missing(tmp_path):
     missing = tmp_path / "nope.json"
@@ -108,9 +99,7 @@ def test_run_downloads_creates_old_and_moves_existing_content(monkeypatch, tmp_p
     assert ("some_dir", "some_dir") in moved
 
 
-# -------------------------
-# run_downloads: Destatis / RDB
-# -------------------------
+# --- run_downloads: Destatis / RDB ---
 
 def test_run_downloads_calls_statbund_for_each_item(monkeypatch, tmp_path):
     out = tmp_path / "out"
@@ -189,9 +178,7 @@ def test_run_downloads_nonoptional_item_raises_on_error(monkeypatch, tmp_path):
         run_downloads(cfg, out)
 
 
-# -------------------------
-# run_downloads: DWD
-# -------------------------
+# --- run_downloads: DWD ---
 
 def test_run_downloads_dwd_downloads_station_list_once_and_folders(monkeypatch, tmp_path):
     out = tmp_path / "out"
@@ -236,9 +223,7 @@ def test_run_downloads_dwd_downloads_station_list_once_and_folders(monkeypatch, 
     assert folders[1][1] == "another_folder"
 
 
-# -------------------------
-# run_downloads: GV / SRTM
-# -------------------------
+# --- run_downloads: GV / SRTM ---
 
 def test_run_downloads_calls_gv_and_srtm(monkeypatch, tmp_path):
     out = tmp_path / "out"

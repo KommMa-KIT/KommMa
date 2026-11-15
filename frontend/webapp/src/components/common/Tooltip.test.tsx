@@ -118,7 +118,7 @@ describe('TooltipContent', () => {
         </Tooltip>
       </TooltipProvider>
     );
-    expect(ref.current).toBeDefined();
+    expect(ref.current).toBe(getVisibleTooltipContent('Ref content'));
   });
 
   it('does not render when tooltip is closed', () => {

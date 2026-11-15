@@ -1,3 +1,10 @@
+"""
+middleware.py
+
+Logs every request and response with a generated request id, which is also
+returned in the X-Request-ID header.
+"""
+
 import logging
 import time
 import uuid

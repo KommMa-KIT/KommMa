@@ -5,10 +5,8 @@ This is used by the Downloader to download official Data from the Deutscher Wett
 Author: Jonas Dorner (@OilersLD)
 """
 
-# ============================================================
-# DWD "Index of" Tree Downloader + Optional ZIP -> CSV Extract
+# --- DWD "Index of" Tree Downloader + Optional ZIP -> CSV Extract ---
 # (append below your existing code; does not modify existing)
-# ============================================================
 from __future__ import annotations
 
 from io import StringIO
@@ -31,9 +29,7 @@ from externalAPI.Constants import Constants as C
 logger = logging.getLogger(__name__)
 
 
-# -----------------------------
-# Config
-# -----------------------------
+# --- Config ---
 @dataclass(frozen=True)
 class DwdCdcUrls:
     stations_list: str = C.DWD_DOWNLOADER_CDC_STATIONS_LIST_URL
@@ -50,9 +46,7 @@ def test_login() -> None:
         )
 
 
-# -----------------------------
-# Utilities
-# -----------------------------
+# --- Utilities ---
 def make_id_5(station_id: int | str) -> str:
     """Make a 5-digit station ID string, padding with leading zeros if necessary."""
     return str(station_id).strip().zfill(C.NORMALIZATION_LENGTH)
@@ -159,9 +153,7 @@ def save_stations_csv(df: pd.DataFrame, path: str) -> str:
     return path
 
 
-# -----------------------------
-# Client
-# -----------------------------
+# --- Client ---
 class DwdCdcClient:
     def __init__(self, urls: DwdCdcUrls | None = None, timeout: int = 60):
         self.urls = urls or DwdCdcUrls()
@@ -437,9 +429,7 @@ def download_dwd_tree(
     return stats
 
 
-# -----------------------------
-# ZIP -> CSV (Daily-KL) helpers
-# -----------------------------
+# --- ZIP -> CSV (Daily-KL) helpers ---
 def _is_daily_kl_zip_url(url: str) -> bool:
     name = os.path.basename(urlparse(url).path).lower()
     return name.startswith(C.DWD_DOWNLOADER_DAILY_KL_ZIP_PREFIX) and name.endswith(C.DWD_DOWNLOADER_ZIP_EXTENSION)

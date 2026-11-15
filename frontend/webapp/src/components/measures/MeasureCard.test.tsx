@@ -39,7 +39,7 @@ jest.mock('../../components/measures/PopularityStyling', () => ({
 }));
 
 // MeasurePopup needs a Redux store (via MeasuresSlice) — stub it out
-jest.mock('../../store/MeasuresSlice', () => ({
+jest.mock('../../store/MeasureSlice', () => ({
   selectAllMeasures: (state: any) => state.measures?.all ?? [],
 }));
 
@@ -47,7 +47,7 @@ jest.mock('../../services/DependencyGraphService', () => ({
   default: { getPrerequisiteMeasures: () => new Set() },
 }));
 
-jest.mock('../../components/GraphInitializer', () => () => null);
+jest.mock('../../layout/GraphInitializer', () => () => null);
 
 // ---------------------------------------------------------------------------
 // Helpers

@@ -150,9 +150,7 @@ class CalculationService:
             return obj
         raise TypeError(f"Unsupported input_data type: {type(obj)!r}")
 
-    # -------------------------------------------------------------------------
-    # Helpers (normalization / indexing)
-    # -------------------------------------------------------------------------
+    # --- Helpers (normalization / indexing) ---
 
     @staticmethod
     def _is_true(value: Any) -> bool:
@@ -203,9 +201,7 @@ class CalculationService:
                         id_to_category[sid] = category
         return id_to_category
 
-    # -------------------------------------------------------------------------
-    # Individualisation computation
-    # -------------------------------------------------------------------------
+    # --- Individualisation computation ---
 
     def calculate_individualisation_levels(self, input_data: dict[str, Any]) -> Dict[str, float]:
         inputs = input_data.get("inputs", []) or []
@@ -244,9 +240,7 @@ class CalculationService:
 
         return levels
 
-    # -------------------------------------------------------------------------
-    # Output transformation / normalization
-    # -------------------------------------------------------------------------
+    # --- Output transformation / normalization ---
 
     def transform_output_format(
         self,

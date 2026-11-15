@@ -1,14 +1,16 @@
+"""
+ENV_Reader.py
+
+Reads passwords and other secrets from an .env file. CANDIDATES lists the
+locations that are checked (Docker paths first, then local paths).
+Author: Jonas Dorner (@OilersLD)
+"""
+
 from __future__ import annotations
 
 import os
 from pathlib import Path
 from dotenv import load_dotenv
-
-"""
-This script is there to read passwords and other information out of an .env file.
-Therefore it got multiple canidates wherer the .env can be located.
-Author: Jonas Dorner (@OilersLD)
-"""
 
 CANDIDATES = [
     Path("/app/login_data.env"),
@@ -25,20 +27,18 @@ def _load_project_env() -> None:
     if _loaded:
         return
 
-    # Falls Compose env_file genutzt wird, sind Variablen bereits gesetzt.
-    # Dann müssen wir gar keine Datei laden.
+    # With a Compose env_file the variables are already set, no file needed.
     if os.getenv("ADMIN_EMAIL"):
         _loaded = True
         return
 
-    # Sonst versuchen wir eine env-Datei zu finden und zu laden (optional).
     for p in CANDIDATES:
         if p.exists() and p.is_file():
             load_dotenv(dotenv_path=p, override=True)
             _loaded = True
             return
 
-    # Keine Datei gefunden -> ok, wir verlassen uns auf os.environ
+    # No file found -> rely on os.environ
     _loaded = True
 
 

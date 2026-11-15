@@ -1,10 +1,9 @@
 /**
- * ResultSlice.additional.test.ts
+ * ResultSlice.test.ts
  *
- * Additional tests for ResultSlice to reach ~100% coverage.
  * Covers: levelOfIndividualisationTotal reset, idempotent mark actions,
  * unmarkMeasure on non-existent id, DependencyGraphService unavailable branches,
- * selectRankedMeasures with missing measure, weight normalisation, and more.
+ * selectRankedMeasures with missing measure, weight normalisation.
  */
 
 import reducer, {

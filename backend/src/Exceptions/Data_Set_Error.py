@@ -15,9 +15,9 @@ class DataSetError(RuntimeError):
         row: str,
     ):
         super().__init__(message)
-        self.dataset = dataset   # z.B. Dateipfad / Tabellenname
-        self.column = column   # gesuchte Spalte (Kategorie)
-        self.row = row         # z.B. AGS oder Row-Identifier
+        self.dataset = dataset   # e.g. file path / table name
+        self.column = column   # searched column (category)
+        self.row = row         # e.g. AGS or row identifier
         send_admin_email("DataSetError in KommMa Tool",
             f"DataSetError raised in KommMa Tool for more information see the logs.\n\n We found the following details about the error:\n\nMessage: {message}\n Dataset: {dataset}\n Column: {column}\nRow: {row}"
         )

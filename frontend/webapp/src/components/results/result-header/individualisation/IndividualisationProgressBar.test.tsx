@@ -18,7 +18,7 @@ import IndividualisationProgressBar from './IndividualisationProgressBar';
 // Mocks
 // ---------------------------------------------------------------------------
 
-jest.mock('../../components/results/IndividualisationDetailPopup', () =>
+jest.mock('./IndividualisationDetailPopup', () =>
   ({ open, onOpenChange, levels }: any) =>
     open ? (
       <div data-testid="detail-popup">

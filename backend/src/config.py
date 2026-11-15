@@ -1,15 +1,14 @@
 """
-Centralized Configuration for KommMa Backend
+config.py
 
-All file paths and directory locations are defined here in ONE place.
-To change paths, either:
+File paths and directories used by the backend. To change paths, either:
   1. Set environment variables (recommended for deployment / Docker)
   2. Create a .env file in the project root
   3. Edit the DEFAULT values below
 
 Environment variables take precedence over defaults.
 
-Required directories / files:
+Paths:
   CALCULATION_SHEETS_DIR      – folder with calculation Excel sheets
   REFERENCE_COMMUNE_DIR       – folder with reference commune Excel sheets
   GRAPH_EXCEL_FILE            – path to the Beziehungscheck Excel file
@@ -20,9 +19,7 @@ Required directories / files:
 import os
 from pathlib import Path
 
-# ---------------------------------------------------------------------------
-# Try to load a .env file if python-dotenv is installed (optional dependency)
-# ---------------------------------------------------------------------------
+# --- Try to load a .env file if python-dotenv is installed (optional dependency) ---
 try:
     from dotenv import load_dotenv
 
@@ -35,9 +32,7 @@ except ImportError:
     # python-dotenv not installed – rely on real environment variables or defaults
     pass
 
-# ---------------------------------------------------------------------------
-# Default base directory – points to the repository's data folder
-# ---------------------------------------------------------------------------
+# --- Default base directory – points to the repository's data folder ---
 
 # Use PROJECT_ROOT environment variable if set (Docker), otherwise calculate it
 # In Docker: /app (set by docker-compose)
@@ -50,9 +45,7 @@ else:
 
 _DEFAULT_DATA_DIR = str(_PROJECT_ROOT / "data" / "ExcelDataSources")
 
-# ---------------------------------------------------------------------------
-# Public configuration values
-# ---------------------------------------------------------------------------
+# --- Public configuration values ---
 
 # Directory containing calculation Excel sheets
 CALCULATION_SHEETS_DIR: str = os.environ.get(

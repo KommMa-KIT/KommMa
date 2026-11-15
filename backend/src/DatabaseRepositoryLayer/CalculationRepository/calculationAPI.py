@@ -106,9 +106,7 @@ class CalculationAPI(ICalculationEngine):
             max_workers        = max_concurrent_evaluations,
         )
 
-    # ------------------------------------------------------------------
-    # Startup
-    # ------------------------------------------------------------------
+    # --- Startup ---
 
     def initialise(self) -> None:
         """
@@ -120,9 +118,7 @@ class CalculationAPI(ICalculationEngine):
         """
         pass
 
-    # ------------------------------------------------------------------
-    # Main entry point
-    # ------------------------------------------------------------------
+    # --- Main entry point ---
 
     async def calculate(self, input_data: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -160,9 +156,7 @@ class CalculationAPI(ICalculationEngine):
         # 3 — transform output
         return self._transform_output(raw_results)
 
-    # ------------------------------------------------------------------
-    # Input transformation
-    # ------------------------------------------------------------------
+    # --- Input transformation ---
 
     def _transform_input(self, input_data: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -196,9 +190,7 @@ class CalculationAPI(ICalculationEngine):
 
         return result
 
-    # ------------------------------------------------------------------
-    # Output transformation
-    # ------------------------------------------------------------------
+    # --- Output transformation ---
 
     def _transform_output(self, raw_results: List[dict]) -> Dict[str, Any]:
         """
@@ -328,9 +320,7 @@ class CalculationAPI(ICalculationEngine):
 
         return {"measureId": measure_id, **scales, **values}
 
-    # ------------------------------------------------------------------
-    # Score normalisation
-    # ------------------------------------------------------------------
+    # --- Score normalisation ---
 
     def _calculate_normalised_scores(
         self, measures: List[Dict[str, Any]]
@@ -405,9 +395,7 @@ class CalculationAPI(ICalculationEngine):
 
         return measures
 
-    # ------------------------------------------------------------------
-    # Utility (exposed for tests / admin routes)
-    # ------------------------------------------------------------------
+    # --- Utility (exposed for tests / admin routes) ---
 
     def clear_cache(self) -> int:
         """

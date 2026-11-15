@@ -91,9 +91,7 @@ class ScenarioAwareMeasureDataSource:
             f"{len(self._calc_ids)} calculation measure IDs"
         )
 
-    # ------------------------------------------------------------------
-    # MeasureDataSource protocol
-    # ------------------------------------------------------------------
+    # --- MeasureDataSource protocol ---
 
     def get_all_measures(self) -> List[Dict[str, Any]]:
         """
@@ -154,9 +152,7 @@ class ScenarioAwareMeasureDataSource:
         )
         return expanded
 
-    # ------------------------------------------------------------------
-    # Internal matching
-    # ------------------------------------------------------------------
+    # --- Internal matching ---
 
     @staticmethod
     def _extract_scenario_suffix(base_id: str, composite_id: str) -> str:

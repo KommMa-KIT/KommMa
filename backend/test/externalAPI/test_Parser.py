@@ -9,9 +9,7 @@ import pytest
 import externalAPI.Parser as P
 
 
-# -------------------------
-# Helpers / Fixtures
-# -------------------------
+# --- Helpers / Fixtures ---
 
 class DummyResult:
     def __init__(self, name, plz, ags):
@@ -98,9 +96,7 @@ def dataset_error_raises(monkeypatch):
     return DataSetErr
 
 
-# -------------------------
-# CommuneParserDataSource passt nur durch
-# -------------------------
+# --- CommuneParserDataSource passt nur durch ---
 
 def test_datasource_wrapper_methods(monkeypatch):
     # die Funktionen patchen, damit wir sehen ob sie aufgerufen werden
@@ -117,9 +113,7 @@ def test_datasource_wrapper_methods(monkeypatch):
     assert ds.get_old_warning_communes() == [{"x": 1}]
 
 
-# -------------------------
-# get_gv_path / newest_csv / newest_srtm / _newest_by_name
-# -------------------------
+# --- get_gv_path / newest_csv / newest_srtm / _newest_by_name ---
 
 def test_get_gv_path(fake_constants):
     assert P.get_gv_path() == fake_constants.GV_DIR
@@ -147,9 +141,7 @@ def test_newest_by_name_raises_if_none(fake_constants):
         P._newest_by_name(fake_constants.GV_DIR, "gv_", ".csv")
 
 
-# -------------------------
-# get_commune_by_name / get_commune_info_by_code / get_commune_info_by_key
-# -------------------------
+# --- get_commune_by_name / get_commune_info_by_code / get_commune_info_by_key ---
 
 def test_get_commune_by_name_empty_query_returns_empty(monkeypatch):
     assert P.get_commune_by_name("") == []
@@ -210,9 +202,7 @@ def test_get_commune_info_by_key_delegates(monkeypatch):
     assert P.get_commune_info_by_key("08212") == {"ok": "08212"}
 
 
-# -------------------------
-# search_gv
-# -------------------------
+# --- search_gv ---
 
 def test_search_gv_returns_none_if_missing_columns(monkeypatch):
     monkeypatch.setattr(P, "newest_csv", lambda: Path("dummy.csv"))
@@ -237,9 +227,7 @@ def test_search_gv_none_inputs_returns_empty_string():
     assert P.search_gv("08115", None) == ""
 
 
-# -------------------------
-# _get_nearest_five_weather_stations / _search_weather_station_for_commune
-# -------------------------
+# --- _get_nearest_five_weather_stations / _search_weather_station_for_commune ---
 
 def test_get_nearest_five_weather_stations_returns_5(monkeypatch, fake_constants):
     # pd.read_csv -> stations df
@@ -293,9 +281,7 @@ def test_search_weather_station_for_commune_raises_if_no_candidates(monkeypatch,
         P._search_weather_station_for_commune("08115")
 
 
-# -------------------------
-# get_elevation_for_coords (rasterio.open + sample mocken)
-# -------------------------
+# --- get_elevation_for_coords (rasterio.open + sample mocken) ---
 
 def test_get_elevation_for_coords_returns_float(monkeypatch):
     class FakeDataset:
@@ -321,9 +307,7 @@ def test_get_elevation_for_coords_returns_nan_if_nan(monkeypatch):
     assert np.isnan(out)
 
 
-# -------------------------
-# _dwd_get_averages / _get_gradtage
-# -------------------------
+# --- _dwd_get_averages / _get_gradtage ---
 
 def test_dwd_get_averages_returns_value(monkeypatch, fake_constants):
     monkeypatch.setattr(P, "_search_weather_station_for_commune", lambda k: "00001")
@@ -363,18 +347,14 @@ def test_get_gradtage_returns_none_if_dir_missing(monkeypatch, fake_constants):
     assert P._get_gradtage("08115") is None
 
 
-# -------------------------
-# _get_haushalt
-# -------------------------
+# --- _get_haushalt ---
 
 def test_get_haushalt(monkeypatch):
     monkeypatch.setattr(P, "get_rdb_genesis_data", lambda *a, **k: 10.0 if a[1] == "71517-01-03-5" else 3.0)
     assert P._get_haushalt("08115") == "7.0"
 
 
-# -------------------------
-# get_path_to_rdb_file
-# -------------------------
+# --- get_path_to_rdb_file ---
 
 def test_get_path_to_rdb_file_returns_latest(fake_constants):
     (fake_constants.RDB_DIR / "123_rdb_2026-01-01.csv").write_text("x", encoding="utf-8")
@@ -388,9 +368,7 @@ def test_get_path_to_rdb_file_none_if_missing(fake_constants):
     assert P.get_path_to_rdb_file("999") is None
 
 
-# -------------------------
-# get_rdb_genesis_data
-# -------------------------
+# --- get_rdb_genesis_data ---
 
 def test_get_rdb_genesis_data_rdb_happy(monkeypatch, fake_constants):
     # fake file exists by patching glob result:
@@ -431,9 +409,7 @@ def test_get_rdb_genesis_data_invalid_source_none():
     assert P.get_rdb_genesis_data("08115","x","a","b","value","NOPE") is None
 
 
-# -------------------------
-# _check_existing_folders / _get_age_of_table
-# -------------------------
+# --- _check_existing_folders / _get_age_of_table ---
 
 def test_check_existing_folders_raises_if_missing(monkeypatch, fake_constants, dataset_error_raises):
     # alle exist() -> False
@@ -464,9 +440,7 @@ def test_get_age_of_table_invalid_category(monkeypatch, fake_constants, dataset_
         P._get_age_of_table("nope", "x", "08115")
 
 
-# -------------------------
-# get_prefill_data (hier mocken wir alles interne)
-# -------------------------
+# --- get_prefill_data (hier mocken wir alles interne) ---
 
 def test_get_prefill_data_empty_key():
     assert P.get_prefill_data("") == {}
@@ -527,9 +501,7 @@ def test_get_prefill_data_happy(monkeypatch, tmp_path):
 
 
 
-# -------------------------
-# get_outdated_warnings (Excel+JSON+Mail komplett mocken)
-# -------------------------
+# --- get_outdated_warnings (Excel+JSON+Mail komplett mocken) ---
 
 def test_get_outdated_warnings_returns_outdated_and_sends_mail(monkeypatch, fake_constants):
     # Excel DF
@@ -561,9 +533,7 @@ def test_get_outdated_warnings_missing_columns_raises(monkeypatch, fake_constant
         P.get_outdated_warnings()
 
 
-# -------------------------
-# _build_inputs_by_id / to_canonical_str / create_updated_import
-# -------------------------
+# --- _build_inputs_by_id / to_canonical_str / create_updated_import ---
 
 def test_build_inputs_by_id_ok():
     info = {"community_key": "08115", "inputs": [{"id": "a", "value": 1}, {"id": "b"}]}

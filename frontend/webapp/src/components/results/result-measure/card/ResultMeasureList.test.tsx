@@ -1,7 +1,7 @@
 /**
  * ResultMeasureList.test.tsx
  *
- * Tests for ResultMeasureList covering all three render states:
+ * Tests for ResultMeasureList covering these render states:
  *  1. Completely empty (visibleMeasures=[], filteredOutMeasures=[])
  *  2. All hidden (visibleMeasures=[], filteredOutMeasures=[...])
  *  3. Normal (visibleMeasures=[...], filteredOutMeasures=[])
@@ -23,7 +23,7 @@ import ResultMeasureList from './ResultMeasureList';
 // ---------------------------------------------------------------------------
 
 const capturedCardProps: any[] = [];
-jest.mock('../../components/results/ResultMeasureCard', () => (props: any) => {
+jest.mock('./ResultMeasureCard', () => (props: any) => {
   capturedCardProps.push(props);
   return (
     <div
@@ -38,7 +38,7 @@ jest.mock('../../components/results/ResultMeasureCard', () => (props: any) => {
   );
 });
 
-jest.mock('../../store/ResultSlice', () => ({
+jest.mock('../../../../store/ResultSlice', () => ({
   selectVisibleMeasures:     (state: any) => state.result.visible,
   selectFilteredOutMeasures: (state: any) => state.result.filteredOut,
   selectMeasureStatus:       (state: any) => state.result.status,

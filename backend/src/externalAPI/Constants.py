@@ -17,9 +17,7 @@ class Constants:
     ADMIN_EMAIL = env_required("ADMIN_EMAIL")
     CONSTANTS_CHANGES_CONFIG = Path("/app/config/constants_that_change.json")
 
-    # ======================
-    # Downloader
-    # ======================
+    # --- Downloader ---
     DEFAULT_VALUE_FOR_KEY_FOR_TARGET_SRTM = "srtm_germany_dtm.tif"
     KEY_FOR_TARGET_SRTM = "raw_target"
 
@@ -56,9 +54,7 @@ class Constants:
 
     JSON_NAME = "downloader"
 
-    # ======================
-    # Parser
-    # ======================
+    # --- Parser ---
     KEY_IN_JSON_LAST_MAIL_OUTDATED_WARNING = "outdated_last_mail"
     LAST_MAIL_OUTDATED_WARNING_FORMAT = "%d.%m.%Y"
     GAP_MAILS_OUTDATED_DAYS = 14
@@ -103,9 +99,7 @@ class Constants:
 
     PATH_FOR_JSON_INPUT_FIELDS = "/app/config/Input_fields_id.json"
 
-    # ======================
-    # EMail_Service
-    # ======================
+    # --- EMail_Service ---
     SMTP_SERVER = "smtp.gmail.com"
     SMTP_PORT = 587  # STARTTLS
     # DEPTH_OF_FILE_TO_ENV = 3 # Has to be in ENV_Reader, cause we have to have it, before we can import Constants there. (We need it to find the .env file)
@@ -115,9 +109,7 @@ class Constants:
     )
     FOOTER_EMAIL = f"\n\nThis email was sent automatically by the KommMa Tool. Please do not reply to this email."
 
-    # ======================
-    # Converter_Gemeindeverzeichnis
-    # ======================
+    # --- Converter_Gemeindeverzeichnis ---
     LAENDERCODE_BW = "08"
     SATZART = "60"
     CSV_SEPARATOR_DEFAULT = ";"
@@ -183,9 +175,7 @@ class Constants:
     CONVERTER_GEMEINDEVERZEICHNIS_ERR_CSV_OK_BUT_DELETE_FAILED_TEMPLATE = "CSV ok, but Excel could not be deleted: {err_type}: {err}"
     CONVERTER_GEMEINDEVERZEICHNIS_ERR_EXCEPTION_TEMPLATE = "{err_type}: {err}"
 
-    # ======================
-    # Search_Gemeindeverzeichnis
-    # ======================
+    # --- Search_Gemeindeverzeichnis ---
 
     # CSV / IO
     SEARCH_GEMEINDEVERZEICHNIS_CSV_SEP = CSV_SEPARATOR_DEFAULT
@@ -242,9 +232,7 @@ class Constants:
     SEARCH_GEMEINDEVERZEICHNIS_ERR_CSV_NOT_FOUND_PREFIX = "CSV not found: "
     SEARCH_GEMEINDEVERZEICHNIS_ERR_MISSING_REQUIRED_COLUMNS_PREFIX = "CSV is missing required columns: "
 
-    # ======================
-    # Gradtage_Creator
-    # ======================
+    # --- Gradtage_Creator ---
     # (DATA_ROOT existierte vorher als: Path(os.getenv("DATA_ROOT", "/app/data/extern")))
     # -> Vereinheitlicht auf OUT_ROOT
 
@@ -381,9 +369,7 @@ class Constants:
     GRADTAGE_CREATOR_ERR_NO_DWD_DATA_TEMPLATE = "No DWD data loaded; median15 CSV was not created. Dataset: {data_dir}"
     GRADTAGE_CREATOR_LOG_MEDIAN_CREATED_TEMPLATE = "Median 15 years degree-day CSV created: {path}"
 
-    # ======================
-    # Downloader_DeutscherWetterdienst
-    # ======================
+    # --- Downloader_DeutscherWetterdienst ---
     HEADER_STATIONID = "Stations_id"
     HEADER_STATIONNAME = "Stationsname"
     NORMALIZATION_LENGTH = 5
@@ -456,9 +442,7 @@ class Constants:
     DWD_DOWNLOADER_TOKEN_UMLAUT_UE = "ü"
     DWD_DOWNLOADER_TOKEN_UMLAUT_UE_REPL = "u"
 
-    # ======================
-    # Downloader_Gemeindeverzeichnis
-    # ======================
+    # --- Downloader_Gemeindeverzeichnis ---
     GV_AUSZUG_EXCEL_URL = (
         "https://www.destatis.de/DE/Themen/Laender-Regionen/Regionales/"
         "Gemeindeverzeichnis/Administrativ/Archiv/GVAuszugQ/"
@@ -466,9 +450,7 @@ class Constants:
         # The &v=21 was deliberately omitted here so that the latest version is always loaded.
     )
 
-    # ======================
-    # Downloader_Regionaldatenbank
-    # ======================
+    # --- Downloader_Regionaldatenbank ---
     RDB_BASE_URL = "https://www.regionalstatistik.de/genesisws/rest/2020/"
     LANG_PREF = "de"
 
@@ -477,20 +459,14 @@ class Constants:
 
     AREA_CANDIDATES = ["my", "user", "all"]
 
-    # ======================
-    # Downloader_SRTM
-    # ======================
+    # --- Downloader_SRTM ---
     SRTM_GERMANY_DTM_URL = "https://www.opendem.info/downloads/srtm_germany_dtm.zip"
 
-    # ======================
-    # Downloader_StatBund
-    # ======================
+    # --- Downloader_StatBund ---
     DEST_BASE_URL = "https://www-genesis.destatis.de/genesisWS/rest/2020/"
     GENESIS_TOKEN = env_required("GENESIS_TOKEN")
 
-    # ======================
-    # Updater_Mastertable
-    # ======================
+    # --- Updater_Mastertable ---
     NAME_TO_FILTER = {
         "Strompreis": "3_variable_attribute_label",
         "Durchschnittspreis Erdgas": "4_variable_attribute_label"
@@ -517,9 +493,7 @@ class Constants:
     KLAERSCHLAMM_NOTIFICATION_GAP_IN_DAYS = 7
     KLAERSCHLAMM_NOTIFICATION_LAST_DAY_FORMAT = LAST_MAIL_OUTDATED_WARNING_FORMAT
 
-    # ======================
-    # Updater_Mastertable
-    # ======================
+    # --- Updater_Mastertable ---
     CHECKER_JSON_PATH = Path("/app/config/Checker.json")
 
     KEY_FOR_SOURCES_CHECKER_JSON = "sources"
@@ -619,9 +593,7 @@ class Constants:
     UPDATER_MASTERTABEL_MAIL_BODY_KLAERSCHLAMM_PREV_YEAR_TEMPLATE = "Previously expected year: {prev_year}."
     UPDATER_MASTERTABEL_MAIL_BODY_KLAERSCHLAMM_REVIEW_TEMPLATE = "Please review table {table_id} and update constants if necessary."
 
-    # ======================
-    # DWD_Averages_Creator
-    # ======================
+    # --- DWD_Averages_Creator ---
     TARGET_BUNDESLAND = "Baden-Württemberg"
     NORMALIZED_STATION_ID_WIDTH = 5
 
