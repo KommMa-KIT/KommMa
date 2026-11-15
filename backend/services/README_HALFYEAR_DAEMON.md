@@ -1,7 +1,7 @@
 # Deploying `half_year.timer` + `checker.service` (systemd)
 
 > **Important:** The files in this repository folder are **not** used by the server automatically.  
-> To apply changes, you must copy the unit files to `/etc/systemd/system/` and reload systemd. See the information below or the `README_NIGHT_DAEMON.md`.
+> To apply changes, you must copy the unit files to `/etc/systemd/system/` and reload systemd. See the information below or the `README_DAEMON_JOB.md`.
 
 ## What this “Checker” does
 
