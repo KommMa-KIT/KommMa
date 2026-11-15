@@ -1,4 +1,4 @@
-# KommMa – An Interactive Decision-Making-Support Tool for Climate Change Mitigation
+# KommMa: An Open-Source Decision-Support Tool for Prioritizing Municipal Climate Mitigation Measures
 
 ## Overview
 KommMa is an open-source decision-support tool for municipal climate action planning. The goal is to support municipal to select the best fitting climate change mitigation.
