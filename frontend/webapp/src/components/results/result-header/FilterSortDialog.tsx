@@ -20,9 +20,10 @@ interface FilterSortDialogProps {
 
 // --- Triangle geometry constants ---
 
-const TRIANGLE_SIZE = 280;
+const CANVAS_SIZE   = 300; 
+const TRIANGLE_SIZE = 240; // should be < CANCAS_SIZE to show labels
 const CENTER_X = 150;
-const CENTER_Y = 150;
+const CENTER_Y = 160;
 const HEIGHT = (Math.sqrt(3) / 2) * TRIANGLE_SIZE;
 
 /** Screen-space coordinates for each vertex of the weight triangle. */
@@ -127,7 +128,15 @@ const FilterSortDialog = ({ open, onOpenChange, filters, onFiltersChange }: Filt
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    ctx.clearRect(0, 0, 300, 300);
+    // Render at device resolution so lines and text stay sharp on HiDPI/Retina screens
+    const dpr = window.devicePixelRatio || 1;
+    const pixelSize = Math.round(CANVAS_SIZE * dpr);
+    if (canvas.width !== pixelSize || canvas.height !== pixelSize) {
+      canvas.width  = pixelSize;
+      canvas.height = pixelSize;
+    }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
     // Triangle outline + fill
     ctx.beginPath();
@@ -141,13 +150,15 @@ const FilterSortDialog = ({ open, onOpenChange, filters, onFiltersChange }: Filt
     ctx.fillStyle   = 'rgba(59, 130, 246, 0.05)';
     ctx.fill();
 
-    // Vertex labels
-    ctx.fillStyle  = '#1f2937';
-    ctx.font       = 'bold 12px sans-serif';
-    ctx.textAlign  = 'center';
-    ctx.fillText('Zeit',   VERTICES.time.x,        VERTICES.time.y    - 15);
-    ctx.fillText('Kosten', VERTICES.cost.x    - 30, VERTICES.cost.y    + 20);
-    ctx.fillText('Klima',  VERTICES.climate.x + 30, VERTICES.climate.y + 20);
+    // Vertex labels (placed outside the corners, inside the canvas)
+    ctx.fillStyle    = '#1f2937';
+    ctx.font         = 'bold 14px sans-serif';
+    ctx.textAlign    = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('Zeit',   VERTICES.time.x,    VERTICES.time.y    - 18);
+    ctx.fillText('Kosten', VERTICES.cost.x,    VERTICES.cost.y    + 20);
+    ctx.fillText('Klima',  VERTICES.climate.x, VERTICES.climate.y + 20);
+    ctx.textBaseline = 'alphabetic';
 
     // Current weight indicator (red dot)
     const point = weightsToPoint(localWeights);
@@ -237,8 +248,7 @@ const FilterSortDialog = ({ open, onOpenChange, filters, onFiltersChange }: Filt
               <div className="flex-shrink-0">
                 <canvas
                   ref={canvasRef}
-                  width={300}
-                  height={300}
+                  style={{ width: CANVAS_SIZE, height: CANVAS_SIZE }}
                   className="border border-gray-200 rounded cursor-crosshair"
                   onClick={handleCanvasClick}
                   onMouseDown={() => setIsDragging(true)}
