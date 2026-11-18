@@ -26,6 +26,7 @@ infra/nginx/.htpasswd
 
 # data / excel sheets
 data/*
+config/config/Input_fields_id.json
 
 #Ignore error files 
 backend/data/*
