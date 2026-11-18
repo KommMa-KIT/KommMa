@@ -40,9 +40,7 @@ from openpyxl.utils import column_index_from_string
 logger = logging.getLogger(__name__)
 
 
-# ---------------------------------------------------------------------------
-# Public entry point
-# ---------------------------------------------------------------------------
+# --- Public entry point ---
 
 def resolve_structured_references(xlsx_path: Path) -> Path:
     """
@@ -107,9 +105,7 @@ def resolve_structured_references(xlsx_path: Path) -> Path:
     return temp_path
 
 
-# ---------------------------------------------------------------------------
-# Audit helper (run once to see every structured ref across all files)
-# ---------------------------------------------------------------------------
+# --- Audit helper (run once to see every structured ref across all files) ---
 
 def audit_structured_refs(xlsx_dir: Path) -> None:
     """
@@ -138,9 +134,7 @@ def audit_structured_refs(xlsx_dir: Path) -> None:
                         logger.info("Structured reference found in workbook formula cell")
 
 
-# ---------------------------------------------------------------------------
-# Internal helpers
-# ---------------------------------------------------------------------------
+# --- Internal helpers ---
 
 def _is_formula(value) -> bool:
     """Return ``True`` if *value* looks like an Excel formula (starts with ``=``)."""
@@ -275,7 +269,7 @@ def _resolve_bracket(
     data_end   = table["data_end_row"]
     header_row = table["header_row"]
     
-    # ── Column range pattern: [Col1]:[Col2] ───────────────────────────────
+    # --- Column range pattern: [Col1]:[Col2] ---
     # Example: [Fallhöhe]:[Abwassermenge]
     m_range = re.match(r'^\s*\[([^\[\]]+)\]\s*:\s*\[([^\[\]]+)\]\s*$', content)
     if m_range:
@@ -294,7 +288,7 @@ def _resolve_bracket(
         return f"{sheet_prefix}${col_letter1}${row_start}:${col_letter2}${row_end}"
 
 
-    # ── @ implicit-intersection (current row) ──────────────────────────────
+    # --- @ implicit-intersection (current row) ---
     at_match = re.match(r'^@\[?([^\[\]]+)\]?$', content.strip())
     if at_match:
         col_name = at_match.group(1).lower().strip()
@@ -304,7 +298,7 @@ def _resolve_bracket(
         logger.warning("Unknown column in structured @ reference")
         return "#REF!"
 
-    # ── Parse [#Specifier] and [Column] parts ─────────────────────────────
+    # --- Parse [#Specifier] and [Column] parts ---
     tokens = re.findall(r'\[([^\[\]]+)\]', content)
 
     specifier: Optional[str] = None
@@ -334,7 +328,7 @@ def _resolve_bracket(
 
     row_start, row_end = _row_range(specifier, data_start, data_end, header_row)
 
-    # ── No column → whole table (or section) ──────────────────────────────
+    # --- No column → whole table (or section) ---
     if col_name is None:
         c_start = _col_idx_to_letter(table["min_col"])
         c_end   = _col_idx_to_letter(table["max_col"])
@@ -345,7 +339,7 @@ def _resolve_bracket(
         logger.warning("Unknown structured-reference column")
         return "#REF!"
 
-    # ── Column range [Col1]:[Col2] ─────────────────────────────────────────
+    # --- Column range [Col1]:[Col2] ---
     if col_name2:
         col_letter2 = table["columns"].get(col_name2)
         if col_letter2 is None:
@@ -353,7 +347,7 @@ def _resolve_bracket(
             return "#REF!"
         return f"{sheet_prefix}${col_letter}${row_start}:${col_letter2}${row_end}"
 
-    # ── Single column ──────────────────────────────────────────────────────
+    # --- Single column ---
     if row_start == row_end:
         return f"{sheet_prefix}${col_letter}${row_start}"
     return f"{sheet_prefix}${col_letter}${row_start}:${col_letter}${row_end}"

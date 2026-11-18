@@ -12,7 +12,7 @@ import MeasureSkeleton, { MeasureSkeletonGrid } from './MeasureSkeleton';
 describe('MeasureSkeleton', () => {
   it('renders a single card', () => {
     const { container } = render(<MeasureSkeleton />);
-    expect(container.firstChild).toBeDefined();
+    expect(container.firstChild).toBeInTheDocument();
   });
 
   it('applies the animate-pulse class', () => {
@@ -23,12 +23,12 @@ describe('MeasureSkeleton', () => {
 
   it('renders an image placeholder block (h-48 bg-gray-300)', () => {
     const { container } = render(<MeasureSkeleton />);
-    expect(container.querySelector('.h-48.bg-gray-300')).toBeDefined();
+    expect(container.querySelector('.h-48.bg-gray-300')).toBeInTheDocument();
   });
 
   it('renders a title placeholder block (h-6)', () => {
     const { container } = render(<MeasureSkeleton />);
-    expect(container.querySelector('.h-6.bg-gray-300')).toBeDefined();
+    expect(container.querySelector('.h-6.bg-gray-300')).toBeInTheDocument();
   });
 
   it('renders description placeholder blocks (h-4)', () => {

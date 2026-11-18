@@ -24,9 +24,7 @@ import pytest
 from DatabaseRepositoryLayer.CalculationRepository.calculationAPI import CalculationAPI
 
 
-# ---------------------------------------------------------------------------
-# Fakes — same lightweight approach as test_calculation.py
-# ---------------------------------------------------------------------------
+# --- Fakes — same lightweight approach as test_calculation.py ---
 
 class FakeMetaExtractor:
     """Minimal extractor that returns two hardcoded measures."""
@@ -85,9 +83,7 @@ class FakeEngine:
         }
 
 
-# ---------------------------------------------------------------------------
-# Fixtures
-# ---------------------------------------------------------------------------
+# --- Fixtures ---
 
 @pytest.fixture
 def tmp_excel_dir(tmp_path: Path) -> Path:
@@ -115,9 +111,7 @@ def api(tmp_excel_dir, monkeypatch) -> CalculationAPI:
     )
 
 
-# ---------------------------------------------------------------------------
-# _transform_input
-# ---------------------------------------------------------------------------
+# --- _transform_input ---
 
 class TestTransformInput:
 
@@ -169,9 +163,7 @@ class TestTransformInput:
         assert api._transform_input({"inputs": []}) == {}
 
 
-# ---------------------------------------------------------------------------
-# _resolve_field
-# ---------------------------------------------------------------------------
+# --- _resolve_field ---
 
 class TestResolveField:
 
@@ -193,9 +185,7 @@ class TestResolveField:
         assert api._resolve_field("") is None
 
 
-# ---------------------------------------------------------------------------
-# _build_measure_output
-# ---------------------------------------------------------------------------
+# --- _build_measure_output ---
 
 class TestBuildMeasureOutput:
 
@@ -264,9 +254,7 @@ class TestBuildMeasureOutput:
         assert out["time"] == 0                # not populated from non-dict
 
 
-# ---------------------------------------------------------------------------
-# _transform_output
-# ---------------------------------------------------------------------------
+# --- _transform_output ---
 
 class TestTransformOutput:
 
@@ -286,9 +274,7 @@ class TestTransformOutput:
         assert isinstance(out["measureResults"], list)
 
 
-# ---------------------------------------------------------------------------
-# _calculate_normalised_scores
-# ---------------------------------------------------------------------------
+# --- _calculate_normalised_scores ---
 
 class TestCalculateNormalisedScores:
 
@@ -346,9 +332,7 @@ class TestCalculateNormalisedScores:
         assert result[0]["climateScore"] == 0
 
 
-# ---------------------------------------------------------------------------
-# Utility / delegate methods
-# ---------------------------------------------------------------------------
+# --- Utility / delegate methods ---
 
 class TestUtilityMethods:
 
@@ -382,9 +366,7 @@ class TestUtilityMethods:
         assert len(api.repository.cache) == 0  # cache should be cleared
 
 
-# ---------------------------------------------------------------------------
-# End-to-end async: calculate()
-# ---------------------------------------------------------------------------
+# --- End-to-end async: calculate() ---
 
 class TestCalculateEndToEnd:
 

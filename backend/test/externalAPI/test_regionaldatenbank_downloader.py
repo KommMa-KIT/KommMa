@@ -9,9 +9,7 @@ import pytest
 import externalAPI.DownloadHelper.Downloader_Regionaldatenbank as M
 
 
-# ----------------------------
-# Helpers
-# ----------------------------
+# --- Helpers ---
 class FakeResp:
     def __init__(self, status_code=200, content=b"", text=None):
         self.status_code = status_code
@@ -80,9 +78,7 @@ def patch_sleep(monkeypatch):
     monkeypatch.setattr(M.time, "sleep", lambda *_a, **_k: None)
 
 
-# ----------------------------
-# headers()
-# ----------------------------
+# --- headers() ---
 def test_headers_contains_credentials():
     h = M.headers()
     assert h["Content-Type"] == "application/x-www-form-urlencoded"
@@ -90,9 +86,7 @@ def test_headers_contains_credentials():
     assert h["password"] == "pass"
 
 
-# ----------------------------
-# test_login()
-# ----------------------------
+# --- test_login() ---
 def test_test_login_no_credentials(monkeypatch):
     monkeypatch.setattr(M.Constants, "RDB_USER", "", raising=False)
     monkeypatch.setattr(M.Constants, "RDB_PASS", "", raising=False)
@@ -122,9 +116,7 @@ def test_test_login_ok(monkeypatch):
     assert M.test_login() is True
 
 
-# ----------------------------
-# download_table_and_save()
-# ----------------------------
+# --- download_table_and_save() ---
 def test_download_table_and_save_outdir_none_raises():
     with pytest.raises(RuntimeError) as e:
         M.download_table_and_save("TAB1", out_dir=None)

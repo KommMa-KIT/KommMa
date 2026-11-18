@@ -248,10 +248,10 @@ class MetaDataExtractor(BaseExcelProcessor):
             relative_path = file_path.relative_to(self.directory_path.parent)
             file_str = str(relative_path).replace("\\", "/")
             
-            # ── Detect scenario blocks in the result sheet ──────────────
+            # --- Detect scenario blocks in the result sheet ---
             scenario_blocks = self._find_scenario_blocks(df_result)
             
-            # ── Single scenario (or none found): backward-compatible ────
+            # --- Single scenario (or none found): backward-compatible ---
             if len(scenario_blocks) <= 1:
                 if scenario_blocks:
                     block = scenario_blocks[0]
@@ -271,7 +271,7 @@ class MetaDataExtractor(BaseExcelProcessor):
                 }
                 return {measure_id_clean: config}
             
-            # ── Multiple scenarios: one entry per reference scenario ────
+            # --- Multiple scenarios: one entry per reference scenario ---
             configs = {}
             for block in scenario_blocks:
                 scenario_name = block['scenario_name']

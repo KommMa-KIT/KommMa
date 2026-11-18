@@ -6,9 +6,7 @@ from pydantic import BaseModel
 from ApplicationLayer.CalculationApi.CalculationService import CalculationService
 
 
-# ------------------------------------------------------------
-# Fake Engine(s)
-# ------------------------------------------------------------
+# --- Fake Engine(s) ---
 
 class FakeEngineSync:
     def __init__(self, result):
@@ -30,18 +28,14 @@ class FakeEngineAsync:
         return self.result
 
 
-# ------------------------------------------------------------
-# Helper: simple Pydantic input model (wie FilledInputsAndSubsidies)
-# ------------------------------------------------------------
+# --- Helper: simple Pydantic input model (wie FilledInputsAndSubsidies) ---
 
 class PydInput(BaseModel):
     inputs: list[dict]
     subsidies: list[dict] = []
 
 
-# ------------------------------------------------------------
-# Fixtures / helper data
-# ------------------------------------------------------------
+# --- Fixtures / helper data ---
 
 @pytest.fixture
 def definition():
@@ -63,9 +57,7 @@ def definition():
     }
 
 
-# ============================================================
-# Tests: _to_dict
-# ============================================================
+# --- Tests: _to_dict ---
 
 def test_to_dict_accepts_dict(definition):
     svc = CalculationService(engine=FakeEngineSync({}), definition=definition)
@@ -87,9 +79,7 @@ def test_to_dict_rejects_unknown_type(definition):
         svc._to_dict(object())
 
 
-# ============================================================
-# Tests: _is_true
-# ============================================================
+# --- Tests: _is_true ---
 
 @pytest.mark.parametrize(
     "value, expected",
@@ -113,9 +103,7 @@ def test_is_true_variants(value, expected, definition):
     assert svc._is_true(value) is expected
 
 
-# ============================================================
-# Tests: calculate_individualisation_levels
-# ============================================================
+# --- Tests: calculate_individualisation_levels ---
 
 def test_individualisation_levels_counts_per_category(definition):
     svc = CalculationService(engine=FakeEngineSync({}), definition=definition)
@@ -161,9 +149,7 @@ def test_individualisation_levels_empty_inputs(definition):
     assert levels["Allgemein"] == 0.0
 
 
-# ============================================================
-# Tests: transform_output_format
-# ============================================================
+# --- Tests: transform_output_format ---
 
 def test_transform_output_format_maps_ongoing_emission_savings(definition):
     svc = CalculationService(engine=FakeEngineSync({}), definition=definition)
@@ -206,9 +192,7 @@ def test_transform_output_format_ignores_non_dict_measures(definition):
     assert out["measureResults"][0]["measureId"] == "M01"
 
 
-# ============================================================
-# Tests: calculate() end-to-end (sync & async engine)
-# ============================================================
+# --- Tests: calculate() end-to-end (sync & async engine) ---
 
 @pytest.mark.asyncio
 async def test_calculate_calls_engine_with_dict_and_transforms_sync_engine(definition):

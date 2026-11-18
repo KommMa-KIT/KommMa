@@ -7,9 +7,7 @@ from DatabaseRepositoryLayer.ReferenceCommuneRepository.referenceCommuneReposito
 )
 
 
-# ============================================================
-# Constructor / Init
-# ============================================================
+# --- Constructor / Init ---
 
 def test_init_raises_if_commune_dir_missing(tmp_path):
     missing = tmp_path / "does_not_exist"
@@ -22,9 +20,7 @@ def test_init_allows_empty_commune_directory():
     assert repo.commune_directory is None
 
 
-# ============================================================
-# _convert_to_camel_case
-# ============================================================
+# --- _convert_to_camel_case ---
 
 def test_convert_to_camel_case_simple():
     repo = ReferenceCommuneRepository(commune_directory="")
@@ -38,9 +34,7 @@ def test_convert_to_camel_case_with_parentheses():
     assert repo._convert_to_camel_case(s) == "durchschnittlicheAbwassermenge(ohneRegenwasser)"
 
 
-# ============================================================
-# load_all_communes
-# ============================================================
+# --- load_all_communes ---
 
 def test_load_all_communes_lists_sorted(tmp_path):
     (tmp_path / "Wiesenhall").mkdir()
@@ -51,9 +45,7 @@ def test_load_all_communes_lists_sorted(tmp_path):
     assert repo.load_all_communes() == ["Sonnenburg", "Wiesenhall"]
 
 
-# ============================================================
-# get_reference_commune_prefill
-# ============================================================
+# --- get_reference_commune_prefill ---
 
 def test_get_reference_commune_prefill_happy_path_and_cache(monkeypatch, tmp_path):
     # Setup directory structure
@@ -121,9 +113,7 @@ def test_get_reference_commune_prefill_raises_if_directory_not_configured():
         repo.get_reference_commune_prefill("Wiesenhall")
 
 
-# ============================================================
-# list_all_reference_communes_info
-# ============================================================
+# --- list_all_reference_communes_info ---
 
 def test_list_all_reference_communes_info_happy_path(monkeypatch, tmp_path):
     info_file = tmp_path / "ReferenceCommuneInformationSheet.xlsx"

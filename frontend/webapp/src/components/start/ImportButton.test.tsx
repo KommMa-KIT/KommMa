@@ -16,25 +16,25 @@ jest.mock('react-router', () => ({
   useNavigate: jest.fn(),
 }));
 
-jest.mock('../services/SaveService', () => ({
+jest.mock('../../services/SaveService', () => ({
   __esModule: true,
   default: {
     parseImport: jest.fn(),
   },
 }));
 
-jest.mock('../services/CommunityService', () => ({
+jest.mock('../../services/CommunityService', () => ({
   __esModule: true,
   default: {
     validateImport: jest.fn(),
   },
 }));
 
-jest.mock('../store/CommunitySlice', () => ({
+jest.mock('../../store/CommunitySlice', () => ({
   importData: jest.fn(),
 }));
 
-jest.mock('../store/UISlice', () => ({
+jest.mock('../../store/UISlice', () => ({
   setCurrentCategory: jest.fn(),
 }));
 

@@ -7,9 +7,7 @@ import pytest
 import externalAPI.DownloadHelper.Downloader_StatBund as M
 
 
-# -----------------------------
-# Fixtures: errors + constants
-# -----------------------------
+# --- Fixtures: errors + constants ---
 @pytest.fixture(autouse=True)
 def patch_errors(monkeypatch):
     def raise_ext(msg, genesis_code=None, details=None):
@@ -39,9 +37,7 @@ def freeze_date(monkeypatch):
     monkeypatch.setattr(M, "date", FakeDate)
 
 
-# -----------------------------
-# Helper to make ZIP response
-# -----------------------------
+# --- Helper to make ZIP response ---
 def make_zip_bytes(files: dict[str, bytes]) -> bytes:
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w", compression=zipfile.ZIP_DEFLATED) as zf:
@@ -50,9 +46,7 @@ def make_zip_bytes(files: dict[str, bytes]) -> bytes:
     return buf.getvalue()
 
 
-# -----------------------------
-# _headers
-# -----------------------------
+# --- _headers ---
 def test_headers_uses_token():
     h = M._headers()
     assert h["username"] == "TOKEN123"
@@ -60,9 +54,7 @@ def test_headers_uses_token():
     assert h["Content-Type"] == "application/x-www-form-urlencoded"
 
 
-# -----------------------------
-# test_login
-# -----------------------------
+# --- test_login ---
 def test_test_login_ok(monkeypatch):
     class Resp:
         status_code = 200
@@ -83,9 +75,7 @@ def test_test_login_fail(monkeypatch):
     assert "401" in str(e.value)
 
 
-# -----------------------------
-# _decode_bytes
-# -----------------------------
+# --- _decode_bytes ---
 def test_decode_bytes_utf8():
     text, enc = M._decode_bytes("äöü".encode("utf-8"))
     assert text == "äöü"
@@ -99,9 +89,7 @@ def test_decode_bytes_fallback_latin1():
     assert enc in ("cp1252", "latin-1")  # depends which succeeds first
 
 
-# -----------------------------
-# _pick_zip_member
-# -----------------------------
+# --- _pick_zip_member ---
 def test_pick_zip_member_prefers_csv(tmp_path):
     zip_path = tmp_path / "x.zip"
     zip_path.write_bytes(make_zip_bytes({"a.txt": b"1", "b.csv": b"2"}))
@@ -116,9 +104,7 @@ def test_pick_zip_member_falls_back_first(tmp_path):
         assert M._pick_zip_member(zf) == "a.txt"
 
 
-# -----------------------------
-# download_table_and_save
-# -----------------------------
+# --- download_table_and_save ---
 def test_download_table_and_save_outdir_none_raises():
     with pytest.raises(RuntimeError) as e:
         M.download_table_and_save("12411-0001", output_dir=None)

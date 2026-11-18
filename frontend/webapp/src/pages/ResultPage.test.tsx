@@ -19,24 +19,25 @@ import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { MemoryRouter } from 'react-router-dom';
 import ResultPage from './ResultPage';
+import graphReducer from '../store/GraphSlice';
 
 // ---------------------------------------------------------------------------
 // Mocks
 // ---------------------------------------------------------------------------
 
-jest.mock('../../src/components/results/ResultMeasureSkeleton', () => ({
+jest.mock('../components/results/result-measure/card/ResultMeasureSkeleton', () => ({
   ResultMeasureSkeletonList: ({ count }: { count: number }) => (
     <div data-testid="skeleton-list" data-count={count} />
   ),
 }));
 
-jest.mock('../../src/components/results/IndividualisationProgressBar', () => (
+jest.mock('../components/results/result-header/individualisation/IndividualisationProgressBar', () => (
   ({ score }: { score: number }) => (
     <div data-testid="individualisation-bar" data-score={score} />
   )
 ));
 
-jest.mock('../../src/components/results/FilterSortDialog', () => (
+jest.mock('../components/results/result-header/FilterSortDialog', () => (
   ({ open, onOpenChange, onFiltersChange }: any) =>
     open ? (
       <div data-testid="filter-dialog">
@@ -46,23 +47,23 @@ jest.mock('../../src/components/results/FilterSortDialog', () => (
     ) : null
 ));
 
-jest.mock('../../src/components/results/ExportDialog', () => (
-  ({ open, onOpenChange, onExportPDF, onExportCSV }: any) =>
+jest.mock('../components/results/result-header/ExportDialog', () => (
+  ({ open, onOpenChange, onExportPDF, onExportDOCX, onExportCSV }: any) =>
     open ? (
       <div data-testid="export-dialog">
         <button onClick={() => onOpenChange(false)}>close-export</button>
         <button onClick={onExportPDF}>export-pdf</button>
         <button onClick={onExportCSV}>export-csv</button>
+        <button onClick={onExportDOCX}>export-docx</button>
       </div>
     ) : null
 ));
 
-jest.mock('../../src/components/results/Overview',   () => () => <div data-testid="overview-view" />);
-jest.mock('../../src/components/results/ListView',   () => () => <div data-testid="list-view" />);
-jest.mock('../../src/components/results/GraphView',  () => () => <div data-testid="graph-view" />);
-jest.mock('../../src/components/results/MatrixView', () => () => <div data-testid="matrix-view" />);
-jest.mock('../../src/components/GraphInitializer',   () => () => <div data-testid="graph-init" />);
-jest.mock('../../src/components/Button',             () =>
+jest.mock('../components/results/overview-view/OverviewView',   () => () => <div data-testid="overview-view" />);
+jest.mock('../components/results/list-view/ListView',   () => () => <div data-testid="list-view" />);
+jest.mock('../components/results/graph-view/GraphView',  () => () => <div data-testid="graph-view" />);
+jest.mock('../components/results/matrix-view/MatrixView', () => () => <div data-testid="matrix-view" />);
+jest.mock('../components/common/Button',             () =>
   ({ children, onClick, disabled, className }: any) => (
     <button onClick={onClick} disabled={disabled} className={className}>
       {children}
@@ -73,12 +74,14 @@ jest.mock('../../src/components/Button',             () =>
 // Declare BEFORE jest.mock() calls that reference them so hoisting works correctly
 const mockExportPDF = jest.fn();
 const mockExportCSV = jest.fn();
+const mockExportDOCX = jest.fn();
 
 jest.mock('../../src/services/ExportService', () => ({
   __esModule: true,
   default: {
     exportPDF: (...args: any[]) => mockExportPDF(...args),
     exportCSV: (...args: any[]) => mockExportCSV(...args),
+    exportDOCX: (...args: any[]) => mockExportDOCX(...args),
   },
 }));
 
@@ -93,7 +96,7 @@ jest.mock('../../src/services/GraphService', () => ({
 const mockFetchMeasures = jest.fn();
 const mockSetFilters    = jest.fn();
 
-jest.mock('../../src/store/MeasuresSlice', () => ({
+jest.mock('../store/MeasureSlice', () => ({
   fetchMeasures:         () => mockFetchMeasures(),
   selectMeasuresLoading: (state: any) => state.measures.loading,
 }));
@@ -129,6 +132,7 @@ function buildStore(overrides: {
 
   return configureStore({
     reducer: {
+      graph: graphReducer,
       measures: () => ({ loading: measuresLoading }),
       result: () => ({
         rankedMeasures:      measures,
@@ -163,6 +167,7 @@ function renderPage(overrides: Parameters<typeof buildStore>[0] = {}) {
 describe('ResultPage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockFetchGraph.mockResolvedValue([]);
     mockFetchMeasures.mockReturnValue({ type: 'measures/fetchMeasures' });
     mockSetFilters.mockImplementation((f: any) => ({ type: 'result/setFilters', payload: f }));
   });
@@ -174,9 +179,10 @@ describe('ResultPage', () => {
     expect(mockFetchMeasures).toHaveBeenCalledTimes(1);
   });
 
-  it('renders GraphInitializer', () => {
+  it('does not refetch graph data on mount', () => {
     renderPage();
-    expect(screen.getByTestId('graph-init')).toBeInTheDocument();
+    expect(mockFetchGraph).not.toHaveBeenCalled();
+    expect(screen.getByText('Ihre personalisierten Empfehlungen')).toBeInTheDocument();
   });
 
   // --- Loading state --------------------------------------------------------
@@ -324,6 +330,7 @@ describe('ResultPage', () => {
     fireEvent.click(screen.getByText(/Exportieren/));
     fireEvent.click(screen.getByText('export-csv'));
     expect(mockExportCSV).toHaveBeenCalledTimes(1);
+    expect(mockExportCSV).toHaveBeenCalledWith([{ ...MEASURE, rank: 1 }]);
   });
 
   it('calls exportPDF after fetching graph on PDF export', async () => {
@@ -333,6 +340,7 @@ describe('ResultPage', () => {
     await waitFor(() => {
       expect(mockFetchGraph).toHaveBeenCalledTimes(1);
       expect(mockExportPDF).toHaveBeenCalledTimes(1);
+      expect(mockExportPDF).toHaveBeenCalledWith([{ ...MEASURE, rank: 1 }], []);
     });
   });
 
@@ -344,8 +352,15 @@ describe('ResultPage', () => {
     await waitFor(() => {
       expect(mockExportPDF).toHaveBeenCalledTimes(1);
       const args = mockExportPDF.mock.calls[0];
-      expect(args.length).toBe(1);
+      expect(args).toEqual([[{ ...MEASURE, rank: 1 }], undefined]);
     });
+  });
+
+  it('exports DOCX with ranked visible measures and graph edges', async () => {
+    renderPage({ measures: [MEASURE] });
+    fireEvent.click(screen.getByText(/Exportieren/));
+    fireEvent.click(screen.getByText('export-docx'));
+    await waitFor(() => expect(mockExportDOCX).toHaveBeenCalledWith([{ ...MEASURE, rank: 1 }], []));
   });
 
   // --- Static content -------------------------------------------------------

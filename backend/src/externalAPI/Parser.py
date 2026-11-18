@@ -50,9 +50,7 @@ from EMail_Service import send_admin_email
 
 logger = logging.getLogger(__name__)
 
-# ---------------------------------
-# Class for concection to API router
-# --------------------------------
+# --- Class for concection to API router ---
 
 
 class CommuneParserDataSource(CommuneDataSource):
@@ -76,9 +74,7 @@ class ValidatiorAndUpdater(IValidator):
         return create_updated_import(imported_information)
 
 
-# ---------------------------------
-# Actual Parser Functions
-# ---------------------------------
+# --- Actual Parser Functions ---
 
 @dataclass(frozen=True)
 class WeatherStationCandidate:

@@ -6,9 +6,7 @@ You can find more information in README_CHECKER.md
 Author: Jonas Dorner (@OilersLD)
 """
 
-# ============================================================
-# Imports
-# ============================================================
+# --- Imports ---
 
 import datetime
 import json
@@ -23,9 +21,7 @@ from externalAPI.Constants import Constants as C
 from EMail_Service import send_admin_email
 
 
-# ============================================================
-# Configuration / Constants
-# ============================================================
+# --- Configuration / Constants ---
 
 HEADERS = {
     # A stable, explicit user agent helps avoid being blocked by some servers.
@@ -36,9 +32,7 @@ HEADERS = {
 DEFAULT_STATE_FILE = "Checker.json"
 
 
-# ============================================================
-# State I/O Helpers
-# ============================================================
+# --- State I/O Helpers ---
 
 def _load_state(path: Path) -> dict:
     """
@@ -71,9 +65,7 @@ def _save_state(path: Path, state: dict) -> None:
     tmp.replace(path)
 
 
-# ============================================================
-# HTTP / Web Helpers
-# ============================================================
+# --- HTTP / Web Helpers ---
 
 def _http_get(url: str, timeout: int = 30) -> requests.Response:
     """
@@ -115,9 +107,7 @@ def _page_exists(url: str) -> bool:
     return True
 
 
-# ============================================================
-# Checker / Search Methods
-# ============================================================
+# --- Checker / Search Methods ---
 
 def check_yearly_page_exists(source: dict) -> dict:
     """
@@ -315,9 +305,7 @@ def check_one(name: str, source: dict) -> dict:
     )
 
 
-# ============================================================
-# Formatting / Human-readable Output
-# ============================================================
+# --- Formatting / Human-readable Output ---
 
 def _fmt(v) -> str:
     """
@@ -359,9 +347,7 @@ def _format_update_block(name: str, res: dict) -> str:
     return f"- {name}\n"
 
 
-# ============================================================
-# Runner / Orchestration
-# ============================================================
+# --- Runner / Orchestration ---
 
 def run_check() -> dict:
     """

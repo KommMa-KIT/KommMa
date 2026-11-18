@@ -1,3 +1,10 @@
+"""
+main.py
+
+FastAPI entry point. Builds the dependency container on startup and sets up
+CORS and trusted hosts. Docs endpoints are only exposed outside production.
+"""
+
 from __future__ import annotations
 
 import logging
@@ -26,7 +33,7 @@ setup_logging(force=True)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     app.state.deps = build_dependencies(BUILD_COMPLETE, RUN_UPDATES)
-    logging.getLogger(__name__).info("Dependencies built successfully. ✅")
+    logging.getLogger(__name__).info("Dependencies built successfully.")
     yield
 
 
@@ -47,7 +54,7 @@ if not IS_PRODUCTION:
     allowed_hosts += ["localhost", "127.0.0.1"]
 
 
-app.add_middleware(APILoggingMiddleware)                                 # innen
+app.add_middleware(APILoggingMiddleware)                                 # innermost
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -55,6 +62,6 @@ app.add_middleware(
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["Content-Type"],
 )
-app.add_middleware(TrustedHostMiddleware, allowed_hosts=allowed_hosts)   # außen
+app.add_middleware(TrustedHostMiddleware, allowed_hosts=allowed_hosts)   # outermost
 
 app.include_router(router)

@@ -1,3 +1,10 @@
+"""
+ValidationError.py
+
+Collects validation errors for an input payload and notifies the admin by mail.
+"""
+
+import json
 
 from dataclasses import dataclass
 from EMail_Service import send_admin_email

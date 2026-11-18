@@ -30,28 +30,28 @@ describe('ReferenceCommuneCard', () => {
 
   it('renders the commune name', () => {
     render(<ReferenceCommuneCard commune={commune} onSelect={jest.fn()} />);
-    expect(screen.getByText('Musterstadt')).toBeDefined();
+    expect(screen.getByText('Musterstadt')).toBeInTheDocument();
   });
 
   it('renders the commune description', () => {
     render(<ReferenceCommuneCard commune={commune} onSelect={jest.fn()} />);
-    expect(screen.getByText('Eine schöne Modellkommune für Tests.')).toBeDefined();
+    expect(screen.getByText('Eine schöne Modellkommune für Tests.')).toBeInTheDocument();
   });
 
   it('formats population in de-DE locale (period as thousands separator)', () => {
     render(<ReferenceCommuneCard commune={commune} onSelect={jest.fn()} />);
     // 12345 → "12.345" in de-DE
-    expect(screen.getByText(/12\.345 Einwohner/)).toBeDefined();
+    expect(screen.getByText(/12\.345 Einwohner/)).toBeInTheDocument();
   });
 
   it('formats small population without thousands separator', () => {
     render(<ReferenceCommuneCard commune={smallCommune} onSelect={jest.fn()} />);
-    expect(screen.getByText(/999 Einwohner/)).toBeDefined();
+    expect(screen.getByText(/999 Einwohner/)).toBeInTheDocument();
   });
 
   it('renders the "Mit dieser Kommune starten" button', () => {
     render(<ReferenceCommuneCard commune={commune} onSelect={jest.fn()} />);
-    expect(screen.getByRole('button', { name: /Mit dieser Kommune starten/ })).toBeDefined();
+    expect(screen.getByRole('button', { name: /Mit dieser Kommune starten/ })).toBeInTheDocument();
   });
 
   // --- Interaction ---

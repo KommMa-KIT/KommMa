@@ -1,4 +1,5 @@
 import { resultService } from './ResultService';
+import { API_BASE_URL } from '../config';
 
 describe('ResultService – additional coverage', () => {
   beforeEach(() => {
@@ -8,10 +9,12 @@ describe('ResultService – additional coverage', () => {
   it('sends the full serialised payload as JSON body', async () => {
     global.fetch = jest.fn().mockResolvedValue({ ok: true, json: jest.fn().mockResolvedValue({}) } as any);
     const payload = { inputs: [{ id: 'f1', value: 10, individual: true }], subsidies: [] };
-    await resultService.calculateResult(payload);
-    const callBody = JSON.parse((fetch as jest.Mock).mock.calls[0][1].body);
-    expect(callBody.inputs[0].id).toBe('f1');
-    expect(callBody.inputs[0].value).toBe(10);
+    const response = await resultService.calculateResult(payload);
+    expect(fetch).toHaveBeenCalledWith(`${API_BASE_URL}/api/results/calculate`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    expect(response).toEqual({});
   });
 
   it('propagates HTTP status in error message', async () => {

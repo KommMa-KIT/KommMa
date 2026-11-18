@@ -147,9 +147,7 @@ class CalculationRepository:
             f"  • Workers: {max_workers}"
         )
 
-    # ------------------------------------------------------------------
-    # Public API
-    # ------------------------------------------------------------------
+    # --- Public API ---
 
     async def calculate_all_measures(self, input_json: Dict[str, Any]) -> List[dict]:
         """
@@ -189,9 +187,7 @@ class CalculationRepository:
         )
         return valid
 
-    # ------------------------------------------------------------------
-    # Internal — single measure
-    # ------------------------------------------------------------------
+    # --- Internal — single measure ---
 
     async def _calculate_single_measure(
         self,
@@ -337,9 +333,7 @@ class CalculationRepository:
             }
     
 
-    # ------------------------------------------------------------------
-    # Scale mapping
-    # ------------------------------------------------------------------
+    # --- Scale mapping ---
 
     def _apply_scale_mappings(self, results: List[dict]) -> List[dict]:
         """
@@ -421,9 +415,7 @@ class CalculationRepository:
             return None
         return self.TIME_SCALE_MAPPING.get(raw.strip())
 
-    # ------------------------------------------------------------------
-    # Cache helpers (same as original)
-    # ------------------------------------------------------------------
+    # --- Cache helpers (same as original) ---
 
     def clear_cache(self) -> int:
         """
@@ -501,9 +493,7 @@ class CalculationRepository:
         }
 
 
-# ---------------------------------------------------------------------------
-# Module-level pure helpers
-# ---------------------------------------------------------------------------
+# --- Module-level pure helpers ---
 
 def _is_cost_field(key: str) -> bool:
     return "kosten" in key or "cost" in key

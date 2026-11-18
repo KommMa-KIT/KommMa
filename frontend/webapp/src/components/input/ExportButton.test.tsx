@@ -38,13 +38,13 @@ describe('ExportButton', () => {
   it('renders a button', () => {
     mockHasData.mockReturnValue(false);
     render(<ExportButton />);
-    expect(screen.getByRole('button')).toBeDefined();
+    expect(screen.getByRole('button')).toBeInTheDocument();
   });
 
   it('renders the label text', () => {
     mockHasData.mockReturnValue(true);
     render(<ExportButton />);
-    expect(screen.getByText('Eingabe lokal speichern')).toBeDefined();
+    expect(screen.getByText('Eingabe lokal speichern')).toBeInTheDocument();
   });
 
   // --- Disabled state (no data) ---

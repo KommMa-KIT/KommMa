@@ -91,9 +91,7 @@ def handle_api_errors(func):
     return sync_wrapper
 
 
-# -------------------------
-# Parameter definitions
-# -------------------------
+# --- Parameter definitions ---
 
 # 8-digit commune key
 CommuneKey = Annotated[str, Path(..., pattern=r"^\d{8}$", description="Commune key (exactly 8 digits)")]
@@ -127,9 +125,7 @@ VALIDATION_ERROR_RESPONSES = {
 }
 
 
-# -------------------------
-# Measures
-# -------------------------
+# --- Measures ---
 @router.get(
     "/api/measures",
     response_model=MeasuresResponse,
@@ -141,9 +137,7 @@ def get_measures(request: Request) -> MeasuresResponse:
     deps = request.app.state.deps
     return deps.get_MeasureRepository().get_all_measures()
 
-# -------------------------
-# Results
-# -------------------------
+# --- Results ---
 @router.post(
     "/api/results/calculate",
     response_model=CalculationResponse,
@@ -166,9 +160,7 @@ def get_results_graph(request: Request) -> GraphResponse:
     deps = request.app.state.deps
     return deps.get_GraphRepository().get_graph()
 
-# -------------------------
-# Inputs
-# -------------------------
+# --- Inputs ---
 @router.get(
     "/api/inputs/subsidies",
     response_model=SubsidiesResponse,
@@ -204,9 +196,7 @@ def get_input_params(request: Request) -> InputsByCategory:
     deps = request.app.state.deps
     return deps.get_InputParametersDataSource().get_input_parameters()
 
-# -------------------------
-# Communes
-# -------------------------
+# --- Communes ---
 @router.get(
     "/api/communes/search",
     response_model=CommuneSearchResponse,
@@ -279,9 +269,7 @@ def get_outdated_data(request: Request) -> OutdatedWarningsResponse:
     deps = request.app.state.deps
     return deps.get_CommuneRepository().get_old_warning_communes()
 
-# -------------------------
-# Reference Communes
-# -------------------------
+# --- Reference Communes ---
 @router.get(
     "/api/reference-communes/list",
     response_model=ReferenceCommunesResponse,

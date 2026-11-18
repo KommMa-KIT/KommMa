@@ -1,4 +1,9 @@
-# src/app_logging/logger.py
+"""
+logger.py
+
+Root logging setup: console output plus a rotating file in logs/backend.log.
+"""
+
 import logging
 import sys
 from pathlib import Path
@@ -39,4 +44,4 @@ def setup_logging(level: int = logging.INFO, force: bool = False) -> None:
     root.addHandler(file_handler)
 
     logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
-    logging.getLogger("uvicorn.error").setLevel(logging.INFO)  # error ruhig INFO lassen
+    logging.getLogger("uvicorn.error").setLevel(logging.INFO)

@@ -16,9 +16,7 @@ from DatabaseRepositoryLayer.ExcelSyncRepository.watcher import (
 )
 
 
-# --------------------------------------------------
-# Helpers
-# --------------------------------------------------
+# --- Helpers ---
 
 class _PresetEvent:
     """A threading.Event replacement that reports set on the second is_set() call."""
@@ -37,9 +35,7 @@ class _PresetEvent:
         pass
 
 
-# --------------------------------------------------
-# Helpers
-# --------------------------------------------------
+# --- Helpers ---
 
 def _make_handler(
     central_file: str = "/data/master.xlsx",
@@ -49,9 +45,7 @@ def _make_handler(
     return _DebouncedHandler(engine, debounce, central_file)
 
 
-# --------------------------------------------------
-# _DebouncedHandler.on_any_event
-# --------------------------------------------------
+# --- _DebouncedHandler.on_any_event ---
 
 def test_on_any_event_triggers_on_central_file_modification():
     handler = _make_handler(central_file="/data/master.xlsx", debounce=0.0)
@@ -138,9 +132,7 @@ def test_sync_exception_does_not_crash_handler():
     handler._engine.run.assert_called_once()
 
 
-# --------------------------------------------------
-# _configure_logging
-# --------------------------------------------------
+# --- _configure_logging ---
 
 def test_configure_logging_without_file(tmp_path):
     """Calling with None should not create any log file."""
@@ -178,9 +170,7 @@ def test_configure_logging_with_file(tmp_path):
             h.close()
 
 
-# --------------------------------------------------
-# Helper: write a minimal ExcelSyncConfig JSON
-# --------------------------------------------------
+# --- Helper: write a minimal ExcelSyncConfig JSON ---
 
 def _write_config(tmp_path, debounce=0, log_file=None, extra=None):
     central = tmp_path / "master.xlsx"
@@ -207,9 +197,7 @@ def _write_config(tmp_path, debounce=0, log_file=None, extra=None):
     return str(cfg_file)
 
 
-# --------------------------------------------------
-# main()
-# --------------------------------------------------
+# --- main() ---
 
 @patch("DatabaseRepositoryLayer.ExcelSyncRepository.watcher.threading.Event", _PresetEvent)
 @patch("DatabaseRepositoryLayer.ExcelSyncRepository.watcher.Observer")

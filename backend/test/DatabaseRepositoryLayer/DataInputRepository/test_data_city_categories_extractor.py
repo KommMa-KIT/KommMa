@@ -6,9 +6,7 @@ from DatabaseRepositoryLayer.DataInputRepository.dataInputExtractor import DataC
 
 
 
-# ------------------------------------------------------------
-# Helpers
-# ------------------------------------------------------------
+# --- Helpers ---
 
 def raw_with_header_at(idx: int, header_cols: list[str], data_rows: list[dict]):
     """
@@ -37,9 +35,7 @@ def raw_with_header_at(idx: int, header_cols: list[str], data_rows: list[dict]):
     return df_raw, df
 
 
-# ------------------------------------------------------------
-# Basic helpers
-# ------------------------------------------------------------
+# --- Basic helpers ---
 
 def test_clean_key_camel_case():
     ex = DataCityCategoriesExtractor(directory_path=".")
@@ -71,9 +67,7 @@ def test_determine_input_type(input_type, selectable, expected):
     assert ex._determine_input_type(input_type, selectable) == expected
 
 
-# ------------------------------------------------------------
-# _build_input_object
-# ------------------------------------------------------------
+# --- _build_input_object ---
 
 def test_build_input_object_number_with_unit_and_mandatory():
     ex = DataCityCategoriesExtractor(directory_path=".")
@@ -130,9 +124,7 @@ def test_build_input_object_selection_parses_inline_if_missing_key():
     assert obj["selectable"] == ["A", "B"]
 
 
-# ------------------------------------------------------------
-# _extract_categories_from_file
-# ------------------------------------------------------------
+# --- _extract_categories_from_file ---
 
 def test_extract_categories_from_file_groups_by_theme_and_resolves_subinputs(monkeypatch, tmp_path):
     ex = DataCityCategoriesExtractor(directory_path=str(tmp_path), sheet_index=2)
@@ -236,9 +228,7 @@ def test_extract_categories_from_file_returns_empty_on_missing_sheet_index(monke
     assert ex._extract_categories_from_file(file) == {}
 
 
-# ------------------------------------------------------------
-# _merge_categories
-# ------------------------------------------------------------
+# --- _merge_categories ---
 
 def test_merge_categories_deduplicates_by_id_and_sorts():
     ex = DataCityCategoriesExtractor(directory_path=".")
@@ -255,9 +245,7 @@ def test_merge_categories_deduplicates_by_id_and_sorts():
     assert merged["Energie"][0]["id"] == "x"
 
 
-# ------------------------------------------------------------
-# _extract_categories_from_all_files
-# ------------------------------------------------------------
+# --- _extract_categories_from_all_files ---
 
 def test_extract_categories_from_all_files_filters_temp_files_and_merges(monkeypatch, tmp_path):
     ex = DataCityCategoriesExtractor(directory_path=str(tmp_path), sheet_index=2)

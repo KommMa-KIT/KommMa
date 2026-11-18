@@ -22,9 +22,7 @@ from Exceptions.Data_Set_Error import raise_data_set_error
 logger = logging.getLogger(__name__)
 
 
-# ============================================================
-# Robust text decoding (for TXT/ZIP contents)
-# ============================================================
+# --- Robust text decoding (for TXT/ZIP contents) ---
 def decode_bytes_robust(data: bytes, encodings: tuple[str, ...]) -> str:
     for enc in encodings:
         try:
@@ -41,9 +39,7 @@ def read_text_robust(path: Path, encodings: tuple[str, ...]) -> str:
     return decode_bytes_robust(path.read_bytes(), encodings)
 
 
-# ============================================================
-# Helpers
-# ============================================================
+# --- Helpers ---
 def normalize_station_id_5(station_id: int | str) -> str:
     return str(station_id).strip().zfill(C.NORMALIZED_STATION_ID_WIDTH)
 
@@ -92,9 +88,7 @@ def resolve_local_path(dwd_path: str) -> Path:
     return C.DWD_DIR / str(dwd_path).lstrip(C.DWD_AVERAGE_CREATOR_PATH_LSTRIP)
 
 
-# ============================================================
-# Station list: parsing + normalization
-# ============================================================
+# --- Station list: parsing + normalization ---
 def normalize_stations_df(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
     df.columns = [c.strip() for c in df.columns]
@@ -205,9 +199,7 @@ def filter_by_bundesland(df: pd.DataFrame, bundesland: str) -> pd.DataFrame:
     return df[bl == key].copy()
 
 
-# ============================================================
-# Daily reader (CSV/ZIP) – robust for local mirror
-# ============================================================
+# --- Daily reader (CSV/ZIP) – robust for local mirror ---
 def _normalize_daily_columns(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
     df.columns = [str(c).lstrip(C.DWD_AVERAGE_CREATOR_BOM).strip().upper() for c in df.columns]
@@ -290,9 +282,7 @@ def read_daily_kl_any_to_df(path: Path | None) -> pd.DataFrame | None:
     return read_daily_kl_csv_to_df(path)
 
 
-# ============================================================
-# File discovery
-# ============================================================
+# --- File discovery ---
 def build_hist_file_map(hist_dir: Path) -> dict[str, Path]:
     """
     Map station_id_5 -> historical file path.
@@ -341,9 +331,7 @@ def recent_file_path(recent_dir: Path, sid5: str) -> Path | None:
     return None
 
 
-# ============================================================
-# Main evaluation
-# ============================================================
+# --- Main evaluation ---
 def build_station_means_last_10y_df_local(
     bundesland: str = C.TARGET_BUNDESLAND,
 ) -> pd.DataFrame:

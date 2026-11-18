@@ -1,28 +1,30 @@
+"""
+EMail_Service.py
+
+Sends mails through Gmail's SMTP server. Used for admin notifications
+(e.g. from the custom exceptions).
+Author: Jonas Dorner (@OilersLD)
+
+Credentials are read from "login_data.env" in the project root:
+    GMAIL_USER="the_email_adresse"
+    GMAIL_APP_PASSWORD="the_app_password"
+Do not commit this file.
+"""
+
 import smtplib
 
 from email.message import EmailMessage
 from externalAPI.Constants import Constants as C
 
-"""
-This module provides functionality to send emails using Gmail's SMTP server. It defines a function `send_email` that takes the recipient's email address, subject, and body of the email as parameters. The function constructs an email message and sends it using the SMTP protocol.
-Author: Jonas Dorner (@OilersLD)
-
-Important Information: You need to create a .env file named "login_data.env" in the root of your project (3 levels up from this file) with the following content:
-    GMAIL_USER="the_email_adresse"
-    GMAIL_APP_PASSWORD="the_app_password"
-And don't commit this file
-"""
-
 def _to_text(x) -> str:
     """
-    Converts a value to a string representation, handling special cases like None, tuples, and lists.
+    Converts a value to a string. None becomes "", tuples and lists are joined.
     """
     if x is None:
         return ""
     if isinstance(x, str):
         return x
     if isinstance(x, (tuple, list)):
-        # join Strings sauber; alles andere sicher zu str()
         return "".join(item if isinstance(item, str) else str(item) for item in x)
     return str(x)
 

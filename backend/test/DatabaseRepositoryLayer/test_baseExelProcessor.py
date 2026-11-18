@@ -16,9 +16,7 @@ def proc():
     return BaseExcelProcessor(data_sheet_index=2)
 
 
-# ---------------------------
-# _read_cell_value
-# ---------------------------
+# --- _read_cell_value ---
 
 def test_read_cell_value_reads_correct_cell(proc):
     df = make_df()
@@ -37,9 +35,7 @@ def test_read_cell_value_out_of_bounds_returns_none(proc):
     assert proc._read_cell_value(df, "B100") is None
 
 
-# ---------------------------
-# _column_index_to_letter
-# ---------------------------
+# --- _column_index_to_letter ---
 
 @pytest.mark.parametrize(
     "idx, expected",
@@ -57,9 +53,7 @@ def test_column_index_to_letter(proc, idx, expected):
     assert proc._column_index_to_letter(idx) == expected
 
 
-# ---------------------------
-# _clean_key
-# ---------------------------
+# --- _clean_key ---
 
 @pytest.mark.parametrize(
     "raw, expected",
@@ -74,9 +68,7 @@ def test_clean_key(proc, raw, expected):
     assert proc._clean_key(raw) == expected
 
 
-# ---------------------------
-# _read_data_section
-# ---------------------------
+# --- _read_data_section ---
 
 def test_read_data_section_reads_until_empty(proc):
     df = make_df(nrows=20, ncols=10)
@@ -107,9 +99,7 @@ def test_read_data_section_stops_on_blank_string(proc):
     assert out == {"a": 6}
 
 
-# ---------------------------
-# _extract_id_and_name
-# ---------------------------
+# --- _extract_id_and_name ---
 
 def test_extract_id_and_name_reads_B2_B3(proc):
     df = make_df()
@@ -133,9 +123,7 @@ def test_extract_id_and_name_returns_none_if_missing(proc):
     assert proc._extract_id_and_name(df) == (None, None)
 
 
-# ---------------------------
-# _find_excel_files
-# ---------------------------
+# --- _find_excel_files ---
 
 def test_find_excel_files_filters_temp_files(proc, tmp_path: Path):
     (tmp_path / "A.xlsx").write_bytes(b"x")

@@ -1,160 +1,110 @@
 # KOMMMA Backend – Testing Guide
+
+This README explains the most reliable way to run backend tests.
+
+## Recommended: Run Tests with Docker
+
+Start the containers from the project root:
+
+```bash
 docker compose up -d
+```
+
+Then run the tests inside the backend container:
+
+```bash
 docker compose exec backend python -m pytest -q
+```
 
-🔹 Coverage (optional)
-pip install pytest-cov
-python -m pytest --cov=src
+The backend container uses Python 3.12, preventing discrepancies between local
+Python installations.
 
-📁      
-backend/
-│
-├── src/                     → Applikationscode
-│   ├── ApplicationLayer/
-│   ├── Exceptions/
-│   └── ...
-│
-├── test/                    → Unit Tests
-│   └── ApplicationLayer/
-│
-├── pytest.ini
-└── requirements.txt
+## Alternative: Run Tests Locally with a Virtual Environment
 
-⚠️ Wichtig: src-Struktur
+Use this option when Docker is unavailable. First, switch to the backend
+directory and create a virtual environment:
 
-Das Projekt verwendet eine src-Struktur.
-
-Das bedeutet:
-
-Import-Root ist der Ordner src
-
-Tests importieren ohne backend.src
-
-✅ Richtig
-from ApplicationLayer.api.APIRouter import router
-
-❌ Falsch
-from backend.src.ApplicationLayer.api...
-
-🧪 Lokales Testing mit venv
-1️⃣ In Backend-Ordner wechseln
+```bash
 cd backend
-
-2️⃣ Virtuelle Umgebung erstellen
 python3 -m venv .venv
-
-3️⃣ Aktivieren
 source .venv/bin/activate
+```
 
+Install the project and test dependencies:
 
-Wenn erfolgreich, sieht dein Prompt so aus:
-
-(.venv) ubuntu@project:...
-
-4️⃣ Dependencies installieren
+```bash
 pip install -r requirements.txt
-
-5️⃣ Test-Dependencies installieren
 pip install pytest httpx
+```
 
-6️⃣ pytest.ini prüfen
+Run the tests:
 
-Datei: backend/pytest.ini
+```bash
+python -m pytest -q
+```
 
+## Important: `src` Structure and Imports
+
+The backend uses a `src` structure. Therefore, the import root is
+`backend/src`, not the repository root.
+
+Correct:
+
+```python
+from ApplicationLayer.api.APIRouter import router
+```
+
+Incorrect:
+
+```python
+from backend.src.ApplicationLayer.api.APIRouter import router
+```
+
+The `backend/pytest.ini` file must define the import path and test directory:
+
+```ini
 [pytest]
 pythonpath = src
 testpaths = test
+```
 
-7️⃣ Tests ausführen
-python -m pytest -q
+## Common Errors
 
-🐳 Tests im Docker-Container (Empfohlen)
+### `ModuleNotFoundError: No module named 'ApplicationLayer'`
 
-Das Backend läuft in Docker mit Python 3.12.
-Diese Methode ist am stabilsten.
+**Cause:** The import path is not configured, or the tests are not being run
+from the `backend` directory.
 
-Container starten
-docker compose up -d
+**Solution:** Run the tests from `backend` and check `pytest.ini`. As a
+one-time alternative, set the import path explicitly:
 
-Tests ausführen
-docker compose exec backend python -m pytest -q
+```bash
+PYTHONPATH=src python -m pytest -q
+```
 
-Vorteile
+### `ModuleNotFoundError: No module named 'fastapi'`
 
-Gleiche Python-Version wie Produktion
+**Cause:** The Python dependencies are missing from the local environment.
 
-Keine lokalen Versionsprobleme
+**Solution:**
 
-Alle Dependencies vorhanden
-
-❗ Häufige Fehler & Lösungen
-❌ ModuleNotFoundError: No module named 'ApplicationLayer'
-
-Ursache:
-PYTHONPATH nicht korrekt gesetzt.
-
-Lösung:
-
-PYTHONPATH=src python -m pytest
-
-
-Oder pytest.ini prüfen.
-
-❌ ModuleNotFoundError: No module named 'fastapi'
-
-Ursache:
-Dependencies nicht installiert.
-
-Lösung:
-
+```bash
 pip install -r requirements.txt
+```
 
-❌ ResponseValidationError in Tests
+### `No module named pytest`
 
-Ursache:
-Fake-Daten passen nicht zum Pydantic ResponseModel.
+**Cause:** `pytest` is not installed in the active virtual environment.
 
-Lösung:
+**Solution:**
 
-Enum-Werte prüfen
-
-Listenstruktur prüfen
-
-Pflichtfelder ergänzen
-
-❌ No module named pytest
-
-Ursache:
-pytest nicht installiert.
-
-Lösung:
-
+```bash
 pip install pytest
+```
 
-📊 Testabdeckung (Optional)
-pip install pytest-cov
-python -m pytest --cov=src
+### `ResponseValidationError` in Tests
 
-🎯 Empfehlung für das PSE-Projekt
+**Cause:** The fake data does not match the expected Pydantic response model.
 
-Für das Team sollte gelten:
-
-pytest.ini im Repository behalten
-
-Tests regelmäßig ausführen
-
-Bevorzugt Tests im Docker-Container laufen lassen
-
-Optional CI-Pipeline verwenden (z. B. GitHub Actions / GitLab CI)
-
-✅ Ende des Testing Guides
-
----
-
-Wenn du willst, kann ich dir auch noch:
-
-- eine **professionellere Version mit Badges**
-- oder eine **CI-Ready Version mit GitHub Actions YAML**
-- oder eine **Version mit Makefile-Shortcuts (`make test`)**
-
-bauen 🚀
+**Solution:** Check enum values, list structures, and required fields in the
+response model. Add or correct the fake data until it matches the model.

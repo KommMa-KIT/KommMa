@@ -12,12 +12,12 @@ import NotFoundPage from './NotFoundPage';
 describe('NotFoundPage', () => {
   it('renders a 404 status code', () => {
     render(<NotFoundPage />);
-    expect(screen.getByText(/404/)).toBeDefined();
+    expect(screen.getByText(/404/)).toBeInTheDocument();
   });
 
   it('renders the "Seite konnte nicht gefunden werden" message', () => {
     render(<NotFoundPage />);
-    expect(screen.getByText(/Seite konnte nicht gefunden werden/)).toBeDefined();
+    expect(screen.getByText(/Seite konnte nicht gefunden werden/)).toBeInTheDocument();
   });
 
   it('renders the message as a heading', () => {

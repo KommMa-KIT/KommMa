@@ -7,9 +7,7 @@ import importlib
 import pytest
 
 
-# -------------------------
-# Fakes / Dummies
-# -------------------------
+# --- Fakes / Dummies ---
 
 class DummyObj:
     pass
@@ -37,9 +35,7 @@ def minimal_definition():
     }
 
 
-# -------------------------
-# IMPORTANT: stub modules BEFORE importing dependencies.dependencies
-# -------------------------
+# --- IMPORTANT: stub modules BEFORE importing dependencies.dependencies ---
 
 @pytest.fixture(scope="session")
 def deps_module():
@@ -73,9 +69,7 @@ def deps_module():
     return mod
 
 
-# -------------------------
-# Tests for Dependencies class
-# -------------------------
+# --- Tests for Dependencies class ---
 
 def test_getters_return_injected_instances(deps_module):
     Dependencies = deps_module.Dependencies
@@ -161,9 +155,7 @@ def test_calculation_service_is_cached_singleton(deps_module):
 #         deps.get_InputValidator()
 
 
-# -------------------------
-# Tests for build_dependencies without side effects
-# -------------------------
+# --- Tests for build_dependencies without side effects ---
 
 def test_build_dependencies_no_downloads_no_updates(deps_module, monkeypatch):
     build_dependencies = deps_module.build_dependencies
